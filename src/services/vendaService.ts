@@ -1,0 +1,207 @@
+import { supabase } from '../lib/supabase';
+import type { LancamentoVendaForm } from '../data/lancamentoVendasData';
+import {
+  formatCdc,
+  mesAnoFromDate,
+  normalizeEstado,
+  type BaseVenda,
+} from '../utils/vendasDomain';
+import { fetchClienteByCdc } from './clienteService';
+import { sendVendaWebhook } from './webhookService';
+
+export const VENDA_PAGE_SIZE = 15;
+
+export type VendaFilters = {
+  search?: string;
+  industria?: string;
+  mes?: string;
+  ano?: string;
+  estado?: string;
+  vendedor?: string;
+  page?: number;
+  pageSize?: number;
+};
+
+export type VendaListResult = {
+  data: BaseVenda[];
+  total: number;
+};
+
+function mapRow(row: Record<string, unknown>): BaseVenda {
+  return {
+    ...(row as unknown as BaseVenda),
+    valor: Number(row.valor),
+  };
+}
+
+function parseValor(value: string): number {
+  const normalized = value.replace(/\./g, '').replace(',', '.');
+  return Number(normalized) || 0;
+}
+
+export async function createVenda(form: LancamentoVendaForm): Promise<BaseVenda> {
+  const cdc = formatCdc(form.cdc);
+  const cliente = await fetchClienteByCdc(cdc);
+  if (!cliente) {
+    throw new Error(`Cliente com CDC ${cdc} não encontrado. Cadastre em Cadastro de Clientes.`);
+  }
+
+  const { mes, ano } = mesAnoFromDate(form.dataLancamento);
+  const valor = parseValor(form.valor);
+
+  const payload = {
+    data: form.dataLancamento,
+    cdc,
+    numero_pedido: form.pedido.trim(),
+    valor,
+    industria: form.industria,
+    categoria: form.categoria || null,
+    vendedor: form.vendedor,
+    cliente: cliente.nome_fantasia?.trim() || form.nomeFantasia.trim(),
+    cnpj: cliente.cnpj,
+    cidade: cliente.cidade,
+    estado: normalizeEstado(cliente.estado ?? form.estado),
+    mes,
+    ano,
+  };
+
+  const { data, error } = await supabase.from('baseVendas').insert([payload]).select('*').single();
+  if (error) throw new Error(error.message);
+
+  const venda = mapRow(data);
+  await sendVendaWebhook('venda_lancada', { venda });
+  return venda;
+}
+
+export async function fetchVendas(filters: VendaFilters = {}): Promise<VendaListResult> {
+  const page = filters.page ?? 1;
+  const pageSize = filters.pageSize ?? VENDA_PAGE_SIZE;
+  const from = (page - 1) * pageSize;
+  const to = from + pageSize - 1;
+
+  let query = supabase.from('baseVendas').select('*', { count: 'exact' }).order('data', { ascending: false });
+
+  if (filters.industria && filters.industria !== 'Todas') {
+    query = query.eq('industria', filters.industria);
+  }
+  if (filters.mes && filters.mes !== 'Todos') {
+    query = query.eq('mes', filters.mes);
+  }
+  if (filters.ano && filters.ano !== 'Todos') {
+    query = query.eq('ano', filters.ano);
+  }
+  if (filters.estado && filters.estado !== 'Todos') {
+    query = query.ilike('estado', filters.estado);
+  }
+  if (filters.vendedor && filters.vendedor !== 'Todos') {
+    query = query.eq('vendedor', filters.vendedor);
+  }
+  if (filters.search?.trim()) {
+    const term = `%${filters.search.trim()}%`;
+    query = query.or(
+      `cdc.ilike.${term},numero_pedido.ilike.${term},cliente.ilike.${term},industria.ilike.${term},vendedor.ilike.${term}`
+    );
+  }
+
+  const { data, error, count } = await query.range(from, to);
+  if (error) throw new Error(error.message);
+
+  return {
+    data: (data ?? []).map(mapRow),
+    total: count ?? 0,
+  };
+}
+
+export async function updateVenda(id: string, patch: Partial<BaseVenda>): Promise<BaseVenda> {
+  const { data, error } = await supabase.from('baseVendas').update(patch).eq('id', id).select('*').single();
+  if (error) throw new Error(error.message);
+  const venda = mapRow(data);
+  await sendVendaWebhook('venda_editada', { venda });
+  return venda;
+}
+
+export async function deleteVenda(id: string): Promise<void> {
+  const { data: existing } = await supabase.from('baseVendas').select('*').eq('id', id).maybeSingle();
+  const { error } = await supabase.from('baseVendas').delete().eq('id', id);
+  if (error) throw new Error(error.message);
+  if (existing) {
+    await sendVendaWebhook('venda_cancelada', { venda: mapRow(existing) });
+  }
+}
+
+export async function fetchAllVendas(): Promise<BaseVenda[]> {
+  const { data, error } = await supabase.from('baseVendas').select('*').order('data', { ascending: false });
+  if (error) throw new Error(error.message);
+  return (data ?? []).map(mapRow);
+}
+
+export async function fetchVendasFilterOptions() {
+  const { data, error } = await supabase.from('baseVendas').select('industria, mes, ano, estado, vendedor');
+  if (error) throw new Error(error.message);
+
+  const industrias = new Set<string>();
+  const meses = new Set<string>();
+  const anos = new Set<string>();
+  const estados = new Set<string>();
+  const vendedores = new Set<string>();
+
+  for (const row of data ?? []) {
+    if (row.industria) industrias.add(row.industria);
+    if (row.mes) meses.add(row.mes);
+    if (row.ano) anos.add(row.ano);
+    if (row.estado) estados.add(row.estado);
+    if (row.vendedor) vendedores.add(row.vendedor);
+  }
+
+  return {
+    industrias: ['Todas', ...Array.from(industrias).sort()],
+    meses: ['Todos', ...Array.from(meses).sort()],
+    anos: ['Todos', ...Array.from(anos).sort((a, b) => Number(b) - Number(a))],
+    estados: ['Todos', ...Array.from(estados).sort()],
+    vendedores: ['Todos', ...Array.from(vendedores).sort()],
+  };
+}
+
+export async function upsertVendasBatch(
+  rows: Array<{
+    data: string;
+    cdc: string;
+    numero_pedido: string;
+    valor: number;
+    industria: string;
+    categoria?: string;
+    vendedor: string;
+    cliente?: string;
+    cnpj?: string;
+    cidade?: string;
+    estado?: string;
+  }>
+): Promise<number> {
+  const payload = await Promise.all(
+    rows.map(async (row) => {
+      const cliente = await fetchClienteByCdc(row.cdc);
+      const { mes, ano } = mesAnoFromDate(row.data);
+      return {
+        data: row.data,
+        cdc: formatCdc(row.cdc),
+        numero_pedido: row.numero_pedido,
+        valor: row.valor,
+        industria: row.industria,
+        categoria: row.categoria || null,
+        vendedor: row.vendedor,
+        cliente: cliente?.nome_fantasia?.trim() || row.cliente || null,
+        cnpj: cliente?.cnpj || row.cnpj || null,
+        cidade: cliente?.cidade || row.cidade || null,
+        estado: normalizeEstado(cliente?.estado ?? row.estado ?? ''),
+        mes,
+        ano,
+      };
+    })
+  );
+
+  const { error } = await supabase.from('baseVendas').insert(payload);
+  if (error) throw new Error(error.message);
+  return payload.length;
+}
+
+export { parseValor };

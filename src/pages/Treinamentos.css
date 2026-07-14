@@ -1,0 +1,125 @@
+.treinamentos-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.treinamentos-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.treinamentos-list {
+  padding: 0;
+  overflow: hidden;
+}
+
+.treinamento-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 20px 24px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.treinamento-item:last-child {
+  border-bottom: none;
+}
+
+.treinamento-info h2 {
+  font-size: 1rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.treinamento-info p {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  max-width: 520px;
+}
+
+.treinamento-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--white);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.treinamento-action.pdf {
+  border: 1.5px solid #e69138;
+  color: #e69138;
+}
+
+.treinamento-action.video {
+  border: 1.5px solid #b71c1c;
+  color: #b71c1c;
+}
+
+.treinamento-action:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.treinamento-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.treinamentos-message {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.treinamentos-alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+}
+
+.treinamentos-alert.error {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+}
+
+.treinamentos-alert button {
+  border: none;
+  background: transparent;
+  color: #b91c1c;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .treinamentos-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .treinamento-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .treinamento-action {
+    width: 100%;
+    justify-content: center;
+  }
+}
