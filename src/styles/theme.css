@@ -1,0 +1,545 @@
+/**
+ * Modos de cor (claro / escuro).
+ * Claro é o padrão. Escuro: html[data-theme="dark"]
+ * Preferência persistida em localStorage (chave: fe_web_theme).
+ */
+
+:root {
+  color-scheme: light;
+
+  --coral: #ea6624;
+  --coral-dark: #d4551a;
+  --coral-soft: #fff0ea;
+  --coral-soft-strong: #ffe4d6;
+
+  --bg: #f4f5f7;
+  --white: #ffffff;
+  --surface: #ffffff;
+  --surface-2: #f9fafb;
+  --surface-3: #f3f4f6;
+  --surface-hover: #eef0f4;
+
+  --text: #1f1f1f;
+  --text-muted: #6b7280;
+  --text-on-coral: #ffffff;
+  --text-on-accent: #ffffff;
+
+  --border: #e5e7eb;
+  --border-strong: #d1d5db;
+
+  --sidebar-bg: #f8f9fb;
+  --topbar-bg: #ffffff;
+  --input-bg: #ffffff;
+  --input-placeholder: #9ca3af;
+
+  --blue-link: #2563eb;
+
+  --btn-primary-bg: #ea6624;
+  --btn-primary-bg-hover: #d4551a;
+  --btn-primary-text: #ffffff;
+
+  --btn-secondary-bg: #ffffff;
+  --btn-secondary-bg-hover: #f9fafb;
+  --btn-secondary-text: #1f1f1f;
+  --btn-secondary-border: #e5e7eb;
+
+  --btn-ghost-hover: #f3f4f6;
+  --btn-danger-text: #dc2626;
+  --btn-danger-bg-hover: #fef2f2;
+
+  --danger: #dc2626;
+  --danger-bg: #fef2f2;
+  --success: #16a34a;
+  --success-bg: #f0fdf4;
+  --warning: #d97706;
+  --warning-bg: #fff7ed;
+
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 8px 24px rgba(31, 31, 31, 0.08);
+
+  --radius: 14px;
+
+  --scrollbar-size: 10px;
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #cfd4dc;
+  --scrollbar-thumb-hover: #b0b7c3;
+}
+
+html[data-theme='dark'] {
+  color-scheme: dark;
+
+  --coral: #f07838;
+  --coral-dark: #ea6624;
+  --coral-soft: #3a2418;
+  --coral-soft-strong: #4a2c1c;
+
+  --bg: #0f1115;
+  /* No escuro, --white vira superfície (muitos CSS usam background: var(--white)) */
+  --white: #1a1d24;
+  --surface: #1a1d24;
+  --surface-2: #22262f;
+  --surface-3: #2a2f3a;
+  --surface-hover: #323845;
+
+  --text: #f3f4f6;
+  --text-muted: #a1a8b3;
+  --text-on-coral: #ffffff;
+  --text-on-accent: #ffffff;
+
+  --border: #2e3440;
+  --border-strong: #3d4452;
+
+  --sidebar-bg: #14171d;
+  --topbar-bg: #1a1d24;
+  --input-bg: #22262f;
+  --input-placeholder: #7b8494;
+
+  --blue-link: #60a5fa;
+
+  --btn-primary-bg: #ea6624;
+  --btn-primary-bg-hover: #f07838;
+  --btn-primary-text: #ffffff;
+
+  --btn-secondary-bg: #22262f;
+  --btn-secondary-bg-hover: #2a2f3a;
+  --btn-secondary-text: #f3f4f6;
+  --btn-secondary-border: #3d4452;
+
+  --btn-ghost-hover: #2a2f3a;
+  --btn-danger-text: #f87171;
+  --btn-danger-bg-hover: #3a1f24;
+
+  --danger: #f87171;
+  --danger-bg: #3a1f24;
+  --success: #4ade80;
+  --success-bg: #14301f;
+  --warning: #fbbf24;
+  --warning-bg: #3a2e14;
+
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.45);
+  --shadow-lg: 0 8px 28px rgba(0, 0, 0, 0.45);
+
+  --scrollbar-track: transparent;
+  --scrollbar-thumb: #3d4452;
+  --scrollbar-thumb-hover: #5a6272;
+}
+
+/* ——— Scrollbars (claro / escuro) ——— */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+*::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+  height: var(--scrollbar-size);
+}
+
+*::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+.sidebar::-webkit-scrollbar,
+.main-area::-webkit-scrollbar {
+  width: 8px;
+}
+
+/* ——— Base tipografia / fundo ——— */
+html {
+  color: var(--text);
+  background: var(--bg);
+}
+
+body {
+  color: var(--text);
+  background: var(--bg);
+}
+
+/* ——— Controles: contraste em ambos os modos ——— */
+button,
+.btn,
+[type='button'],
+[type='submit'],
+[type='reset'] {
+  color: inherit;
+}
+
+input,
+select,
+textarea {
+  color: var(--text);
+  background-color: var(--input-bg);
+  border-color: var(--border);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--input-placeholder);
+}
+
+a {
+  color: inherit;
+}
+
+/* Botões primários (coral) — texto sempre legível */
+.portal-card-cta,
+.btn-primary,
+button.primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+.portal-card-cta:hover,
+.btn-primary:hover,
+button.primary:hover {
+  background: var(--btn-primary-bg-hover);
+  color: var(--btn-primary-text);
+}
+
+/* Sidebar ativo: texto branco sobre coral */
+.sidebar-item.active {
+  color: var(--text-on-coral);
+}
+
+/* Superfícies comuns hardcoded → tokens no escuro */
+html[data-theme='dark'] .topbar-search,
+html[data-theme='dark'] .home-atividades-kpi,
+html[data-theme='dark'] .portal-badge {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+html[data-theme='dark'] .icon-btn:hover,
+html[data-theme='dark'] .profile-btn:hover,
+html[data-theme='dark'] .sidebar-item:hover:not(.active) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+html[data-theme='dark'] .profile-photo-btn,
+html[data-theme='dark'] .profile-logout {
+  background: var(--btn-secondary-bg);
+  border-color: var(--btn-secondary-border);
+  color: var(--btn-secondary-text);
+}
+
+html[data-theme='dark'] .profile-logout {
+  color: var(--btn-danger-text);
+}
+
+html[data-theme='dark'] .profile-photo-btn:hover:not(:disabled),
+html[data-theme='dark'] .profile-logout:hover {
+  background: var(--btn-secondary-bg-hover);
+}
+
+html[data-theme='dark'] .profile-photo-remove:hover:not(:disabled) {
+  color: var(--btn-danger-text);
+  background: var(--btn-danger-bg-hover);
+}
+
+html[data-theme='dark'] .empty-icon,
+html[data-theme='dark'] .portal-card-icon,
+html[data-theme='dark'] .back-to-portal {
+  background: var(--coral-soft);
+  color: var(--coral);
+}
+
+/* Cards admin: ícones legíveis no escuro */
+html[data-theme='dark'] .admin-card--blue .admin-card-icon {
+  background: #1e2a44;
+  color: #93c5fd;
+}
+html[data-theme='dark'] .admin-card--violet .admin-card-icon {
+  background: #2a2244;
+  color: #c4b5fd;
+}
+html[data-theme='dark'] .admin-card--sky .admin-card-icon {
+  background: #1a2f3d;
+  color: #7dd3fc;
+}
+html[data-theme='dark'] .admin-card--green .admin-card-icon {
+  background: #1a3228;
+  color: #6ee7b7;
+}
+html[data-theme='dark'] .admin-card--orange .admin-card-icon {
+  background: #3a2418;
+  color: #fdba74;
+}
+html[data-theme='dark'] .admin-card--rose .admin-card-icon {
+  background: #3a1f28;
+  color: #fda4af;
+}
+html[data-theme='dark'] .admin-card--indigo .admin-card-icon {
+  background: #222444;
+  color: #a5b4fc;
+}
+html[data-theme='dark'] .admin-card--teal .admin-card-icon {
+  background: #1a3230;
+  color: #5eead4;
+}
+html[data-theme='dark'] .admin-card--lime .admin-card-icon {
+  background: #1a3220;
+  color: #86efac;
+}
+
+/* Tabelas / filtros / chips claros recorrentes */
+html[data-theme='dark'] .card,
+html[data-theme='dark'] .portal-card,
+html[data-theme='dark'] .admin-card,
+html[data-theme='dark'] .profile-dropdown {
+  background: var(--surface);
+  border-color: var(--border);
+  box-shadow: var(--shadow);
+}
+
+html[data-theme='dark'] input[type='search'],
+html[data-theme='dark'] input[type='text'],
+html[data-theme='dark'] input[type='password'],
+html[data-theme='dark'] input[type='email'],
+html[data-theme='dark'] input[type='number'],
+html[data-theme='dark'] input[type='date'],
+html[data-theme='dark'] select,
+html[data-theme='dark'] textarea {
+  background: var(--input-bg);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+/* Superfícies que ainda usam --white como fundo de card */
+html[data-theme='dark'] .fin-search,
+html[data-theme='dark'] .fin-modal,
+html[data-theme='dark'] .fin-kanban-card,
+html[data-theme='dark'] .fin-tabs button.active,
+html[data-theme='dark'] .vendas-module-tabs,
+html[data-theme='dark'] .module-tabs {
+  background: var(--surface);
+  color: var(--text);
+}
+
+html[data-theme='dark'] .fin-btn-outline {
+  background: var(--surface);
+  color: var(--coral);
+}
+
+html[data-theme='dark'] .fin-btn-outline:hover {
+  background: var(--coral-soft);
+}
+
+html[data-theme='dark'] .fin-kpi-icon.soft-coral,
+html[data-theme='dark'] .fin-title-icon {
+  background: var(--coral-soft);
+  color: var(--coral);
+}
+
+html[data-theme='dark'] .fin-table th {
+  background: var(--surface-2);
+  color: var(--text-muted);
+}
+
+html[data-theme='dark'] .fin-row-actions button {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+html[data-theme='dark'] .fin-kanban-col {
+  background: var(--surface-2);
+}
+
+html[data-theme='dark'] .fin-status.ativo {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+html[data-theme='dark'] .fin-status.rascunho {
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+
+html[data-theme='dark'] .fin-status.encerrado {
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+
+html[data-theme='dark'] .fin-status.cancelado {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+/* Login */
+html[data-theme='dark'] .login-page {
+  background: var(--bg);
+  color: var(--text);
+}
+
+html[data-theme='dark'] .login-visual {
+  background: var(--surface-2);
+}
+
+html[data-theme='dark'] .login-heading,
+html[data-theme='dark'] .login-subtitle,
+html[data-theme='dark'] .login-field label,
+html[data-theme='dark'] .login-remember,
+html[data-theme='dark'] .login-forgot,
+html[data-theme='dark'] .login-verse-ref,
+html[data-theme='dark'] .login-verse-text {
+  color: var(--text);
+}
+
+html[data-theme='dark'] .login-subtitle,
+html[data-theme='dark'] .login-forgot,
+html[data-theme='dark'] .login-verse-text {
+  color: var(--text-muted);
+}
+
+html[data-theme='dark'] .login-submit {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+html[data-theme='dark'] .login-field input {
+  background: var(--input-bg);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+/*
+ * Hover claro (#f3f4f6 / #f9fafb / #fff) + texto claro = ilegível no escuro.
+ * Força fundo escuro e texto legível em botões/tabs secundários.
+ */
+html[data-theme='dark'] .atividades-tab:hover:not(.active),
+html[data-theme='dark'] .atividades-action-btn:hover,
+html[data-theme='dark'] .vendas-module-tab:hover:not(.active),
+html[data-theme='dark'] .action-btn:hover:not(.danger),
+html[data-theme='dark'] .page-btn:hover:not(:disabled),
+html[data-theme='dark'] .base-vendas-btn.outline:hover,
+html[data-theme='dark'] .clientes-btn.outline:hover,
+html[data-theme='dark'] .lancamento-btn.outline:hover,
+html[data-theme='dark'] .projecao-btn-outline:hover,
+html[data-theme='dark'] .atividade-btn-outline:hover,
+html[data-theme='dark'] .colab-btn-outline:hover,
+html[data-theme='dark'] .colab-delete-close:hover,
+html[data-theme='dark'] .atividade-confirm-close:hover,
+html[data-theme='dark'] .fin-row-actions button:hover:not(.danger),
+html[data-theme='dark'] .treinamento-action:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+html[data-theme='dark'] .action-btn.danger:hover,
+html[data-theme='dark'] .fin-row-actions button.danger:hover,
+html[data-theme='dark'] .atividades-action-btn.danger:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+html[data-theme='dark'] .clientes-btn.soft:hover,
+html[data-theme='dark'] .lancamento-btn.soft:hover,
+html[data-theme='dark'] .cd-back:hover,
+html[data-theme='dark'] .add-task-btn:hover,
+html[data-theme='dark'] .colab-generate-btn:hover,
+html[data-theme='dark'] .atividades-period-clear:hover {
+  background: var(--coral-soft);
+  color: var(--coral);
+}
+
+/* Tabelas: cabeçalho / linhas / hover sem fundo branco */
+html[data-theme='dark'] .base-vendas-table,
+html[data-theme='dark'] .colaboradores-table,
+html[data-theme='dark'] .fin-table,
+html[data-theme='dark'] .relatorios-table,
+html[data-theme='dark'] .comissao-table,
+html[data-theme='dark'] .projecao-table {
+  background: var(--surface);
+  color: var(--text);
+}
+
+html[data-theme='dark'] .base-vendas-table thead tr,
+html[data-theme='dark'] .colaboradores-table thead tr,
+html[data-theme='dark'] .fin-table thead tr,
+html[data-theme='dark'] .relatorios-table thead tr,
+html[data-theme='dark'] .comissao-table thead tr,
+html[data-theme='dark'] .projecao-table thead tr {
+  background: var(--surface-2);
+}
+
+html[data-theme='dark'] .base-vendas-table th,
+html[data-theme='dark'] .colaboradores-table th,
+html[data-theme='dark'] .fin-table th,
+html[data-theme='dark'] .relatorios-table th,
+html[data-theme='dark'] .comissao-table th,
+html[data-theme='dark'] .projecao-table th {
+  color: var(--text-muted);
+  border-color: var(--border);
+  background: var(--surface-2);
+}
+
+html[data-theme='dark'] .base-vendas-table td,
+html[data-theme='dark'] .colaboradores-table td,
+html[data-theme='dark'] .fin-table td,
+html[data-theme='dark'] .relatorios-table td,
+html[data-theme='dark'] .comissao-table td,
+html[data-theme='dark'] .projecao-table td {
+  color: var(--text);
+  border-color: var(--border);
+  background: transparent;
+}
+
+html[data-theme='dark'] .base-vendas-table tbody tr,
+html[data-theme='dark'] .colaboradores-table tbody tr,
+html[data-theme='dark'] .fin-table tbody tr,
+html[data-theme='dark'] .relatorios-table tbody tr,
+html[data-theme='dark'] .comissao-table tbody tr,
+html[data-theme='dark'] .projecao-table tbody tr {
+  background: var(--surface);
+}
+
+html[data-theme='dark'] .base-vendas-table tbody tr:hover,
+html[data-theme='dark'] .colaboradores-table tbody tr:hover,
+html[data-theme='dark'] .fin-table tbody tr:hover,
+html[data-theme='dark'] .relatorios-table tbody tr:hover,
+html[data-theme='dark'] .comissao-table tbody tr:hover,
+html[data-theme='dark'] .projecao-table tbody tr:hover:not(.total-row) {
+  background: var(--surface-hover);
+}
+
+html[data-theme='dark'] .base-vendas-table tbody tr:hover td,
+html[data-theme='dark'] .colaboradores-table tbody tr:hover td {
+  color: var(--text);
+}
+
+html[data-theme='dark'] .colaboradores-table tbody tr.selected {
+  background: var(--coral-soft);
+}
+
+html[data-theme='dark'] .base-vendas-search input,
+html[data-theme='dark'] .base-vendas-filters select,
+html[data-theme='dark'] .atividades-period-filter {
+  background: var(--surface-2);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+html[data-theme='dark'] .base-vendas-card-top h2,
+html[data-theme='dark'] .base-vendas-card {
+  color: var(--text);
+}

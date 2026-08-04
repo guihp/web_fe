@@ -1,0 +1,262 @@
+.colab-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.colab-modal {
+  background: #f3f4f6;
+  border-radius: 16px;
+  padding: 28px 32px 32px;
+  width: 100%;
+  max-width: 560px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+}
+
+.colab-modal.view-modal {
+  max-width: 620px;
+}
+
+.colab-modal-header h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 6px;
+}
+
+.colab-modal-header p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 22px;
+}
+
+.colab-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.colab-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.colab-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.colab-field.full {
+  width: 100%;
+}
+
+.colab-field span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.colab-field input,
+.colab-select-wrap select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #f0b89a;
+  border-radius: 10px;
+  background: #fafafa;
+  font-size: 0.88rem;
+  color: var(--text);
+  outline: none;
+}
+
+.colab-field input:focus,
+.colab-select-wrap select:focus {
+  border-color: var(--coral);
+  background: var(--white);
+}
+
+.colab-field input:read-only {
+  cursor: default;
+  color: #374151;
+}
+
+.colab-select-wrap {
+  position: relative;
+}
+
+.colab-select-wrap select {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 36px;
+}
+
+.colab-select-wrap::after {
+  content: '▾';
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.colab-password-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.colab-password-wrap input {
+  flex: 1;
+}
+
+.colab-password-wrap input::placeholder {
+  font-size: 0.78rem;
+}
+
+.colab-generate-btn {
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid #f0b89a;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--coral);
+  font-size: 1.1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.colab-generate-btn:hover {
+  background: #fff5f0;
+}
+
+.colab-form-error {
+  margin-top: 4px;
+  font-size: 0.82rem;
+  color: #b91c1c;
+}
+
+.colab-modal-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.colab-btn-save,
+.colab-btn-cancel {
+  padding: 14px 18px;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-on-accent);
+  cursor: pointer;
+}
+
+.colab-btn-save {
+  background: #1b5e20;
+}
+
+.colab-btn-save:hover:not(:disabled) {
+  background: #145218;
+}
+
+.colab-btn-cancel {
+  background: #b71c1c;
+}
+
+.colab-btn-cancel:hover:not(:disabled) {
+  background: #8e0000;
+}
+
+.colab-btn-save:disabled,
+.colab-btn-cancel:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.colab-btn-outline {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  margin: 24px auto 0;
+  padding: 12px 18px;
+  border: 2px solid #2563eb;
+  border-radius: 10px;
+  background: var(--white);
+  color: #2563eb;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.colab-btn-outline:hover {
+  background: #eff6ff;
+}
+
+.colab-modal.delete-modal {
+  max-width: 480px;
+}
+
+.colab-delete-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.colab-delete-header h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.colab-delete-close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.colab-delete-close:hover {
+  background: #f3f4f6;
+}
+
+.colab-delete-message {
+  font-size: 0.9rem;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.colab-delete-user {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+@media (max-width: 640px) {
+  .colab-modal {
+    padding: 22px 20px 24px;
+  }
+
+  .colab-row,
+  .colab-modal-actions {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,78 @@
+.vendas-module {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.vendas-module-body {
+  display: flex;
+  gap: 20px;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.vendas-module-tabs {
+  flex: 0 0 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 12px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  position: sticky;
+  top: 0;
+}
+
+.vendas-module-tab {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.vendas-module-tab:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.vendas-module-tab.active {
+  background: var(--coral);
+  color: var(--text-on-accent);
+  font-weight: 600;
+}
+
+.vendas-module-tab-icon {
+  font-size: 1.05rem;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.vendas-module-content {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 960px) {
+  .vendas-module-body {
+    flex-direction: column;
+  }
+
+  .vendas-module-tabs {
+    flex: none;
+    width: 100%;
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .vendas-module-tab {
+    flex: 1 1 auto;
+  }
+}

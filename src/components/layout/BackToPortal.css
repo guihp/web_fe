@@ -1,0 +1,21 @@
+.back-to-portal {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  padding: 8px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.875rem;
+  font-weight: 600;
+  box-shadow: var(--shadow);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.back-to-portal:hover {
+  background: var(--coral-soft);
+  border-color: var(--coral);
+  color: var(--coral-dark);
+}
