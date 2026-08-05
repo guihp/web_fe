@@ -8,6 +8,7 @@ export const CLIENTE_PAGE_SIZE = 15;
 export type ClienteFilters = {
   search?: string;
   estado?: string;
+  status?: string;
   page?: number;
   pageSize?: number;
 };
@@ -31,6 +32,10 @@ export async function fetchClientes(filters: ClienteFilters = {}): Promise<Clien
 
   if (filters.estado && filters.estado !== 'Todos') {
     query = query.ilike('estado', filters.estado);
+  }
+
+  if (filters.status && filters.status !== 'Todos') {
+    query = query.eq('status', filters.status);
   }
 
   if (filters.search?.trim()) {
@@ -64,6 +69,7 @@ export async function createCliente(form: ClienteForm): Promise<BaseCliente> {
     razao_social: form.razaoSocial.trim(),
     cidade: form.cidade.trim() || null,
     estado: normalizeEstado(form.estado),
+    status: 'Ativo',
   };
 
   const { data, error } = await supabase.from('baseCliente').insert([payload]).select('*').single();
@@ -91,6 +97,20 @@ export async function deleteCliente(id: string): Promise<void> {
   if (error) throw new Error(error.message);
 }
 
+export async function setClienteStatus(
+  id: string,
+  status: 'Ativo' | 'Inativo',
+): Promise<BaseCliente> {
+  const { data, error } = await supabase
+    .from('baseCliente')
+    .update({ status })
+    .eq('id', id)
+    .select('*')
+    .single();
+  if (error) throw new Error(error.message);
+  return mapRow(data);
+}
+
 export async function fetchAllClientes(): Promise<BaseCliente[]> {
   const { data, error } = await supabase.from('baseCliente').select('*').order('nome_fantasia');
   if (error) throw new Error(error.message);
@@ -105,6 +125,7 @@ export async function upsertClientesBatch(rows: ClienteForm[]): Promise<number> 
     razao_social: form.razaoSocial.trim(),
     cidade: form.cidade.trim() || null,
     estado: normalizeEstado(form.estado),
+    status: 'Ativo',
   }));
 
   const { error } = await supabase.from('baseCliente').upsert(payload, { onConflict: 'cdc' });

@@ -17,6 +17,11 @@ import Comissao from './pages/Comissao';
 import Atividades from './pages/Atividades';
 import Financeiro from './pages/Financeiro';
 import Administrador from './pages/Administrador';
+import AdminClientes from './pages/admin/AdminClientes';
+import AdminFiliais from './pages/admin/AdminFiliais';
+import AdminIndustrias from './pages/admin/AdminIndustrias';
+import AdminMetas from './pages/admin/AdminMetas';
+import AdminRegionais from './pages/admin/AdminRegionais';
 import AdminSectionPlaceholder from './pages/AdminSectionPlaceholder';
 
 export default function App() {
@@ -34,6 +39,11 @@ export default function App() {
           <Route path="/treinamento" element={<Treinamentos />} />
           <Route path="/financeiro" element={<Financeiro />} />
           <Route path="/administrador" element={<Administrador />} />
+          <Route path="/administrador/filiais" element={<AdminFiliais />} />
+          <Route path="/administrador/regionais" element={<AdminRegionais />} />
+          <Route path="/administrador/industrias" element={<AdminIndustrias />} />
+          <Route path="/administrador/clientes" element={<AdminClientes />} />
+          <Route path="/administrador/metas" element={<AdminMetas />} />
           <Route path="/administrador/:section" element={<AdminSectionPlaceholder />} />
 
           <Route element={<VendasModuleLayout />}>

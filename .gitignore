@@ -22,3 +22,4 @@ yarn-error.*
 
 # temp media / extracted frames
 assets/lojas-frames/
+assets/metas-frames/

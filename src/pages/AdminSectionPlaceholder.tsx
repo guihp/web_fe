@@ -1,4 +1,9 @@
 import { Link, Navigate, useParams } from 'react-router-dom';
+import AdminClientes from './admin/AdminClientes';
+import AdminFiliais from './admin/AdminFiliais';
+import AdminIndustrias from './admin/AdminIndustrias';
+import AdminMetas from './admin/AdminMetas';
+import AdminRegionais from './admin/AdminRegionais';
 import './Administrador.css';
 
 const SECTION_TITLES: Record<string, string> = {
@@ -15,6 +20,27 @@ const SECTION_TITLES: Record<string, string> = {
 
 export default function AdminSectionPlaceholder() {
   const { section } = useParams<{ section: string }>();
+
+  if (section === 'filiais') {
+    return <AdminFiliais />;
+  }
+
+  if (section === 'regionais') {
+    return <AdminRegionais />;
+  }
+
+  if (section === 'industrias') {
+    return <AdminIndustrias />;
+  }
+
+  if (section === 'clientes') {
+    return <AdminClientes />;
+  }
+
+  if (section === 'metas') {
+    return <AdminMetas />;
+  }
+
   const title = section ? SECTION_TITLES[section] : undefined;
 
   if (!title) {

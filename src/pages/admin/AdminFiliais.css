@@ -1,0 +1,437 @@
+.filiais-page {
+  max-width: 1200px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 32px;
+}
+
+.filiais-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.filiais-header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.filiais-btn-primary,
+.filiais-btn-outline {
+  min-height: 42px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.filiais-btn-primary {
+  border: none;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+.filiais-btn-primary:hover:not(:disabled) {
+  background: var(--btn-primary-bg-hover);
+}
+
+.filiais-btn-outline {
+  border: 1.5px solid var(--coral);
+  background: var(--surface);
+  color: var(--coral);
+}
+
+.filiais-btn-outline:hover:not(:disabled) {
+  background: var(--coral-soft);
+}
+
+.filiais-btn-primary:disabled,
+.filiais-btn-outline:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.filiais-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.filiais-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 18px 18px 14px;
+}
+
+.filiais-search {
+  flex: 1 1 280px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+}
+
+.filiais-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.9rem;
+  padding: 10px 0;
+}
+
+.filiais-search input::placeholder {
+  color: var(--input-placeholder);
+}
+
+.filiais-regional-filter {
+  min-height: 42px;
+  min-width: 220px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.85rem;
+  outline: none;
+}
+
+.filiais-table-wrap {
+  overflow-x: auto;
+}
+
+.filiais-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.filiais-table th {
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.filiais-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+.filiais-table tbody tr {
+  background: var(--surface);
+}
+
+.filiais-table tbody tr:hover {
+  background: var(--surface-2);
+}
+
+.filiais-nome {
+  font-weight: 600;
+  max-width: 320px;
+}
+
+.filiais-regional-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.filiais-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--coral);
+  color: var(--text-on-accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.filiais-status.inativo {
+  background: var(--surface-3);
+  color: var(--text-muted);
+}
+
+.filiais-row-menu {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.filiais-row-menu:hover,
+.filiais-row-menu[aria-expanded='true'] {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.filiais-actions-cell {
+  width: 48px;
+  text-align: right;
+}
+
+.filiais-menu-wrap {
+  position: relative;
+  display: inline-flex;
+  justify-content: flex-end;
+}
+
+.filiais-row-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 0;
+  z-index: 20;
+  min-width: 150px;
+  padding: 6px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.filiais-row-dropdown button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.88rem;
+  font-weight: 500;
+  cursor: pointer;
+  text-align: left;
+}
+
+.filiais-row-dropdown button:hover {
+  background: var(--surface-2);
+}
+
+.filiais-row-dropdown button.danger {
+  color: var(--danger);
+}
+
+.filiais-row-dropdown button.danger:hover {
+  background: var(--danger-bg);
+}
+
+.filiais-btn-danger {
+  min-height: 42px;
+  padding: 0 16px;
+  border: none;
+  border-radius: 10px;
+  background: #ef4444;
+  color: var(--text-on-accent);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.filiais-btn-danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.filiais-btn-danger:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+.filiais-confirm-modal .filiais-modal-header p {
+  line-height: 1.5;
+}
+
+.filiais-confirm-modal .filiais-modal-header strong {
+  color: var(--text);
+}
+
+.filiais-empty {
+  padding: 40px 22px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.filiais-error-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin: 0 18px 14px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  color: var(--danger);
+  font-size: 0.88rem;
+}
+
+/* Modal */
+.filiais-modal.colab-modal,
+.colab-modal.filiais-modal {
+  background: var(--surface);
+  color: var(--text);
+  max-width: 560px;
+  padding: 24px 26px 22px;
+}
+
+.filiais-modal-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.filiais-modal-header h2 {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.filiais-modal-header p {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.filiais-modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.95rem;
+}
+
+.filiais-modal-close:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.filiais-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.filiais-form-row {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr;
+  gap: 12px;
+}
+
+.filiais-form-row.cidade-estado {
+  grid-template-columns: 1.5fr 0.7fr;
+}
+
+.filiais-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.filiais-field.full {
+  width: 100%;
+}
+
+.filiais-field span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.filiais-field em {
+  color: var(--coral);
+  font-style: normal;
+}
+
+.filiais-field input,
+.filiais-field select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--input-bg);
+  color: var(--text);
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.filiais-field input:focus,
+.filiais-field select:focus {
+  border-color: var(--coral);
+}
+
+.filiais-field input::placeholder {
+  color: var(--input-placeholder);
+}
+
+.filiais-form-error {
+  font-size: 0.85rem;
+  color: var(--danger);
+  background: var(--danger-bg);
+  border: 1px solid var(--danger);
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.filiais-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+@media (max-width: 720px) {
+  .filiais-form-row,
+  .filiais-form-row.cidade-estado {
+    grid-template-columns: 1fr;
+  }
+
+  .filiais-header-actions {
+    width: 100%;
+  }
+
+  .filiais-btn-primary,
+  .filiais-btn-outline {
+    flex: 1;
+    justify-content: center;
+  }
+}

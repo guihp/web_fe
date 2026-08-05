@@ -67,6 +67,7 @@ export type BaseCliente = {
   razao_social: string | null;
   cidade: string | null;
   estado: string | null;
+  status: string | null;
   created_at: string;
 };
 

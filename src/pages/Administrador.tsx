@@ -167,7 +167,7 @@ const ADMIN_MODULES: AdminModule[] = [
   {
     id: 'metas',
     title: 'Metas',
-    description: 'Cadastre metas por regional, indústria ou vendedor',
+    description: 'Defina metas anuais e mensais por indústria e região',
     path: '/administrador/metas',
     tone: 'lime',
     icon: <IconTarget />,
