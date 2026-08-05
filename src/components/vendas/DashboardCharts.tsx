@@ -140,10 +140,15 @@ type KpiCardViewProps = {
 };
 
 export function KpiCardView({ title, realizado, meta, percentLabel, icon }: KpiCardViewProps) {
-  const pct = meta > 0 ? Math.min((realizado / meta) * 100, 100) : 0;
+  const pctRaw = meta > 0 ? (realizado / meta) * 100 : 0;
+  const pctBar = Math.min(pctRaw, 100);
+  const alcançada = meta > 0 && realizado >= meta;
+  const statusLabel = alcançada
+    ? `Meta Alcançada! ${pctRaw.toFixed(2).replace('.', ',')}%`
+    : percentLabel;
 
   return (
-    <article className="vendas-kpi card">
+    <article className={`vendas-kpi card${alcançada ? ' alcançada' : ''}`}>
       <div className="vendas-kpi-top">
         <span className="vendas-kpi-title">{title}</span>
         <span className="vendas-kpi-icon">{icon === 'target' ? <TargetIcon /> : <TrendIcon />}</span>
@@ -151,9 +156,9 @@ export function KpiCardView({ title, realizado, meta, percentLabel, icon }: KpiC
       <p className="vendas-kpi-value">{formatBRL(realizado)}</p>
       <p className="vendas-kpi-meta">Meta: {formatBRL(meta)}</p>
       <div className="vendas-kpi-bar">
-        <div className="vendas-kpi-bar-fill" style={{ width: `${pct}%` }} />
+        <div className="vendas-kpi-bar-fill" style={{ width: `${pctBar}%` }} />
       </div>
-      <p className="vendas-kpi-percent">{percentLabel}</p>
+      <p className="vendas-kpi-percent">{statusLabel}</p>
     </article>
   );
 }

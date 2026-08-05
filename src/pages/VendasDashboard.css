@@ -44,14 +44,41 @@
   border-color: var(--coral);
 }
 
+.vendas-kpi-block {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vendas-kpi-heading {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0;
+}
+
 .vendas-kpi-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 16px;
+}
+
+@media (max-width: 1100px) {
+  .vendas-kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 720px) {
+  .vendas-kpi-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .vendas-kpi {
   padding: 20px 22px;
+  border: 1.5px solid transparent;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .vendas-kpi-top {
@@ -86,7 +113,7 @@
 
 .vendas-kpi-bar {
   height: 8px;
-  background: #fde8df;
+  background: var(--coral-soft);
   border-radius: 999px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -96,12 +123,33 @@
   height: 100%;
   background: var(--coral);
   border-radius: 999px;
+  transition: width 0.3s ease, background 0.2s ease;
 }
 
 .vendas-kpi-percent {
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--coral);
+}
+
+.vendas-kpi.alcançada {
+  border-color: var(--success);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--success) 25%, transparent);
+}
+
+.vendas-kpi.alcançada .vendas-kpi-icon,
+.vendas-kpi.alcançada .vendas-kpi-value,
+.vendas-kpi.alcançada .vendas-kpi-percent {
+  color: var(--success);
+}
+
+.vendas-kpi.alcançada .vendas-kpi-bar {
+  background: var(--success-bg);
+}
+
+.vendas-kpi.alcançada .vendas-kpi-bar-fill {
+  background: var(--success);
+  width: 100% !important;
 }
 
 .vendas-section {
@@ -318,7 +366,6 @@
 }
 
 @media (max-width: 1100px) {
-  .vendas-kpi-grid,
   .vendas-compare-grid,
   .vendas-charts-grid,
   .vendas-monthly-grid {

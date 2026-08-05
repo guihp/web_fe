@@ -125,7 +125,12 @@ export default function BaseDadosVendas() {
     try {
       const all = await fetchAllVendas();
       exportVendasXlsx(all);
-      showToast('Exportação concluída.', 'success');
+      showToast(
+        all.length === 0
+          ? 'Planilha exportada (somente cabeçalhos — não há vendas).'
+          : `${all.length} vendas exportadas.`,
+        'success',
+      );
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Erro na exportação.', 'error');
     }
@@ -139,6 +144,15 @@ export default function BaseDadosVendas() {
       loadVendas();
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Erro na importação.', 'error');
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    try {
+      downloadVendaTemplate();
+      showToast('Modelo baixado. Preencha e use Importar Excel.', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Erro ao baixar modelo.', 'error');
     }
   };
 
@@ -156,7 +170,7 @@ export default function BaseDadosVendas() {
             <button type="button" className="base-vendas-btn outline" onClick={handleExport}>
               <span>⬇</span> Exportar Dados
             </button>
-            <button type="button" className="base-vendas-btn outline" onClick={downloadVendaTemplate}>
+            <button type="button" className="base-vendas-btn outline" onClick={handleDownloadTemplate}>
               <span>⬇</span> Baixar Modelo
             </button>
             <button type="button" className="base-vendas-btn primary" onClick={() => fileRef.current?.click()}>
@@ -165,7 +179,7 @@ export default function BaseDadosVendas() {
             <input
               ref={fileRef}
               type="file"
-              accept=".xlsx,.xls"
+              accept=".xlsx,.xls,.csv"
               hidden
               onChange={(e) => {
                 const file = e.target.files?.[0];

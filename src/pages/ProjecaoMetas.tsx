@@ -13,8 +13,15 @@ import {
   type MetaIndustria,
 } from '../data/projecaoMetasData';
 import { fetchIndustrias } from '../services/industriaService';
-import { deleteMeta, fetchMetas, fetchRealizado, upsertMeta } from '../services/metasService';
+import {
+  deleteMeta,
+  fetchMetas,
+  fetchVendasRealizadoAno,
+  sumRealizado,
+  upsertMeta,
+} from '../services/metasService';
 import { formatBRL } from '../utils/currency';
+import { industriasMatch } from '../utils/vendasDomain';
 import './Administrador.css';
 import './admin/AdminFiliais.css';
 import './ProjecaoMetas.css';
@@ -76,10 +83,19 @@ export default function ProjecaoMetas({ adminMode = false }: ProjecaoMetasProps)
   const loadMetas = useCallback(async () => {
     setLoading(true);
     try {
-      const [industrias, metas] = await Promise.all([
+      const [industrias, metas, vendasAno] = await Promise.all([
         fetchIndustrias(),
         fetchMetas(Number(anoProjecao)),
+        fetchVendasRealizadoAno(Number(anoBase)),
       ]);
+
+      const nomesFromVendas = Array.from(
+        new Set(
+          vendasAno
+            .map((v) => (v.industria ?? '').trim())
+            .filter(Boolean),
+        ),
+      );
 
       const buildForRegiao = async (
         regiao: 'MA/PI' | 'PA',
@@ -88,38 +104,43 @@ export default function ProjecaoMetas({ adminMode = false }: ProjecaoMetasProps)
         const regiaoMetas = metas.filter((m) => m.regiao === regiao);
 
         if (regiaoMetas.length === 0) {
-          return Promise.all(
-            industrias.map(async (ind, index) => {
-              const realizado = await fetchRealizado(Number(anoBase), regiao, ind.Nome);
-              return {
-                id: `${prefix}-${index}-${ind.id}`,
-                nome: ind.Nome,
-                total2026: realizado,
-                media2026: realizado / 12,
-                manual: false,
-                crescimento: 20,
-                metaMensalManual: 0,
-                projecaoAnualManual: 0,
-              };
-            }),
-          );
-        }
+          const nomes: string[] = [];
+          for (const ind of industrias) {
+            nomes.push(ind.Nome);
+          }
+          for (const nomeVenda of nomesFromVendas) {
+            const exists = nomes.some((n) => industriasMatch(n, nomeVenda));
+            if (!exists) nomes.push(nomeVenda);
+          }
 
-        return Promise.all(
-          regiaoMetas.map(async (existing) => {
-            const realizado = await fetchRealizado(Number(anoBase), regiao, existing.industria);
+          return nomes.map((nome, index) => {
+            const realizado = sumRealizado(vendasAno, regiao, nome);
             return {
-              id: existing.id,
-              nome: existing.industria,
+              id: `${prefix}-${index}`,
+              nome,
               total2026: realizado,
               media2026: realizado / 12,
-              manual: existing.modo_manual,
-              crescimento: existing.crescimento_percentual ?? 20,
-              metaMensalManual: existing.meta_mensal_manual ?? 0,
-              projecaoAnualManual: existing.meta_anual_manual ?? 0,
+              manual: false,
+              crescimento: 20,
+              metaMensalManual: 0,
+              projecaoAnualManual: 0,
             };
-          }),
-        );
+          });
+        }
+
+        return regiaoMetas.map((existing) => {
+          const realizado = sumRealizado(vendasAno, regiao, existing.industria);
+          return {
+            id: existing.id,
+            nome: existing.industria,
+            total2026: realizado,
+            media2026: realizado / 12,
+            manual: existing.modo_manual,
+            crescimento: existing.crescimento_percentual ?? 20,
+            metaMensalManual: existing.meta_mensal_manual ?? 0,
+            projecaoAnualManual: existing.meta_anual_manual ?? 0,
+          };
+        });
       };
 
       const [mapi, pa] = await Promise.all([

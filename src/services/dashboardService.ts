@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { MESES_PT, regiaoFromEstado, type Regiao } from '../utils/vendasDomain';
-import { calcMetaValues, fetchMetas, fetchRealizado } from './metasService';
+import { fetchMetasDashboard } from './metasService';
 
 export type DashboardFilters = {
   ano: string;
@@ -35,18 +35,22 @@ export async function fetchDashboardKpis(filters: DashboardFilters): Promise<Kpi
   const mapi = rows.filter((r) => regiaoFromEstado(r.estado ?? '') === 'MA/PI');
   const pa = rows.filter((r) => regiaoFromEstado(r.estado ?? '') === 'PA');
 
-  const anoNum = Number(filters.ano);
-  const metas = await fetchMetas(anoNum);
-  const metaTotal = metas.reduce((acc, m) => {
-    const realizado = 0;
-    const { projecaoAnual } = calcMetaValues(m, realizado);
-    return acc + (filters.mes && filters.mes !== 'Todos' ? projecaoAnual / 12 : projecaoAnual);
-  }, 0);
+  const metasDash = await fetchMetasDashboard(Number(filters.ano));
+  const useMensal = Boolean(filters.mes && filters.mes !== 'Todos');
+  const metaTotal = useMensal ? metasDash.geral.mensal : metasDash.geral.anual;
 
   return [
     { label: 'Total Vendas', value: total, meta: metaTotal || undefined },
-    { label: 'MA / PI', value: sumValores(mapi) },
-    { label: 'PA', value: sumValores(pa) },
+    {
+      label: 'MA / PI',
+      value: sumValores(mapi),
+      meta: useMensal ? metasDash.mapi.mensal : metasDash.mapi.anual,
+    },
+    {
+      label: 'PA',
+      value: sumValores(pa),
+      meta: useMensal ? metasDash.pa.mensal : metasDash.pa.anual,
+    },
     { label: 'Pedidos', value: rows.length },
   ];
 }
@@ -98,23 +102,33 @@ export async function fetchVendasPorVendedor(ano: string, mes?: string) {
 
 export async function fetchRealizadoVsMeta(ano: string, mes?: string) {
   const anoNum = Number(ano);
-  const metas = await fetchMetas(anoNum);
-  const rows = await fetchVendasRaw(ano, mes);
-  const realizadoTotal = sumValores(rows);
+  const useMensal = Boolean(mes && mes !== 'Todos');
+  const [metasDash, rows] = await Promise.all([
+    fetchMetasDashboard(anoNum),
+    fetchVendasRaw(ano, mes),
+  ]);
 
-  let metaTotal = 0;
-  for (const meta of metas) {
-    const realizadoInd = await fetchRealizado(meta.ano_base, meta.regiao, meta.industria);
-    const { projecaoAnual, metaMensal } = calcMetaValues(meta, realizadoInd);
-    metaTotal += mes && mes !== 'Todos' ? metaMensal : projecaoAnual;
-  }
+  const realizadoTotal = sumValores(rows);
+  const metaTotal = useMensal ? metasDash.geral.mensal : metasDash.geral.anual;
 
   return {
     realizado: realizadoTotal,
     meta: metaTotal,
     percentual: metaTotal > 0 ? (realizadoTotal / metaTotal) * 100 : 0,
+    mapi: {
+      mensal: metasDash.mapi.mensal,
+      anual: metasDash.mapi.anual,
+      meta: useMensal ? metasDash.mapi.mensal : metasDash.mapi.anual,
+    },
+    pa: {
+      mensal: metasDash.pa.mensal,
+      anual: metasDash.pa.anual,
+      meta: useMensal ? metasDash.pa.mensal : metasDash.pa.anual,
+    },
   };
 }
+
+export { fetchMetasDashboard };
 
 export async function fetchCrescimentoRegional(anoBase: string, anoComp: string, ateMesNumero: number) {
   const mesesOrdem = MESES_PT;
@@ -125,7 +139,7 @@ export async function fetchCrescimentoRegional(anoBase: string, anoComp: string,
     let pa = 0;
 
     for (const row of rows) {
-      const idx = mesesOrdem.indexOf((row.mes ?? '').toUpperCase());
+      const idx = mesesOrdem.indexOf((row.mes ?? '').toUpperCase() as (typeof MESES_PT)[number]);
       if (idx < 0 || idx >= ateMesNumero) continue;
       if (regiaoFromEstado(row.estado ?? '') === 'PA') pa += Number(row.valor);
       else mapi += Number(row.valor);

@@ -4,6 +4,7 @@ import {
   formatCdc,
   mesAnoFromDate,
   normalizeEstado,
+  VENDEDORES,
   type BaseVenda,
 } from '../utils/vendasDomain';
 import { fetchClienteByCdc } from './clienteService';
@@ -38,6 +39,16 @@ function mapRow(row: Record<string, unknown>): BaseVenda {
 function parseValor(value: string): number {
   const normalized = value.replace(/\./g, '').replace(',', '.');
   return Number(normalized) || 0;
+}
+
+function normalizeVendedor(value: string | null | undefined): (typeof VENDEDORES)[number] {
+  const raw = (value ?? '').trim().toUpperCase().normalize('NFD').replace(/\p{M}/gu, '');
+  const match = VENDEDORES.find(
+    (nome) => nome.toUpperCase().normalize('NFD').replace(/\p{M}/gu, '') === raw,
+  );
+  if (match) return match;
+  // fallback seguro para a constraint do banco
+  return 'JOAO ANTONIO';
 }
 
 export async function createVenda(form: LancamentoVendaForm): Promise<BaseVenda> {
@@ -177,26 +188,28 @@ export async function upsertVendasBatch(
     cnpj?: string;
     cidade?: string;
     estado?: string;
+    mes?: string;
+    ano?: string;
   }>
 ): Promise<number> {
   const payload = await Promise.all(
     rows.map(async (row) => {
       const cliente = await fetchClienteByCdc(row.cdc);
-      const { mes, ano } = mesAnoFromDate(row.data);
+      const derived = mesAnoFromDate(row.data);
       return {
         data: row.data,
         cdc: formatCdc(row.cdc),
-        numero_pedido: row.numero_pedido,
+        numero_pedido: row.numero_pedido.trim(),
         valor: row.valor,
-        industria: row.industria,
+        industria: row.industria || null,
         categoria: row.categoria || null,
-        vendedor: row.vendedor,
+        vendedor: normalizeVendedor(row.vendedor),
         cliente: cliente?.nome_fantasia?.trim() || row.cliente || null,
         cnpj: cliente?.cnpj || row.cnpj || null,
         cidade: cliente?.cidade || row.cidade || null,
         estado: normalizeEstado(cliente?.estado ?? row.estado ?? ''),
-        mes,
-        ano,
+        mes: row.mes || derived.mes,
+        ano: row.ano || derived.ano,
       };
     })
   );

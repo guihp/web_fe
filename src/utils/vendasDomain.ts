@@ -40,6 +40,30 @@ export function regiaoFromEstado(estado: string): Regiao {
   return 'MA/PI';
 }
 
+/** Normaliza nome de indústria para cruzar cadastro x baseVendas (ex: Predilecta Alimentos ↔ PREDILECTA). */
+export function normalizeIndustriaKey(nome: string): string {
+  return nome
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toUpperCase()
+    .replace(/[''`]/g, '')
+    .replace(/\b(ALIMENTOS|ALIMENTO|LTDA|LTDA\.|S\/A|SA|BRASIL|OFICIAL)\b/g, '')
+    .replace(/[^A-Z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+export function industriasMatch(a: string, b: string): boolean {
+  const na = normalizeIndustriaKey(a);
+  const nb = normalizeIndustriaKey(b);
+  if (!na || !nb) return false;
+  if (na === nb) return true;
+  if (na.includes(nb) || nb.includes(na)) return true;
+  const tokenA = na.split(' ')[0] ?? '';
+  const tokenB = nb.split(' ')[0] ?? '';
+  return tokenA.length >= 4 && tokenA === tokenB;
+}
+
 export function formatCdc(digits: string): string {
   return digits.replace(/\D/g, '').slice(-4).padStart(4, '0');
 }

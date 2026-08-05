@@ -37,6 +37,10 @@ export default function VendasDashboard() {
   const [mapiMesIndustria, setMapiMesIndustria] = useState<{ nome: string; valor: number }[]>([]);
   const [mapiAnualIndustria, setMapiAnualIndustria] = useState<{ nome: string; valor: number }[]>([]);
   const [paAnualIndustria, setPaAnualIndustria] = useState<{ nome: string; valor: number }[]>([]);
+  const [metaMapiMensal, setMetaMapiMensal] = useState(0);
+  const [metaPaMensal, setMetaPaMensal] = useState(0);
+  const [metaMapiAnual, setMetaMapiAnual] = useState(0);
+  const [metaPaAnual, setMetaPaAnual] = useState(0);
   const [metaMapi, setMetaMapi] = useState(0);
   const [metaPa, setMetaPa] = useState(0);
   const [realizadoMapiMes, setRealizadoMapiMes] = useState(0);
@@ -82,8 +86,13 @@ export default function VendasDashboard() {
         setMapiMesIndustria(mapiIndMes.map((d) => ({ nome: d.label, valor: d.value })));
         setMapiAnualIndustria(mapiIndAno.map((d) => ({ nome: d.label, valor: d.value })));
         setPaAnualIndustria(paIndAno.map((d) => ({ nome: d.label, valor: d.value })));
-        setMetaMapi(vsMeta.meta / 2);
-        setMetaPa(vsMeta.meta / 2);
+        // Metas reais de metas_projecao por região (não divide o total por 2)
+        setMetaMapiMensal(vsMeta.mapi.mensal);
+        setMetaPaMensal(vsMeta.pa.mensal);
+        setMetaMapiAnual(vsMeta.mapi.anual);
+        setMetaPaAnual(vsMeta.pa.anual);
+        setMetaMapi(vsMeta.mapi.meta);
+        setMetaPa(vsMeta.pa.meta);
         setRealizadoMapiMes(sumRegiao('MA/PI'));
         setRealizadoPaMes(sumRegiao('PA'));
         setTotalMapi(mapiM.reduce((a, d) => a + d.value, 0));
@@ -104,34 +113,67 @@ export default function VendasDashboard() {
     return [String(y - 1), String(y), String(y + 1)];
   }, []);
 
-  const kpiCards = useMemo(
+  const pct = (realizado: number, meta: number) =>
+    `${meta > 0 ? ((realizado / meta) * 100).toFixed(1) : '0'}% da meta`;
+
+  const kpiCardsMensal = useMemo(
     () => [
       {
-        id: 'total',
+        id: 'total-mes',
         title: `Total ${mes}`,
         realizado: realizadoMapiMes + realizadoPaMes,
         meta: metaMapi + metaPa,
-        percentLabel: `${metaMapi + metaPa > 0 ? (((realizadoMapiMes + realizadoPaMes) / (metaMapi + metaPa)) * 100).toFixed(1) : '0'}% da meta`,
+        percentLabel: pct(realizadoMapiMes + realizadoPaMes, metaMapi + metaPa),
         icon: 'target' as const,
       },
       {
-        id: 'mapi',
+        id: 'mapi-mes',
         title: `MA/PI — ${mes}`,
         realizado: realizadoMapiMes,
         meta: metaMapi,
-        percentLabel: `${metaMapi > 0 ? ((realizadoMapiMes / metaMapi) * 100).toFixed(1) : '0'}% da meta`,
+        percentLabel: pct(realizadoMapiMes, metaMapi),
         icon: 'trend' as const,
       },
       {
-        id: 'pa',
+        id: 'pa-mes',
         title: `PA — ${mes}`,
         realizado: realizadoPaMes,
         meta: metaPa,
-        percentLabel: `${metaPa > 0 ? ((realizadoPaMes / metaPa) * 100).toFixed(1) : '0'}% da meta`,
+        percentLabel: pct(realizadoPaMes, metaPa),
         icon: 'trend' as const,
       },
     ],
-    [mes, realizadoMapiMes, realizadoPaMes, metaMapi, metaPa]
+    [mes, realizadoMapiMes, realizadoPaMes, metaMapi, metaPa],
+  );
+
+  const kpiCardsAnual = useMemo(
+    () => [
+      {
+        id: 'total-ano',
+        title: `Total Anual ${ano}`,
+        realizado: totalMapi + totalPa,
+        meta: metaMapiAnual + metaPaAnual,
+        percentLabel: pct(totalMapi + totalPa, metaMapiAnual + metaPaAnual),
+        icon: 'target' as const,
+      },
+      {
+        id: 'mapi-ano',
+        title: `MA/PI — Anual ${ano}`,
+        realizado: totalMapi,
+        meta: metaMapiAnual,
+        percentLabel: pct(totalMapi, metaMapiAnual),
+        icon: 'trend' as const,
+      },
+      {
+        id: 'pa-ano',
+        title: `PA — Anual ${ano}`,
+        realizado: totalPa,
+        meta: metaPaAnual,
+        percentLabel: pct(totalPa, metaPaAnual),
+        icon: 'trend' as const,
+      },
+    ],
+    [ano, totalMapi, totalPa, metaMapiAnual, metaPaAnual],
   );
 
   const handleExport = () => {
@@ -176,10 +218,36 @@ export default function VendasDashboard() {
         </div>
       </header>
 
-      <section className="vendas-kpi-grid">
-        {kpiCards.map((card) => (
-          <KpiCardView key={card.id} title={card.title} realizado={card.realizado} meta={card.meta} percentLabel={card.percentLabel} icon={card.icon} />
-        ))}
+      <section className="vendas-kpi-block">
+        <h2 className="vendas-kpi-heading">Meta mensal</h2>
+        <div className="vendas-kpi-grid">
+          {kpiCardsMensal.map((card) => (
+            <KpiCardView
+              key={card.id}
+              title={card.title}
+              realizado={card.realizado}
+              meta={card.meta}
+              percentLabel={card.percentLabel}
+              icon={card.icon}
+            />
+          ))}
+        </div>
+      </section>
+
+      <section className="vendas-kpi-block">
+        <h2 className="vendas-kpi-heading">Meta anual</h2>
+        <div className="vendas-kpi-grid">
+          {kpiCardsAnual.map((card) => (
+            <KpiCardView
+              key={card.id}
+              title={card.title}
+              realizado={card.realizado}
+              meta={card.meta}
+              percentLabel={card.percentLabel}
+              icon={card.icon}
+            />
+          ))}
+        </div>
       </section>
 
       <section className="card vendas-section">
@@ -215,7 +283,7 @@ export default function VendasDashboard() {
       <section className="vendas-monthly-grid">
         <article className="card vendas-monthly-card">
           <h2>Mensal — MA/PI</h2>
-          <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaMapi)}/mês</p>
+          <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaMapiMensal)}/mês</p>
           <div className="vendas-total-box">
             <span>Total Realizado (Ano):</span>
             <strong>{formatBRLCompact(totalMapi)}</strong>
@@ -225,7 +293,7 @@ export default function VendasDashboard() {
 
         <article className="card vendas-monthly-card">
           <h2>Mensal — Pará (PA)</h2>
-          <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaPa)}/mês</p>
+          <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaPaMensal)}/mês</p>
           <div className="vendas-total-box">
             <span>Total Realizado (Ano):</span>
             <strong>{formatBRLCompact(totalPa)}</strong>
