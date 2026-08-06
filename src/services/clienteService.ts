@@ -125,7 +125,7 @@ export async function upsertClientesBatch(rows: ClienteForm[]): Promise<number> 
     razao_social: form.razaoSocial.trim(),
     cidade: form.cidade.trim() || null,
     estado: normalizeEstado(form.estado),
-    status: 'Ativo',
+    status: form.status === 'Inativo' ? 'Inativo' : 'Ativo',
   }));
 
   const { error } = await supabase.from('baseCliente').upsert(payload, { onConflict: 'cdc' });
@@ -141,5 +141,6 @@ export function clienteToForm(cliente: BaseCliente): ClienteForm {
     nomeFantasia: cliente.nome_fantasia ?? '',
     cidade: cliente.cidade ?? '',
     estado: cliente.estado ?? 'MARANHÃO',
+    status: (cliente.status === 'Inativo' ? 'Inativo' : 'Ativo'),
   };
 }

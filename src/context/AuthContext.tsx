@@ -7,6 +7,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
+import { defaultModulosForCargo } from '../data/portalModules';
 import { loginWithCpf, type AuthUser } from '../services/authService';
 
 const STORAGE_KEY = 'fe_web_auth_session';
@@ -27,7 +28,14 @@ function readStoredUser(): AuthUser | null {
 
   try {
     const parsed = JSON.parse(raw) as AuthUser;
-    return { ...parsed, foto_perfil_url: parsed.foto_perfil_url ?? null };
+    return {
+      ...parsed,
+      foto_perfil_url: parsed.foto_perfil_url ?? null,
+      modulos_acesso:
+        parsed.modulos_acesso?.length > 0
+          ? parsed.modulos_acesso
+          : defaultModulosForCargo(parsed.cargo),
+    };
   } catch {
     return null;
   }

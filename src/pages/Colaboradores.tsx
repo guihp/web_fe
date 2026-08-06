@@ -1,9 +1,12 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import AddColaboradorModal from '../components/colaboradores/AddColaboradorModal';
 import DeleteColaboradorModal from '../components/colaboradores/DeleteColaboradorModal';
 import EditColaboradorModal from '../components/colaboradores/EditColaboradorModal';
 import ViewColaboradorModal from '../components/colaboradores/ViewColaboradorModal';
 import BackToPortal from '../components/layout/BackToPortal';
+import { useAuth } from '../context/AuthContext';
+import { canManageUsers } from '../data/portalModules';
 import { fetchUsers, updateUserStatus } from '../services/userFetchService';
 import type { Usuario } from '../utils/format';
 import { formatCpf, formatLocal, formatPhone } from '../utils/format';
@@ -40,6 +43,7 @@ function IconTrash() {
 }
 
 export default function Colaboradores() {
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [collaborators, setCollaborators] = useState<Usuario[]>([]);
@@ -50,6 +54,7 @@ export default function Colaboradores() {
   const [deleteUser, setDeleteUser] = useState<Usuario | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const allowed = canManageUsers(user?.cargo);
 
   const loadCollaborators = useCallback(async () => {
     setLoading(true);
@@ -68,8 +73,9 @@ export default function Colaboradores() {
   }, []);
 
   useEffect(() => {
+    if (!allowed) return;
     loadCollaborators();
-  }, [loadCollaborators]);
+  }, [allowed, loadCollaborators]);
 
   const filtered = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -88,6 +94,10 @@ export default function Colaboradores() {
       );
     });
   }, [collaborators, search]);
+
+  if (!allowed) {
+    return <Navigate to="/" replace />;
+  }
 
   const allSelected = filtered.length > 0 && filtered.every((item) => selected.has(item.id));
 

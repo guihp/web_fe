@@ -1,53 +1,18 @@
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import {
+  PORTAL_MODULES,
+  userHasModuleAccess,
+} from '../data/portalModules';
 import './PortalHome.css';
-
-const MODULES = [
-  {
-    id: 'treinamentos',
-    title: 'Treinamentos',
-    description: 'Materiais, vídeos e capacitação da equipe.',
-    badge: 'Disponíveis: 12',
-    icon: '💼',
-    path: '/treinamento',
-  },
-  {
-    id: 'atividades',
-    title: 'Atividade',
-    description: 'Controle de visitas e ações de merchandising em PDVs.',
-    badge: 'Pendentes: 23',
-    icon: '📋',
-    path: '/atividades',
-  },
-  {
-    id: 'vendas',
-    title: 'Vendas',
-    description: 'Gestão completa de vendas, clientes e metas comerciais.',
-    badge: 'Vendas no mês: 127',
-    icon: '🛒',
-    path: '/vendas',
-  },
-  {
-    id: 'financeiro',
-    title: 'Financeiro',
-    description: 'Gestão de comissões e relatórios financeiros.',
-    badge: 'Comissão: R$ 12.450',
-    icon: '💵',
-    path: '/financeiro',
-  },
-  {
-    id: 'administrador',
-    title: 'Administrador',
-    description: 'Gestão de usuários, empresas, regionais e indústrias.',
-    badge: 'Usuários: 32',
-    icon: '🛡️',
-    path: '/administrador',
-  },
-] as const;
 
 export default function PortalHome() {
   const { user } = useAuth();
   const firstName = user?.nome?.split(' ')[0] ?? 'Usuário';
+
+  const modules = PORTAL_MODULES.filter((mod) =>
+    userHasModuleAccess(user?.cargo ?? '', user?.modulos_acesso, mod.id),
+  );
 
   return (
     <div className="portal-home">
@@ -59,7 +24,7 @@ export default function PortalHome() {
       </header>
 
       <div className="portal-grid">
-        {MODULES.map((mod) => (
+        {modules.map((mod) => (
           <article key={mod.id} className="portal-card">
             <div className="portal-card-top">
               <span className="portal-status">
@@ -83,6 +48,12 @@ export default function PortalHome() {
           </article>
         ))}
       </div>
+
+      {modules.length === 0 && (
+        <p className="portal-subtitle">
+          Nenhum módulo liberado para o seu usuário. Fale com um gerente ou administrador.
+        </p>
+      )}
     </div>
   );
 }

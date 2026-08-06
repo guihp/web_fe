@@ -42,7 +42,7 @@ const VENDA_EXAMPLE_ROW: VendaImportRow = {
   numero_pedido: 'PED-2025-0001',
   valor: 1850.75,
   industria: 'Haribo Brasil',
-  categoria: 'Alimentos',
+  categoria: 'FEIJÃO',
   vendedor: 'JOAO ANTONIO',
   cliente: '141 - SENDAS - TURU',
   cnpj: '06057223014100',
@@ -143,7 +143,55 @@ function sheetFromVendaRows(rows: Record<string, string | number>[], sheetName: 
   return wb;
 }
 
+/** Colunas alinhadas à tabela public."baseCliente" (exceto id/created_at). */
+export const CLIENTE_SHEET_HEADERS = [
+  'cdc',
+  'cnpj',
+  'nome_fantasia',
+  'razao_social',
+  'cidade',
+  'estado',
+  'status',
+] as const;
+
+const CLIENTE_EXAMPLE_ROW = {
+  cdc: '1102',
+  cnpj: '06057223014100',
+  nome_fantasia: '141 - SENDAS - TURU',
+  razao_social: 'SENDAS DISTRIBUIDORA S/A',
+  cidade: 'SAO LUIS',
+  estado: 'MARANHAO',
+  status: 'Ativo',
+};
+
+function sheetFromClienteRows(rows: Record<string, string>[], sheetName: string) {
+  const ws = XLSX.utils.json_to_sheet(rows, { header: [...CLIENTE_SHEET_HEADERS] });
+  ws['!cols'] = CLIENTE_SHEET_HEADERS.map((h) => ({
+    wch: Math.max(14, h.length + 2),
+  }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, sheetName);
+  return wb;
+}
+
+function normalizeStatusCliente(value: string): 'Ativo' | 'Inativo' {
+  const raw = value.trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, '');
+  if (raw === 'inativo' || raw === 'inactive' || raw === '0' || raw === 'nao' || raw === 'não') {
+    return 'Inativo';
+  }
+  return 'Ativo';
+}
+
 export function exportClientesXlsx(clientes: BaseCliente[]) {
+  if (clientes.length === 0) {
+    const ws = XLSX.utils.aoa_to_sheet([[...CLIENTE_SHEET_HEADERS]]);
+    ws['!cols'] = CLIENTE_SHEET_HEADERS.map((h) => ({ wch: Math.max(14, h.length + 2) }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
+    XLSX.writeFile(wb, `base-clientes-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    return;
+  }
+
   const rows = clientes.map((c) => ({
     cdc: c.cdc,
     cnpj: c.cnpj ?? '',
@@ -151,27 +199,31 @@ export function exportClientesXlsx(clientes: BaseCliente[]) {
     razao_social: c.razao_social ?? '',
     cidade: c.cidade ?? '',
     estado: c.estado ?? '',
+    status: c.status || 'Ativo',
   }));
 
-  const ws = XLSX.utils.json_to_sheet(rows);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Clientes');
+  const wb = sheetFromClienteRows(rows, 'Clientes');
   XLSX.writeFile(wb, `base-clientes-${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
 
 export function downloadClienteTemplate() {
-  const ws = XLSX.utils.json_to_sheet([
-    {
-      cdc: '0159',
-      cnpj: '42360111000159',
-      nome_fantasia: 'EXEMPLO DISTRIBUIDORA',
-      razao_social: 'EXEMPLO DISTRIBUIDORA LTDA',
-      cidade: 'IMPERATRIZ',
-      estado: 'MARANHÃO',
-    },
+  const wb = sheetFromClienteRows([{ ...CLIENTE_EXAMPLE_ROW }], 'Modelo');
+
+  const instructions = XLSX.utils.aoa_to_sheet([
+    ['Instruções para importar clientes'],
+    [''],
+    ['1. Use a aba "Modelo" como referência (1 linha de exemplo completa).'],
+    ['2. Mantenha os nomes das colunas exatamente iguais ao cabeçalho.'],
+    ['3. cdc: 4 dígitos (chave única — se já existir, o cadastro é atualizado).'],
+    ['4. cnpj: pode ir com ou sem pontuação (14 dígitos).'],
+    ['5. estado: ex. MARANHAO, PIAUI, PARA (ou com acento).'],
+    ['6. status: Ativo ou Inativo (padrão Ativo se vazio).'],
+    ['7. Salve como .xlsx ou .csv e use "Importar Excel" na Base de Clientes.'],
+    [''],
+    ['Colunas (compatíveis com a tabela baseCliente no Supabase):'],
+    [CLIENTE_SHEET_HEADERS.join(' | ')],
   ]);
-  const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Modelo');
+  XLSX.utils.book_append_sheet(wb, instructions, 'Instrucoes');
   XLSX.writeFile(wb, 'modelo-clientes.xlsx');
 }
 
@@ -182,21 +234,46 @@ export function parseClientesXlsx(file: File): Promise<ClienteForm[]> {
       try {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const wb = XLSX.read(data, { type: 'array' });
-        const sheet = wb.Sheets[wb.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json<Record<string, string>>(sheet);
+        const sheetName =
+          wb.SheetNames.find((name) => name.toLowerCase() !== 'instrucoes') ?? wb.SheetNames[0];
+        const sheet = wb.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
 
         const clientes: ClienteForm[] = rows.map((row) => ({
-          cdc: formatCdc(String(row.cdc ?? row.CDC ?? '')),
-          cnpj: String(row.cnpj ?? row.CNPJ ?? ''),
-          nomeFantasia: String(row.nome_fantasia ?? row.nomeFantasia ?? row['Nome Fantasia'] ?? ''),
-          razaoSocial: String(row.razao_social ?? row.razaoSocial ?? row['Razão Social'] ?? ''),
-          cidade: String(row.cidade ?? row.Cidade ?? ''),
-          estado: String(row.estado ?? row.Estado ?? 'MARANHÃO'),
+          cdc: formatCdc(cell(row, 'cdc', 'CDC')),
+          cnpj: cell(row, 'cnpj', 'CNPJ').replace(/\D/g, '') || cell(row, 'cnpj', 'CNPJ'),
+          nomeFantasia: cell(
+            row,
+            'nome_fantasia',
+            'nome fantasia',
+            'Nome Fantasia',
+            'nomeFantasia',
+          ),
+          razaoSocial: cell(
+            row,
+            'razao_social',
+            'razao social',
+            'Razão Social',
+            'Razao Social',
+            'razaoSocial',
+          ),
+          cidade: cell(row, 'cidade', 'Cidade'),
+          estado: cell(row, 'estado', 'Estado') || 'MARANHAO',
+          status: normalizeStatusCliente(cell(row, 'status', 'Status')),
         }));
 
-        resolve(clientes.filter((c) => c.cdc && c.nomeFantasia));
+        const valid = clientes.filter((c) => c.cdc && c.nomeFantasia);
+        if (valid.length === 0) {
+          reject(
+            new Error(
+              'Nenhum cliente válido encontrado. Verifique o modelo (cdc e nome_fantasia são obrigatórios).',
+            ),
+          );
+          return;
+        }
+        resolve(valid);
       } catch (err) {
-        reject(err);
+        reject(err instanceof Error ? err : new Error('Erro ao ler arquivo de clientes.'));
       }
     };
     reader.onerror = () => reject(new Error('Erro ao ler arquivo.'));

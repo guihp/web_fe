@@ -1,11 +1,12 @@
 import { useState } from 'react';
+import { USER_FORM_CARGOS } from '../../data/portalModules';
 import { maskCpfInput, maskPhoneInput } from '../../lib/cpf';
 import type { Usuario } from '../../utils/format';
 import { formatCpf } from '../../utils/format';
 import { updateUser } from '../../services/userService';
 import ModalShell from './ModalShell';
 
-const CARGOS = ['Dono', 'Gerente', 'Promotor', 'Degustação'];
+const CARGOS = [...USER_FORM_CARGOS];
 
 type EditColaboradorModalProps = {
   user: Usuario;

@@ -1,5 +1,10 @@
 import { supabase } from '../lib/supabase';
 import { normalizeCpf } from '../lib/cpf';
+import {
+  defaultModulosForCargo,
+  encodeNivelAcesso,
+  sanitizeModulos,
+} from '../data/portalModules';
 
 async function hashPassword(password: string): Promise<string> {
   const saltArray = crypto.getRandomValues(new Uint8Array(16));
@@ -38,13 +43,7 @@ function parseEndereco(endereco: string) {
   };
 }
 
-function nivelAcessoPorCargo(cargo: string) {
-  if (cargo === 'Gerente') return 'Tela Padrão Gerente';
-  if (cargo === 'Promotor') return 'Tela Padrão Promotor';
-  return 'Tela Padrão Promotor';
-}
-
-export async function saveUser(data: {
+export type SaveUserInput = {
   nome: string;
   email?: string;
   telefone: string;
@@ -52,10 +51,18 @@ export async function saveUser(data: {
   senha: string;
   cargo: string;
   endereco?: string;
-}) {
+  modulos?: string[];
+};
+
+export async function saveUser(data: SaveUserInput) {
   const { cidade, estado_id } = parseEndereco(data.endereco ?? '');
   const originalPassword = data.senha;
   const hashedPassword = await hashPassword(originalPassword);
+  const modulos = sanitizeModulos(
+    data.cargo,
+    data.modulos?.length ? data.modulos : defaultModulosForCargo(data.cargo),
+  );
+  const nivel_acesso = encodeNivelAcesso(data.cargo, modulos);
 
   const { error } = await supabase.from('usuarios').insert([
     {
@@ -68,7 +75,7 @@ export async function saveUser(data: {
       cidade,
       estado_id,
       status: true,
-      nivel_acesso: nivelAcessoPorCargo(data.cargo),
+      nivel_acesso,
     },
   ]);
 
@@ -90,7 +97,8 @@ export async function saveUser(data: {
           cargo: data.cargo,
           cidade,
           estado: estado_id,
-          nivel_acesso: nivelAcessoPorCargo(data.cargo),
+          nivel_acesso,
+          modulos,
         }),
       });
     } catch {
@@ -101,19 +109,23 @@ export async function saveUser(data: {
   return { success: true };
 }
 
-export async function updateUser(
-  userId: number,
-  data: {
-    nome: string;
-    email?: string;
-    telefone: string;
-    cpf: string;
-    cargo: string;
-    endereco?: string;
-    senha?: string;
-  }
-) {
+export type UpdateUserInput = {
+  nome: string;
+  email?: string;
+  telefone: string;
+  cpf: string;
+  cargo: string;
+  endereco?: string;
+  senha?: string;
+  modulos?: string[];
+};
+
+export async function updateUser(userId: number, data: UpdateUserInput) {
   const { cidade, estado_id } = parseEndereco(data.endereco ?? '');
+  const modulos = sanitizeModulos(
+    data.cargo,
+    data.modulos?.length ? data.modulos : defaultModulosForCargo(data.cargo),
+  );
 
   const payload: Record<string, string | null> = {
     nome: data.nome.trim(),
@@ -123,7 +135,7 @@ export async function updateUser(
     cargo: data.cargo,
     cidade,
     estado_id,
-    nivel_acesso: nivelAcessoPorCargo(data.cargo),
+    nivel_acesso: encodeNivelAcesso(data.cargo, modulos),
   };
 
   if (data.senha?.trim()) {

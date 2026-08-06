@@ -1,5 +1,10 @@
 import { supabase } from '../lib/supabase';
 import { normalizeCpf } from '../lib/cpf';
+import {
+  canManageUsers,
+  parseModulosFromNivelAcesso,
+  type PortalModuleId,
+} from '../data/portalModules';
 
 export type AuthUser = {
   id: number;
@@ -9,13 +14,17 @@ export type AuthUser = {
   cargo: string;
   cpf: string;
   foto_perfil_url: string | null;
+  modulos_acesso: PortalModuleId[];
 };
 
-const WEB_ALLOWED_CARGOS = ['Gerente', 'Dono'] as const;
+const WEB_ALLOWED_CARGOS = ['Gerente', 'Dono', 'CEO', 'Presidente'] as const;
 
 export function isWebAdminCargo(cargo: string): boolean {
-  return WEB_ALLOWED_CARGOS.includes(cargo as (typeof WEB_ALLOWED_CARGOS)[number]);
+  const key = cargo.trim().toLowerCase();
+  return WEB_ALLOWED_CARGOS.some((c) => c.toLowerCase() === key) || canManageUsers(cargo);
 }
+
+export { canManageUsers };
 
 async function verifyPassword(senha: string, stored: string): Promise<boolean> {
   const [salt, hash] = stored.split('$');
@@ -39,7 +48,7 @@ export async function loginWithCpf(cpf: string, senha: string): Promise<AuthUser
 
   const { data: user, error } = await supabase
     .from('usuarios')
-    .select('id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url')
+    .select('id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url, nivel_acesso')
     .eq('cpf', normalizedCpf)
     .maybeSingle();
 
@@ -68,5 +77,6 @@ export async function loginWithCpf(cpf: string, senha: string): Promise<AuthUser
     cargo: user.cargo,
     cpf: user.cpf,
     foto_perfil_url: user.foto_perfil_url ?? null,
+    modulos_acesso: parseModulosFromNivelAcesso(user.nivel_acesso, user.cargo),
   };
 }

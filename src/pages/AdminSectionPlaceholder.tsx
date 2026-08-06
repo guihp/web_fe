@@ -1,14 +1,17 @@
 import { Link, Navigate, useParams } from 'react-router-dom';
 import AdminClientes from './admin/AdminClientes';
+import AdminEmpresa from './admin/AdminEmpresa';
 import AdminFiliais from './admin/AdminFiliais';
 import AdminIndustrias from './admin/AdminIndustrias';
 import AdminMetas from './admin/AdminMetas';
 import AdminRegionais from './admin/AdminRegionais';
+import AdminSucessoCliente from './admin/AdminSucessoCliente';
+import AdminUsuarios from './admin/AdminUsuarios';
 import './Administrador.css';
 
 const SECTION_TITLES: Record<string, string> = {
   usuarios: 'Usuários',
-  perfis: 'Perfis',
+  perfis: 'Sucesso do cliente',
   vendedores: 'Vendedores',
   empresa: 'Empresa',
   regionais: 'Regionais',
@@ -20,6 +23,18 @@ const SECTION_TITLES: Record<string, string> = {
 
 export default function AdminSectionPlaceholder() {
   const { section } = useParams<{ section: string }>();
+
+  if (section === 'usuarios') {
+    return <AdminUsuarios />;
+  }
+
+  if (section === 'empresa') {
+    return <AdminEmpresa />;
+  }
+
+  if (section === 'perfis' || section === 'sucesso-cliente') {
+    return <AdminSucessoCliente />;
+  }
 
   if (section === 'filiais') {
     return <AdminFiliais />;

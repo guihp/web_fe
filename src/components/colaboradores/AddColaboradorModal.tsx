@@ -1,9 +1,10 @@
 import { useState } from 'react';
+import { USER_FORM_CARGOS } from '../../data/portalModules';
 import { maskCpfInput, maskPhoneInput } from '../../lib/cpf';
 import { saveUser } from '../../services/userService';
 import ModalShell from './ModalShell';
 
-const CARGOS = ['Dono', 'Gerente', 'Promotor', 'Degustação'];
+const CARGOS = [...USER_FORM_CARGOS];
 
 type AddColaboradorModalProps = {
   onClose: () => void;

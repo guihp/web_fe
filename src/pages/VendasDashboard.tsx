@@ -250,57 +250,64 @@ export default function VendasDashboard() {
         </div>
       </section>
 
-      <section className="card vendas-section">
-        <h2 className="vendas-section-title">Comparativo Mensal por Região — {mes}</h2>
+      <div className="vendas-dashboard-charts" id="vendas-dashboard-charts">
+        <header className="vendas-print-title">
+          <h1>Dashboard de Vendas — {mes}/{ano}</h1>
+          <p>Acompanhamento Regional MA-PI-PA</p>
+        </header>
 
-        <div className="vendas-compare-grid">
-          <div className="vendas-compare-block">
-            <h3>Realizado x Meta Mensal ({mes}) — MA/PI</h3>
-            <DonutChart realizado={realizadoMapiMes} meta={metaMapi} color={CORAL} />
-          </div>
-          <div className="vendas-compare-block">
-            <h3>Realizado x Meta Mensal ({mes}) — Pará</h3>
-            <DonutChart realizado={realizadoPaMes} meta={metaPa} color={BLUE} />
-          </div>
-        </div>
+        <section className="card vendas-section">
+          <h2 className="vendas-section-title">Comparativo Mensal por Região — {mes}</h2>
 
-        <div className="vendas-charts-grid">
-          <div className="vendas-chart-card">
-            <h3>Venda do Mês por Indústria — MA/PI</h3>
-            <HorizontalBarChart data={mapiMesIndustria.length ? mapiMesIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={CORAL} />
+          <div className="vendas-compare-grid">
+            <div className="vendas-compare-block">
+              <h3>Realizado x Meta Mensal ({mes}) — MA/PI</h3>
+              <DonutChart realizado={realizadoMapiMes} meta={metaMapi} color={CORAL} />
+            </div>
+            <div className="vendas-compare-block">
+              <h3>Realizado x Meta Mensal ({mes}) — Pará</h3>
+              <DonutChart realizado={realizadoPaMes} meta={metaPa} color={BLUE} />
+            </div>
           </div>
-          <div className="vendas-chart-card">
-            <h3>Venda Anual por Indústria — Pará</h3>
-            <HorizontalBarChart data={paAnualIndustria.length ? paAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={BLUE} />
-          </div>
-          <div className="vendas-chart-card full">
-            <h3>Venda Anual por Indústria — MA/PI</h3>
-            <HorizontalBarChart data={mapiAnualIndustria.length ? mapiAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={CORAL_DARK} />
-          </div>
-        </div>
-      </section>
 
-      <section className="vendas-monthly-grid">
-        <article className="card vendas-monthly-card">
-          <h2>Mensal — MA/PI</h2>
-          <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaMapiMensal)}/mês</p>
-          <div className="vendas-total-box">
-            <span>Total Realizado (Ano):</span>
-            <strong>{formatBRLCompact(totalMapi)}</strong>
+          <div className="vendas-charts-grid">
+            <div className="vendas-chart-card">
+              <h3>Venda do Mês por Indústria — MA/PI</h3>
+              <HorizontalBarChart data={mapiMesIndustria.length ? mapiMesIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={CORAL} />
+            </div>
+            <div className="vendas-chart-card">
+              <h3>Venda Anual por Indústria — Pará</h3>
+              <HorizontalBarChart data={paAnualIndustria.length ? paAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={BLUE} />
+            </div>
+            <div className="vendas-chart-card full">
+              <h3>Venda Anual por Indústria — MA/PI</h3>
+              <HorizontalBarChart data={mapiAnualIndustria.length ? mapiAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={CORAL_DARK} />
+            </div>
           </div>
-          <VerticalBarChart data={mapiMensal} color={CORAL} />
-        </article>
+        </section>
 
-        <article className="card vendas-monthly-card">
-          <h2>Mensal — Pará (PA)</h2>
-          <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaPaMensal)}/mês</p>
-          <div className="vendas-total-box">
-            <span>Total Realizado (Ano):</span>
-            <strong>{formatBRLCompact(totalPa)}</strong>
-          </div>
-          <VerticalBarChart data={paMensal} color={BLUE} />
-        </article>
-      </section>
+        <section className="vendas-monthly-grid">
+          <article className="card vendas-monthly-card">
+            <h2>Mensal — MA/PI</h2>
+            <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaMapiMensal)}/mês</p>
+            <div className="vendas-total-box">
+              <span>Total Realizado (Ano):</span>
+              <strong>{formatBRLCompact(totalMapi)}</strong>
+            </div>
+            <VerticalBarChart data={mapiMensal} color={CORAL} />
+          </article>
+
+          <article className="card vendas-monthly-card">
+            <h2>Mensal — Pará (PA)</h2>
+            <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaPaMensal)}/mês</p>
+            <div className="vendas-total-box">
+              <span>Total Realizado (Ano):</span>
+              <strong>{formatBRLCompact(totalPa)}</strong>
+            </div>
+            <VerticalBarChart data={paMensal} color={BLUE} />
+          </article>
+        </section>
+      </div>
     </div>
   );
 }

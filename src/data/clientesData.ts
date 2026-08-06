@@ -7,6 +7,7 @@ export type ClienteForm = {
   nomeFantasia: string;
   cidade: string;
   estado: string;
+  status?: 'Ativo' | 'Inativo';
 };
 
 export const emptyClienteForm = (): ClienteForm => ({
@@ -16,6 +17,7 @@ export const emptyClienteForm = (): ClienteForm => ({
   nomeFantasia: '',
   cidade: '',
   estado: 'MARANHAO',
+  status: 'Ativo',
 });
 
 export { ESTADOS_VENDAS as ESTADOS_CLIENTES };

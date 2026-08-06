@@ -1,0 +1,171 @@
+.empresa-page {
+  max-width: none;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-bottom: 32px;
+}
+
+.empresa-page-header {
+  margin-bottom: 4px;
+}
+
+.empresa-card {
+  padding: 22px 24px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.empresa-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.empresa-card-head--row {
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.empresa-card-head-left {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.empresa-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--coral-soft);
+  color: var(--coral);
+  flex-shrink: 0;
+}
+
+.empresa-card-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.empresa-card-head p {
+  margin: 2px 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.empresa-form-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px 16px;
+}
+
+.empresa-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.empresa-field--wide {
+  grid-column: span 2;
+}
+
+.empresa-field span {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.empresa-field input,
+.empresa-field select {
+  min-height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--white);
+  color: var(--text);
+  font-size: 0.88rem;
+  outline: none;
+}
+
+.empresa-field input:focus,
+.empresa-field select:focus {
+  border-color: var(--coral);
+}
+
+.empresa-form-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.empresa-filiais-table {
+  width: 100%;
+}
+
+.empresa-filiais-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.empresa-action-btn {
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface-2, var(--white));
+  color: var(--text);
+  cursor: pointer;
+}
+
+.empresa-action-btn:hover {
+  border-color: var(--coral);
+  color: var(--coral);
+  background: var(--coral-soft);
+}
+
+.empresa-action-btn.danger {
+  color: #ef4444;
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.empresa-action-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: #ef4444;
+}
+
+.empresa-filial-modal.filiais-modal {
+  max-width: 520px;
+}
+
+@media (max-width: 960px) {
+  .empresa-form-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .empresa-field--wide {
+    grid-column: span 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .empresa-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .empresa-field--wide {
+    grid-column: span 1;
+  }
+}

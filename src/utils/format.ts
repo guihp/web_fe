@@ -9,6 +9,7 @@ export type Usuario = {
   status: boolean | null;
   nivel_acesso: string | null;
   email: string | null;
+  modulos_acesso?: string[] | null;
 };
 
 const ESTADOS: Record<string, string> = {

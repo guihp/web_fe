@@ -110,8 +110,8 @@ const ADMIN_MODULES: AdminModule[] = [
   },
   {
     id: 'perfis',
-    title: 'Perfis',
-    description: 'Configure perfis e permissões de acesso',
+    title: 'Sucesso do cliente',
+    description: 'Kanban de pedidos e acompanhamento do cliente',
     path: '/administrador/perfis',
     tone: 'violet',
     icon: <IconShield />,

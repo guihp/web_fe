@@ -22,11 +22,15 @@ export const MESES_VENDAS = [
 ];
 
 export const CATEGORIAS_VENDAS = [
-  'Alimentos',
-  'Bebidas',
-  'Higiene',
-  'Limpeza',
-  'Outros',
+  'FEIJÃO',
+  'GOMA',
+  'MILHO',
+  'REGULAR',
+  'FOOD',
+  'MANTEIGA',
+  'QUEIJO',
+  'EMPORIO',
+  'DOCE',
 ];
 
 export const VENDEDORES_MOCK = ['JOAO ANTONIO', 'MARIA SILVA', 'CARLOS SANTOS'];

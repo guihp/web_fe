@@ -113,7 +113,12 @@ export default function AdminClientes() {
     try {
       const all = await fetchAllClientes();
       exportClientesXlsx(all);
-      showToast('Exportação concluída.', 'success');
+      showToast(
+        all.length === 0
+          ? 'Planilha exportada (somente cabeçalhos — não há clientes).'
+          : `${all.length} clientes exportados.`,
+        'success',
+      );
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Erro na exportação.', 'error');
     }
@@ -127,6 +132,15 @@ export default function AdminClientes() {
       loadClientes();
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Erro na importação.', 'error');
+    }
+  };
+
+  const handleDownloadTemplate = () => {
+    try {
+      downloadClienteTemplate();
+      showToast('Modelo baixado. Preencha e use Importar Excel.', 'success');
+    } catch (err) {
+      showToast(err instanceof Error ? err.message : 'Erro ao baixar modelo.', 'error');
     }
   };
 
@@ -170,7 +184,7 @@ export default function AdminClientes() {
             <button type="button" className="base-vendas-btn outline" onClick={handleExport}>
               <span>⬇</span> Exportar Dados
             </button>
-            <button type="button" className="base-vendas-btn outline" onClick={downloadClienteTemplate}>
+            <button type="button" className="base-vendas-btn outline" onClick={handleDownloadTemplate}>
               <span>⬇</span> Baixar Modelo
             </button>
             <button
@@ -186,7 +200,7 @@ export default function AdminClientes() {
             <input
               ref={fileRef}
               type="file"
-              accept=".xlsx,.xls"
+              accept=".xlsx,.xls,.csv"
               hidden
               onChange={(e) => {
                 const file = e.target.files?.[0];

@@ -401,18 +401,99 @@
   }
 }
 
+.vendas-dashboard-charts {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.vendas-print-title {
+  display: none;
+}
+
 @media print {
+  @page {
+    margin: 12mm;
+  }
+
+  body {
+    background: #fff !important;
+    color: #111 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Esconde chrome do app e tudo que não for gráfico */
   .sidebar,
   .topbar,
-  .calendar-panel {
+  .calendar-panel,
+  .back-to-portal,
+  .vendas-module-tabs,
+  .vendas-header,
+  .vendas-kpi-block,
+  .vendas-header-actions,
+  .vendas-export-btn {
     display: none !important;
   }
 
-  .main-area {
+  .app-shell,
+  .app-body,
+  .main-area,
+  .content-column,
+  .vendas-module,
+  .vendas-module-body,
+  .vendas-module-content {
+    display: block !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  .vendas-dashboard {
+    gap: 16px;
     padding: 0 !important;
   }
 
-  .vendas-header-actions .vendas-select {
-    display: none;
+  .vendas-print-title {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .vendas-print-title h1 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: #111;
+  }
+
+  .vendas-print-title p {
+    margin: 4px 0 0;
+    font-size: 0.85rem;
+    color: #555;
+  }
+
+  .vendas-dashboard-charts .card,
+  .vendas-dashboard-charts .vendas-monthly-card,
+  .vendas-dashboard-charts .vendas-chart-card,
+  .vendas-dashboard-charts .vendas-compare-block {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #ddd !important;
+    background: #fff !important;
+    color: #111 !important;
+  }
+
+  .vendas-dashboard-charts h2,
+  .vendas-dashboard-charts h3,
+  .vendas-dashboard-charts .vendas-section-title,
+  .vendas-dashboard-charts .vendas-monthly-meta,
+  .vendas-dashboard-charts .vendas-total-box,
+  .vendas-dashboard-charts .h-bar-label,
+  .vendas-dashboard-charts .h-bar-value,
+  .vendas-dashboard-charts .donut-legend {
+    color: #111 !important;
   }
 }
