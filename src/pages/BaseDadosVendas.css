@@ -266,4 +266,10 @@
     flex-direction: column;
     align-items: flex-start;
   }
+
+  .base-vendas-table-wrap,
+  .base-vendas-card {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
 }

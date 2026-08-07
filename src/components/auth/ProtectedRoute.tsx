@@ -2,8 +2,8 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   canManageUsers,
-  moduleIdForPath,
-  userHasModuleAccess,
+  sectionIdForPath,
+  userHasSectionAccess,
 } from '../../data/portalModules';
 
 export default function ProtectedRoute() {
@@ -22,16 +22,25 @@ export default function ProtectedRoute() {
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
   }
 
-  const moduleId = moduleIdForPath(location.pathname);
+  const sectionId = sectionIdForPath(location.pathname);
 
-  if (moduleId === 'administrador' && !canManageUsers(user.cargo)) {
+  if (
+    typeof sectionId === 'string' &&
+    sectionId.startsWith('administrador.') &&
+    !canManageUsers(user.cargo)
+  ) {
     return <Navigate to="/" replace />;
   }
 
-  if (
-    moduleId &&
-    moduleId !== 'home' &&
-    !userHasModuleAccess(user.cargo, user.modulos_acesso, moduleId)
+  if (sectionId === 'administrador.hub') {
+    const hasAnyAdmin = (user.secoes_acesso ?? []).some((s) => s.startsWith('administrador.'));
+    if (!hasAnyAdmin && !userHasSectionAccess(user.cargo, user.secoes_acesso, sectionId)) {
+      return <Navigate to="/" replace />;
+    }
+  } else if (
+    sectionId &&
+    sectionId !== 'home' &&
+    !userHasSectionAccess(user.cargo, user.secoes_acesso, sectionId)
   ) {
     return <Navigate to="/" replace />;
   }

@@ -4,8 +4,9 @@ import {
   PORTAL_MODULES,
   USER_FORM_CARGOS,
   canManageUsers,
-  defaultModulosForCargo,
-  parseModulosFromNivelAcesso,
+  defaultSecoesForCargo,
+  parseSecoesFromNivelAcesso,
+  sectionsOfModule,
   type PortalModuleId,
 } from '../../data/portalModules';
 import { saveUser, updateUser } from '../../services/userService';
@@ -27,9 +28,9 @@ function buildEndereco(user: Usuario) {
 export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFormModalProps) {
   const isEdit = Boolean(user);
   const initialCargo = user?.cargo ?? '';
-  const initialModulos = user
-    ? parseModulosFromNivelAcesso(user.nivel_acesso, user.cargo)
-    : defaultModulosForCargo('Gerente');
+  const initialSecoes = user
+    ? parseSecoesFromNivelAcesso(user.nivel_acesso, user.cargo)
+    : defaultSecoesForCargo('Gerente');
 
   const [form, setForm] = useState({
     nome: user?.nome ?? '',
@@ -40,7 +41,8 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
     cargo: initialCargo,
     senha: '',
   });
-  const [modulos, setModulos] = useState<PortalModuleId[]>(initialModulos);
+  const [secoes, setSecoes] = useState<string[]>(initialSecoes);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,18 +59,44 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
 
   const handleCargoChange = (cargo: string) => {
     updateField('cargo', cargo);
-    setModulos((prev) => {
-      const next = prev.length ? prev : defaultModulosForCargo(cargo);
+    setSecoes((prev) => {
+      const next = prev.length ? prev : defaultSecoesForCargo(cargo);
       if (!canManageUsers(cargo)) {
-        return next.filter((id) => id !== 'administrador');
+        return next.filter((id) => !id.startsWith('administrador.'));
       }
       return next;
     });
   };
 
-  const toggleModulo = (id: PortalModuleId) => {
-    setModulos((prev) =>
-      prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id],
+  const sectionIdsOf = (moduleId: PortalModuleId) =>
+    sectionsOfModule(moduleId).map((s) => s.id);
+
+  const isModuleChecked = (moduleId: PortalModuleId) => {
+    const ids = sectionIdsOf(moduleId);
+    return ids.length > 0 && ids.every((id) => secoes.includes(id));
+  };
+
+  const isModulePartial = (moduleId: PortalModuleId) => {
+    const ids = sectionIdsOf(moduleId);
+    const count = ids.filter((id) => secoes.includes(id)).length;
+    return count > 0 && count < ids.length;
+  };
+
+  const toggleModule = (moduleId: PortalModuleId) => {
+    const ids = sectionIdsOf(moduleId);
+    setSecoes((prev) => {
+      const allOn = ids.every((id) => prev.includes(id));
+      if (allOn) {
+        return prev.filter((id) => !ids.includes(id));
+      }
+      return [...new Set([...prev, ...ids])];
+    });
+    setExpanded((prev) => ({ ...prev, [moduleId]: true }));
+  };
+
+  const toggleSection = (sectionId: string) => {
+    setSecoes((prev) =>
+      prev.includes(sectionId) ? prev.filter((id) => id !== sectionId) : [...prev, sectionId],
     );
   };
 
@@ -85,8 +113,8 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
       setError('Informe ou gere uma senha para o novo usuário.');
       return;
     }
-    if (modulos.length === 0) {
-      setError('Selecione ao menos um balão/módulo de acesso.');
+    if (secoes.length === 0) {
+      setError('Selecione ao menos uma seção de acesso.');
       return;
     }
 
@@ -103,7 +131,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
           cargo: form.cargo,
           endereco: form.endereco,
           senha: form.senha.trim() || undefined,
-          modulos,
+          secoes,
         });
       } else {
         await saveUser({
@@ -114,7 +142,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
           senha: form.senha,
           cargo: form.cargo,
           endereco: form.endereco,
-          modulos,
+          secoes,
         });
       }
       onSuccess();
@@ -130,7 +158,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
     <ModalShell onClose={onClose} className="form-modal usuario-form-modal">
       <div className="colab-modal-header">
         <h2>{isEdit ? 'Editar Usuário' : 'Novo Usuário'}</h2>
-        <p>Cadastre dados e escolha os balões que este usuário poderá acessar</p>
+        <p>Cadastre dados e escolha balões e seções que este usuário poderá acessar</p>
       </div>
 
       <div className="colab-form">
@@ -216,29 +244,78 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
         <fieldset className="colab-field full usuario-modulos-field">
           <legend>Balões / seções de acesso</legend>
           <p className="usuario-modulos-hint">
-            Marque os módulos do portal que este usuário poderá ver.
+            Marque o balão inteiro ou abra e escolha só as seções desejadas (ex.: Relatórios, Projeção
+            de metas).
             {managerCargo
               ? ' Administrador fica disponível para Gerente, CEO, Presidente e Dono.'
               : ' O balão Administrador só pode ser liberado para Gerente, CEO ou Presidente.'}
           </p>
           <div className="usuario-modulos-grid">
             {moduleOptions.map((mod) => {
-              const checked = modulos.includes(mod.id);
+              const checked = isModuleChecked(mod.id);
+              const partial = isModulePartial(mod.id);
+              const isOpen = expanded[mod.id] ?? (partial || checked);
+              const hasManySections = mod.sections.length > 1;
+
               return (
-                <label key={mod.id} className={`usuario-modulo-chip ${checked ? 'active' : ''}`}>
-                  <input
-                    type="checkbox"
-                    checked={checked}
-                    onChange={() => toggleModulo(mod.id)}
-                  />
-                  <span className="usuario-modulo-icon" aria-hidden>
-                    {mod.icon}
-                  </span>
-                  <span>
-                    <strong>{mod.title}</strong>
-                    <small>{mod.description}</small>
-                  </span>
-                </label>
+                <div
+                  key={mod.id}
+                  className={`usuario-modulo-block ${checked || partial ? 'active' : ''}`}
+                >
+                  <div className="usuario-modulo-chip-row">
+                    <label className="usuario-modulo-chip">
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        ref={(el) => {
+                          if (el) el.indeterminate = partial && !checked;
+                        }}
+                        onChange={() => toggleModule(mod.id)}
+                      />
+                      <span className="usuario-modulo-icon" aria-hidden>
+                        {mod.icon}
+                      </span>
+                      <span>
+                        <strong>{mod.title}</strong>
+                        <small>{mod.description}</small>
+                      </span>
+                    </label>
+                    {hasManySections && (
+                      <button
+                        type="button"
+                        className="usuario-modulo-expand"
+                        onClick={() =>
+                          setExpanded((prev) => ({ ...prev, [mod.id]: !isOpen }))
+                        }
+                        aria-expanded={isOpen}
+                      >
+                        {isOpen ? '▾' : '▸'} Seções
+                      </button>
+                    )}
+                  </div>
+
+                  {hasManySections && isOpen && (
+                    <div className="usuario-secoes-grid">
+                      {mod.sections.map((section) => {
+                        const sectionOn = secoes.includes(section.id);
+                        return (
+                          <label
+                            key={section.id}
+                            className={`usuario-secao-chip ${sectionOn ? 'active' : ''}`}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={sectionOn}
+                              onChange={() => toggleSection(section.id)}
+                            />
+                            <span aria-hidden>{section.icon ?? '•'}</span>
+                            <span>{section.title}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
               );
             })}
           </div>

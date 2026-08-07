@@ -228,7 +228,22 @@ button.link-action {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .sidebar {
-    display: none;
+  .main-area {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .page-title {
+    font-size: 1.15rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-area {
+    padding: 10px;
+  }
+
+  .home-atividades-kpis {
+    grid-template-columns: 1fr;
   }
 }

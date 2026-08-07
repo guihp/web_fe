@@ -12,7 +12,7 @@ import './Administrador.css';
 const SECTION_TITLES: Record<string, string> = {
   usuarios: 'Usuários',
   perfis: 'Sucesso do cliente',
-  vendedores: 'Vendedores',
+  price: 'Price',
   empresa: 'Empresa',
   regionais: 'Regionais',
   filiais: 'Filiais',

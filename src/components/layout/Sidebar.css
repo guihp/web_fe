@@ -10,7 +10,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: width 0.2s ease, padding 0.2s ease;
+  transition: width 0.2s ease, padding 0.2s ease, transform 0.22s ease;
 }
 
 .sidebar-top {
@@ -25,6 +25,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
@@ -33,6 +34,12 @@
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.sidebar-toggle-label {
+  display: none;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
 .sidebar-toggle:hover {
@@ -107,4 +114,86 @@
 
 .sidebar--collapsed .sidebar-label {
   display: none;
+}
+
+.sidebar-backdrop,
+.sidebar-fab {
+  display: none;
+}
+
+.sidebar-slot {
+  display: contents;
+}
+
+@media (max-width: 900px) {
+  .sidebar-slot--mobile {
+    display: block;
+    width: 0;
+    flex: none;
+    overflow: visible;
+  }
+
+  .sidebar--mobile {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 62;
+    width: min(280px, 86vw);
+    height: 100%;
+    transform: translateX(-105%);
+    box-shadow: 8px 0 32px rgba(0, 0, 0, 0.28);
+    padding-top: max(12px, env(safe-area-inset-top));
+  }
+
+  .sidebar--mobile-open {
+    transform: translateX(0);
+  }
+
+  .sidebar--mobile .sidebar-top {
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .sidebar--mobile .sidebar-toggle {
+    width: auto;
+    min-height: 36px;
+    padding: 0 10px;
+  }
+
+  .sidebar--mobile .sidebar-toggle-label {
+    display: inline;
+  }
+
+  .sidebar-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 61;
+    border: none;
+    padding: 0;
+    margin: 0;
+    background: rgba(15, 23, 42, 0.5);
+    cursor: pointer;
+  }
+
+  .sidebar-fab {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: fixed;
+    left: 16px;
+    bottom: max(16px, env(safe-area-inset-bottom));
+    z-index: 40;
+    width: 48px;
+    height: 48px;
+    border: none;
+    border-radius: 50%;
+    background: var(--coral);
+    color: var(--text-on-accent, #fff);
+    font-size: 1.1rem;
+    font-weight: 700;
+    box-shadow: 0 8px 24px rgba(234, 102, 36, 0.35);
+    cursor: pointer;
+  }
 }

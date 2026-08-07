@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import {
   PORTAL_MODULES,
+  firstPathForModule,
   userHasModuleAccess,
 } from '../data/portalModules';
 import './PortalHome.css';
@@ -11,7 +12,12 @@ export default function PortalHome() {
   const firstName = user?.nome?.split(' ')[0] ?? 'Usuário';
 
   const modules = PORTAL_MODULES.filter((mod) =>
-    userHasModuleAccess(user?.cargo ?? '', user?.modulos_acesso, mod.id),
+    userHasModuleAccess(
+      user?.cargo ?? '',
+      user?.modulos_acesso,
+      mod.id,
+      user?.secoes_acesso,
+    ),
   );
 
   return (
@@ -41,7 +47,10 @@ export default function PortalHome() {
             <h2 className="portal-card-title">{mod.title}</h2>
             <p className="portal-card-desc">{mod.description}</p>
 
-            <Link to={mod.path} className="portal-card-cta">
+            <Link
+              to={firstPathForModule(mod.id, user?.secoes_acesso)}
+              className="portal-card-cta"
+            >
               Acessar
               <span aria-hidden>→</span>
             </Link>

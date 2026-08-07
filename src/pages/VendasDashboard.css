@@ -73,6 +73,21 @@
   .vendas-kpi-grid {
     grid-template-columns: 1fr;
   }
+
+  .vendas-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .vendas-header-actions {
+    width: 100%;
+  }
+
+  .vendas-header-actions .vendas-select,
+  .vendas-header-actions .vendas-export-btn {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
 }
 
 .vendas-kpi {
@@ -401,6 +416,12 @@
   }
 }
 
+.vendas-dashboard-print-area {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .vendas-dashboard-charts {
   display: flex;
   flex-direction: column;
@@ -411,11 +432,139 @@
   display: none;
 }
 
+.vendas-dashboard-print-area--exporting .vendas-print-title {
+  display: block;
+  margin-bottom: 8px;
+}
+
+.vendas-dashboard-print-area--exporting .vendas-print-title h1 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #111;
+}
+
+.vendas-dashboard-print-area--exporting .vendas-print-title p {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.vendas-print-preview-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  background: rgba(15, 23, 42, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.vendas-print-preview-panel {
+  width: min(1100px, 96vw);
+  max-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+.vendas-print-preview-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border);
+}
+
+.vendas-print-preview-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.vendas-print-preview-header p {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.vendas-print-preview-close {
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+}
+
+.vendas-print-preview-frame {
+  flex: 1;
+  overflow: auto;
+  background: #e5e7eb;
+  padding: 16px;
+}
+
+.vendas-print-preview-sheet {
+  background: #fff;
+  color: #111;
+  border-radius: 8px;
+  padding: 16px;
+  min-height: 280px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
+  transform-origin: top center;
+}
+
+.vendas-print-preview-clone {
+  gap: 14px !important;
+}
+
+.vendas-print-preview-clone .vendas-print-title {
+  display: block !important;
+  margin-bottom: 8px;
+}
+
+.vendas-print-preview-clone .vendas-print-title h1 {
+  margin: 0;
+  font-size: 1.15rem;
+  color: #111;
+}
+
+.vendas-print-preview-clone .vendas-print-title p {
+  margin: 4px 0 0;
+  color: #555;
+  font-size: 0.82rem;
+}
+
+.vendas-print-preview-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--border);
+}
+
+.vendas-print-btn-secondary {
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
 @media print {
   @page {
-    margin: 12mm;
+    size: landscape;
+    margin: 10mm;
   }
 
+  html,
   body {
     background: #fff !important;
     color: #111 !important;
@@ -423,16 +572,19 @@
     print-color-adjust: exact;
   }
 
-  /* Esconde chrome do app e tudo que não for gráfico */
+  .no-print,
   .sidebar,
   .topbar,
   .calendar-panel,
   .back-to-portal,
   .vendas-module-tabs,
+  .vendas-module-top,
+  .vendas-tabs-toggle,
+  .vendas-tabs-fab,
   .vendas-header,
-  .vendas-kpi-block,
   .vendas-header-actions,
-  .vendas-export-btn {
+  .vendas-export-btn,
+  .vendas-print-preview-overlay {
     display: none !important;
   }
 
@@ -442,7 +594,8 @@
   .content-column,
   .vendas-module,
   .vendas-module-body,
-  .vendas-module-content {
+  .vendas-module-content,
+  .vendas-dashboard {
     display: block !important;
     width: 100% !important;
     max-width: none !important;
@@ -451,30 +604,31 @@
     background: transparent !important;
     box-shadow: none !important;
     border: none !important;
+    gap: 0 !important;
   }
 
-  .vendas-dashboard {
-    gap: 16px;
-    padding: 0 !important;
+  .vendas-dashboard-print-area {
+    gap: 12px;
   }
 
   .vendas-print-title {
     display: block;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
   }
 
   .vendas-print-title h1 {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     color: #111;
   }
 
   .vendas-print-title p {
     margin: 4px 0 0;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: #555;
   }
 
+  .vendas-kpi-block,
   .vendas-dashboard-charts .card,
   .vendas-dashboard-charts .vendas-monthly-card,
   .vendas-dashboard-charts .vendas-chart-card,
@@ -486,14 +640,22 @@
     color: #111 !important;
   }
 
-  .vendas-dashboard-charts h2,
-  .vendas-dashboard-charts h3,
-  .vendas-dashboard-charts .vendas-section-title,
-  .vendas-dashboard-charts .vendas-monthly-meta,
-  .vendas-dashboard-charts .vendas-total-box,
-  .vendas-dashboard-charts .h-bar-label,
-  .vendas-dashboard-charts .h-bar-value,
-  .vendas-dashboard-charts .donut-legend {
+  .vendas-kpi-heading,
+  .vendas-section-title,
+  .vendas-dashboard-print-area h2,
+  .vendas-dashboard-print-area h3,
+  .vendas-monthly-meta,
+  .vendas-total-box,
+  .h-bar-label,
+  .h-bar-value,
+  .donut-legend {
     color: #111 !important;
+  }
+
+  .vendas-compare-grid,
+  .vendas-charts-grid,
+  .vendas-monthly-grid,
+  .vendas-kpi-grid {
+    gap: 10px !important;
   }
 }

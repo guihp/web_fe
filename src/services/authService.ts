@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase';
 import { normalizeCpf } from '../lib/cpf';
 import {
   canManageUsers,
-  parseModulosFromNivelAcesso,
+  parseAcessoFromNivelAcesso,
   type PortalModuleId,
 } from '../data/portalModules';
 
@@ -15,9 +15,18 @@ export type AuthUser = {
   cpf: string;
   foto_perfil_url: string | null;
   modulos_acesso: PortalModuleId[];
+  secoes_acesso: string[];
 };
 
-const WEB_ALLOWED_CARGOS = ['Gerente', 'Dono', 'CEO', 'Presidente'] as const;
+const WEB_ALLOWED_CARGOS = [
+  'Gerente',
+  'Dono',
+  'CEO',
+  'Presidente',
+  'Supervisor',
+  'Analista admin',
+  'Aux. administrativo',
+] as const;
 
 export function isWebAdminCargo(cargo: string): boolean {
   const key = cargo.trim().toLowerCase();
@@ -69,6 +78,8 @@ export async function loginWithCpf(cpf: string, senha: string): Promise<AuthUser
     throw new Error('Senha incorreta.');
   }
 
+  const acesso = parseAcessoFromNivelAcesso(user.nivel_acesso, user.cargo);
+
   return {
     id: user.id,
     nome: user.nome,
@@ -77,6 +88,7 @@ export async function loginWithCpf(cpf: string, senha: string): Promise<AuthUser
     cargo: user.cargo,
     cpf: user.cpf,
     foto_perfil_url: user.foto_perfil_url ?? null,
-    modulos_acesso: parseModulosFromNivelAcesso(user.nivel_acesso, user.cargo),
+    modulos_acesso: acesso.modulos,
+    secoes_acesso: acesso.secoes,
   };
 }

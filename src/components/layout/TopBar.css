@@ -225,6 +225,11 @@
 }
 
 @media (max-width: 768px) {
+  .topbar {
+    padding: 0 12px;
+    gap: 10px;
+  }
+
   .topbar-search {
     display: none;
   }

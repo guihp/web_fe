@@ -1,4 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 import {
   DonutChart,
   HorizontalBarChart,
@@ -176,8 +178,109 @@ export default function VendasDashboard() {
     [ano, totalMapi, totalPa, metaMapiAnual, metaPaAnual],
   );
 
+  const [printPreview, setPrintPreview] = useState(false);
+  const [savingPdf, setSavingPdf] = useState(false);
+  const previewHostRef = useRef<HTMLDivElement | null>(null);
+
   const handleExport = () => {
-    window.print();
+    setPrintPreview(true);
+  };
+
+  useEffect(() => {
+    if (!printPreview) return;
+    const src = document.getElementById('vendas-dashboard-print-area');
+    const host = previewHostRef.current;
+    if (!src || !host) return;
+    host.innerHTML = '';
+    const clone = src.cloneNode(true) as HTMLElement;
+    clone.removeAttribute('id');
+    clone.classList.add('vendas-print-preview-clone');
+    host.appendChild(clone);
+  }, [printPreview, mes, ano, kpiCardsMensal, kpiCardsAnual, mapiMensal, paMensal]);
+
+  const handlePrint = () => {
+    setPrintPreview(false);
+    window.setTimeout(() => window.print(), 80);
+  };
+
+  const handleSavePdf = async () => {
+    const el = document.getElementById('vendas-dashboard-print-area');
+    if (!el) return;
+
+    setSavingPdf(true);
+    el.classList.add('vendas-dashboard-print-area--exporting');
+    try {
+      const canvas = await html2canvas(el, {
+        scale: 2,
+        useCORS: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF({
+        orientation: 'landscape',
+        unit: 'mm',
+        format: 'a4',
+      });
+
+      const pageW = pdf.internal.pageSize.getWidth();
+      const pageH = pdf.internal.pageSize.getHeight();
+      const margin = 8;
+      const maxW = pageW - margin * 2;
+      const maxH = pageH - margin * 2;
+      const ratio = Math.min(maxW / canvas.width, maxH / canvas.height);
+      const imgW = canvas.width * ratio;
+      const imgH = canvas.height * ratio;
+      const x = (pageW - imgW) / 2;
+      const y = margin;
+
+      if (imgH <= maxH) {
+        pdf.addImage(imgData, 'PNG', x, y, imgW, imgH);
+      } else {
+        let remaining = imgH;
+        let srcY = 0;
+        const pxPerMm = canvas.height / imgH;
+        let page = 0;
+        while (remaining > 0) {
+          if (page > 0) pdf.addPage();
+          const sliceH = Math.min(maxH, remaining);
+          const sliceCanvas = document.createElement('canvas');
+          sliceCanvas.width = canvas.width;
+          sliceCanvas.height = Math.max(1, Math.floor(sliceH * pxPerMm));
+          const ctx = sliceCanvas.getContext('2d');
+          if (ctx) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, sliceCanvas.width, sliceCanvas.height);
+            ctx.drawImage(
+              canvas,
+              0,
+              Math.floor(srcY * pxPerMm),
+              canvas.width,
+              sliceCanvas.height,
+              0,
+              0,
+              canvas.width,
+              sliceCanvas.height,
+            );
+          }
+          pdf.addImage(sliceCanvas.toDataURL('image/png'), 'PNG', x, y, imgW, sliceH);
+          srcY += sliceH;
+          remaining -= sliceH;
+          page += 1;
+        }
+      }
+
+      const safeMes = mes.replace(/\s+/g, '-');
+      pdf.save(`dashboard-vendas-${safeMes}-${ano}.pdf`);
+      setPrintPreview(false);
+    } catch (err) {
+      console.error('Falha ao salvar PDF', err);
+      window.alert('Não foi possível salvar o PDF. Tente novamente.');
+    } finally {
+      el.classList.remove('vendas-dashboard-print-area--exporting');
+      setSavingPdf(false);
+    }
   };
 
   if (loading) {
@@ -190,7 +293,7 @@ export default function VendasDashboard() {
 
   return (
     <div className="vendas-dashboard" id="vendas-dashboard-print">
-      <header className="vendas-header">
+      <header className="vendas-header no-print">
         <div>
           <h1 className="page-title">Dashboard de Vendas</h1>
           <p className="vendas-subtitle">Acompanhamento Regional MA-PI-PA</p>
@@ -218,96 +321,150 @@ export default function VendasDashboard() {
         </div>
       </header>
 
-      <section className="vendas-kpi-block">
-        <h2 className="vendas-kpi-heading">Meta mensal</h2>
-        <div className="vendas-kpi-grid">
-          {kpiCardsMensal.map((card) => (
-            <KpiCardView
-              key={card.id}
-              title={card.title}
-              realizado={card.realizado}
-              meta={card.meta}
-              percentLabel={card.percentLabel}
-              icon={card.icon}
-            />
-          ))}
-        </div>
-      </section>
-
-      <section className="vendas-kpi-block">
-        <h2 className="vendas-kpi-heading">Meta anual</h2>
-        <div className="vendas-kpi-grid">
-          {kpiCardsAnual.map((card) => (
-            <KpiCardView
-              key={card.id}
-              title={card.title}
-              realizado={card.realizado}
-              meta={card.meta}
-              percentLabel={card.percentLabel}
-              icon={card.icon}
-            />
-          ))}
-        </div>
-      </section>
-
-      <div className="vendas-dashboard-charts" id="vendas-dashboard-charts">
+      <div className="vendas-dashboard-print-area" id="vendas-dashboard-print-area">
         <header className="vendas-print-title">
           <h1>Dashboard de Vendas — {mes}/{ano}</h1>
-          <p>Acompanhamento Regional MA-PI-PA</p>
+          <p>Acompanhamento Regional MA-PI-PA · Orientação paisagem</p>
         </header>
 
-        <section className="card vendas-section">
-          <h2 className="vendas-section-title">Comparativo Mensal por Região — {mes}</h2>
-
-          <div className="vendas-compare-grid">
-            <div className="vendas-compare-block">
-              <h3>Realizado x Meta Mensal ({mes}) — MA/PI</h3>
-              <DonutChart realizado={realizadoMapiMes} meta={metaMapi} color={CORAL} />
-            </div>
-            <div className="vendas-compare-block">
-              <h3>Realizado x Meta Mensal ({mes}) — Pará</h3>
-              <DonutChart realizado={realizadoPaMes} meta={metaPa} color={BLUE} />
-            </div>
-          </div>
-
-          <div className="vendas-charts-grid">
-            <div className="vendas-chart-card">
-              <h3>Venda do Mês por Indústria — MA/PI</h3>
-              <HorizontalBarChart data={mapiMesIndustria.length ? mapiMesIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={CORAL} />
-            </div>
-            <div className="vendas-chart-card">
-              <h3>Venda Anual por Indústria — Pará</h3>
-              <HorizontalBarChart data={paAnualIndustria.length ? paAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={BLUE} />
-            </div>
-            <div className="vendas-chart-card full">
-              <h3>Venda Anual por Indústria — MA/PI</h3>
-              <HorizontalBarChart data={mapiAnualIndustria.length ? mapiAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={CORAL_DARK} />
-            </div>
+        <section className="vendas-kpi-block">
+          <h2 className="vendas-kpi-heading">Meta mensal</h2>
+          <div className="vendas-kpi-grid">
+            {kpiCardsMensal.map((card) => (
+              <KpiCardView
+                key={card.id}
+                title={card.title}
+                realizado={card.realizado}
+                meta={card.meta}
+                percentLabel={card.percentLabel}
+                icon={card.icon}
+              />
+            ))}
           </div>
         </section>
 
-        <section className="vendas-monthly-grid">
-          <article className="card vendas-monthly-card">
-            <h2>Mensal — MA/PI</h2>
-            <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaMapiMensal)}/mês</p>
-            <div className="vendas-total-box">
-              <span>Total Realizado (Ano):</span>
-              <strong>{formatBRLCompact(totalMapi)}</strong>
-            </div>
-            <VerticalBarChart data={mapiMensal} color={CORAL} />
-          </article>
-
-          <article className="card vendas-monthly-card">
-            <h2>Mensal — Pará (PA)</h2>
-            <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaPaMensal)}/mês</p>
-            <div className="vendas-total-box">
-              <span>Total Realizado (Ano):</span>
-              <strong>{formatBRLCompact(totalPa)}</strong>
-            </div>
-            <VerticalBarChart data={paMensal} color={BLUE} />
-          </article>
+        <section className="vendas-kpi-block">
+          <h2 className="vendas-kpi-heading">Meta anual</h2>
+          <div className="vendas-kpi-grid">
+            {kpiCardsAnual.map((card) => (
+              <KpiCardView
+                key={card.id}
+                title={card.title}
+                realizado={card.realizado}
+                meta={card.meta}
+                percentLabel={card.percentLabel}
+                icon={card.icon}
+              />
+            ))}
+          </div>
         </section>
+
+        <div className="vendas-dashboard-charts" id="vendas-dashboard-charts">
+          <section className="card vendas-section">
+            <h2 className="vendas-section-title">Comparativo Mensal por Região — {mes}</h2>
+
+            <div className="vendas-compare-grid">
+              <div className="vendas-compare-block">
+                <h3>Realizado x Meta Mensal ({mes}) — MA/PI</h3>
+                <DonutChart realizado={realizadoMapiMes} meta={metaMapi} color={CORAL} />
+              </div>
+              <div className="vendas-compare-block">
+                <h3>Realizado x Meta Mensal ({mes}) — Pará</h3>
+                <DonutChart realizado={realizadoPaMes} meta={metaPa} color={BLUE} />
+              </div>
+            </div>
+
+            <div className="vendas-charts-grid">
+              <div className="vendas-chart-card">
+                <h3>Venda do Mês por Indústria — MA/PI</h3>
+                <HorizontalBarChart data={mapiMesIndustria.length ? mapiMesIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={CORAL} />
+              </div>
+              <div className="vendas-chart-card">
+                <h3>Venda Anual por Indústria — Pará</h3>
+                <HorizontalBarChart data={paAnualIndustria.length ? paAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={BLUE} />
+              </div>
+              <div className="vendas-chart-card full">
+                <h3>Venda Anual por Indústria — MA/PI</h3>
+                <HorizontalBarChart data={mapiAnualIndustria.length ? mapiAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={CORAL_DARK} />
+              </div>
+            </div>
+          </section>
+
+          <section className="vendas-monthly-grid">
+            <article className="card vendas-monthly-card">
+              <h2>Mensal — MA/PI</h2>
+              <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaMapiMensal)}/mês</p>
+              <div className="vendas-total-box">
+                <span>Total Realizado (Ano):</span>
+                <strong>{formatBRLCompact(totalMapi)}</strong>
+              </div>
+              <VerticalBarChart data={mapiMensal} color={CORAL} />
+            </article>
+
+            <article className="card vendas-monthly-card">
+              <h2>Mensal — Pará (PA)</h2>
+              <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaPaMensal)}/mês</p>
+              <div className="vendas-total-box">
+                <span>Total Realizado (Ano):</span>
+                <strong>{formatBRLCompact(totalPa)}</strong>
+              </div>
+              <VerticalBarChart data={paMensal} color={BLUE} />
+            </article>
+          </section>
+        </div>
       </div>
+
+      {printPreview && (
+        <div className="vendas-print-preview-overlay no-print" role="dialog" aria-modal="true">
+          <div className="vendas-print-preview-panel">
+            <header className="vendas-print-preview-header">
+              <div>
+                <h2>Pré-visualização do PDF</h2>
+                <p>Paisagem · Imprimir ou salvar o arquivo no PC</p>
+              </div>
+              <button
+                type="button"
+                className="vendas-print-preview-close"
+                onClick={() => setPrintPreview(false)}
+                aria-label="Fechar"
+              >
+                ✕
+              </button>
+            </header>
+
+            <div className="vendas-print-preview-frame">
+              <div className="vendas-print-preview-sheet" ref={previewHostRef} />
+            </div>
+
+            <div className="vendas-print-preview-actions">
+              <button
+                type="button"
+                className="vendas-print-btn-secondary"
+                onClick={() => setPrintPreview(false)}
+                disabled={savingPdf}
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                className="vendas-print-btn-secondary"
+                onClick={handlePrint}
+                disabled={savingPdf}
+              >
+                Imprimir
+              </button>
+              <button
+                type="button"
+                className="btn-primary"
+                onClick={() => void handleSavePdf()}
+                disabled={savingPdf}
+              >
+                {savingPdf ? 'Salvando…' : 'Salvar PDF'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

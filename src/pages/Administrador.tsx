@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import type { ReactNode } from 'react';
 import BackToPortal from '../components/layout/BackToPortal';
+import { useAuth } from '../context/AuthContext';
+import { userHasSectionAccess } from '../data/portalModules';
 import './Administrador.css';
 
 type AdminModule = {
@@ -10,6 +12,7 @@ type AdminModule = {
   path: string;
   tone: string;
   icon: ReactNode;
+  section: string;
 };
 
 function IconUser() {
@@ -107,6 +110,7 @@ const ADMIN_MODULES: AdminModule[] = [
     path: '/administrador/usuarios',
     tone: 'blue',
     icon: <IconUser />,
+    section: 'administrador.usuarios',
   },
   {
     id: 'perfis',
@@ -115,14 +119,16 @@ const ADMIN_MODULES: AdminModule[] = [
     path: '/administrador/perfis',
     tone: 'violet',
     icon: <IconShield />,
+    section: 'administrador.sucesso',
   },
   {
-    id: 'vendedores',
-    title: 'Vendedores',
-    description: 'Cadastro comercial dos usuários com perfil Vendedor (regional e comissão)',
-    path: '/administrador/vendedores',
+    id: 'price',
+    title: 'Price',
+    description: 'Módulo Price — conteúdo a definir',
+    path: '/administrador/price',
     tone: 'sky',
     icon: <IconBriefcase />,
+    section: 'administrador.price',
   },
   {
     id: 'empresa',
@@ -131,6 +137,7 @@ const ADMIN_MODULES: AdminModule[] = [
     path: '/administrador/empresa',
     tone: 'green',
     icon: <IconBuilding />,
+    section: 'administrador.empresa',
   },
   {
     id: 'regionais',
@@ -139,6 +146,7 @@ const ADMIN_MODULES: AdminModule[] = [
     path: '/administrador/regionais',
     tone: 'orange',
     icon: <IconPin />,
+    section: 'administrador.regionais',
   },
   {
     id: 'filiais',
@@ -147,6 +155,7 @@ const ADMIN_MODULES: AdminModule[] = [
     path: '/administrador/filiais',
     tone: 'rose',
     icon: <IconStore />,
+    section: 'administrador.filiais',
   },
   {
     id: 'industrias',
@@ -155,6 +164,7 @@ const ADMIN_MODULES: AdminModule[] = [
     path: '/administrador/industrias',
     tone: 'indigo',
     icon: <IconFactory />,
+    section: 'administrador.industrias',
   },
   {
     id: 'clientes',
@@ -163,6 +173,7 @@ const ADMIN_MODULES: AdminModule[] = [
     path: '/administrador/clientes',
     tone: 'teal',
     icon: <IconIdCard />,
+    section: 'administrador.clientes',
   },
   {
     id: 'metas',
@@ -171,10 +182,18 @@ const ADMIN_MODULES: AdminModule[] = [
     path: '/administrador/metas',
     tone: 'lime',
     icon: <IconTarget />,
+    section: 'administrador.metas',
   },
 ];
 
 export default function Administrador() {
+  const { user } = useAuth();
+  const modules = ADMIN_MODULES.filter(
+    (mod) =>
+      userHasSectionAccess(user?.cargo ?? '', user?.secoes_acesso, mod.section) ||
+      userHasSectionAccess(user?.cargo ?? '', user?.secoes_acesso, 'administrador.hub'),
+  );
+
   return (
     <div className="admin-page">
       <BackToPortal />
@@ -187,7 +206,7 @@ export default function Administrador() {
       </header>
 
       <div className="admin-grid">
-        {ADMIN_MODULES.map((mod) => (
+        {modules.map((mod) => (
           <Link key={mod.id} to={mod.path} className={`admin-card admin-card--${mod.tone}`}>
             <span className="admin-card-icon" aria-hidden>
               {mod.icon}

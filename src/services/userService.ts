@@ -1,9 +1,9 @@
 import { supabase } from '../lib/supabase';
 import { normalizeCpf } from '../lib/cpf';
 import {
-  defaultModulosForCargo,
+  defaultSecoesForCargo,
   encodeNivelAcesso,
-  sanitizeModulos,
+  sanitizeSecoes,
 } from '../data/portalModules';
 
 async function hashPassword(password: string): Promise<string> {
@@ -52,17 +52,22 @@ export type SaveUserInput = {
   cargo: string;
   endereco?: string;
   modulos?: string[];
+  secoes?: string[];
 };
 
 export async function saveUser(data: SaveUserInput) {
   const { cidade, estado_id } = parseEndereco(data.endereco ?? '');
   const originalPassword = data.senha;
   const hashedPassword = await hashPassword(originalPassword);
-  const modulos = sanitizeModulos(
+  const secoes = sanitizeSecoes(
     data.cargo,
-    data.modulos?.length ? data.modulos : defaultModulosForCargo(data.cargo),
+    data.secoes?.length
+      ? data.secoes
+      : data.modulos?.length
+        ? data.modulos
+        : defaultSecoesForCargo(data.cargo),
   );
-  const nivel_acesso = encodeNivelAcesso(data.cargo, modulos);
+  const nivel_acesso = encodeNivelAcesso(data.cargo, secoes);
 
   const { error } = await supabase.from('usuarios').insert([
     {
@@ -98,7 +103,7 @@ export async function saveUser(data: SaveUserInput) {
           cidade,
           estado: estado_id,
           nivel_acesso,
-          modulos,
+          secoes,
         }),
       });
     } catch {
@@ -118,13 +123,18 @@ export type UpdateUserInput = {
   endereco?: string;
   senha?: string;
   modulos?: string[];
+  secoes?: string[];
 };
 
 export async function updateUser(userId: number, data: UpdateUserInput) {
   const { cidade, estado_id } = parseEndereco(data.endereco ?? '');
-  const modulos = sanitizeModulos(
+  const secoes = sanitizeSecoes(
     data.cargo,
-    data.modulos?.length ? data.modulos : defaultModulosForCargo(data.cargo),
+    data.secoes?.length
+      ? data.secoes
+      : data.modulos?.length
+        ? data.modulos
+        : defaultSecoesForCargo(data.cargo),
   );
 
   const payload: Record<string, string | null> = {
@@ -135,7 +145,7 @@ export async function updateUser(userId: number, data: UpdateUserInput) {
     cargo: data.cargo,
     cidade,
     estado_id,
-    nivel_acesso: encodeNivelAcesso(data.cargo, modulos),
+    nivel_acesso: encodeNivelAcesso(data.cargo, secoes),
   };
 
   if (data.senha?.trim()) {

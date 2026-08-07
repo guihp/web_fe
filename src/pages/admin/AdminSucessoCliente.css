@@ -95,11 +95,39 @@
   flex-direction: column;
   min-width: 240px;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  --status-color: var(--coral);
+  --status-soft: var(--coral-soft);
+  --status-border: color-mix(in srgb, var(--status-color) 35%, var(--border));
+}
+
+.sucesso-column.status-enviado {
+  --status-color: #3b82f6;
+  --status-soft: rgba(59, 130, 246, 0.16);
+}
+
+.sucesso-column.status-faturado {
+  --status-color: #d97706;
+  --status-soft: rgba(217, 119, 6, 0.16);
+}
+
+.sucesso-column.status-transito {
+  --status-color: #8b5cf6;
+  --status-soft: rgba(139, 92, 246, 0.16);
+}
+
+.sucesso-column.status-aguardando {
+  --status-color: #ea6624;
+  --status-soft: rgba(234, 102, 36, 0.16);
+}
+
+.sucesso-column.status-finalizado {
+  --status-color: #16a34a;
+  --status-soft: rgba(22, 163, 74, 0.16);
 }
 
 .sucesso-column.is-over {
-  border-color: var(--coral);
-  box-shadow: 0 0 0 2px var(--coral-soft);
+  border-color: var(--status-color);
+  box-shadow: 0 0 0 2px var(--status-soft);
 }
 
 .sucesso-column-head {
@@ -108,7 +136,10 @@
   justify-content: space-between;
   gap: 8px;
   padding: 14px 14px 10px;
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--status-border);
+  border-top: 3px solid var(--status-color);
+  border-radius: 14px 14px 0 0;
+  background: linear-gradient(180deg, var(--status-soft), transparent 90%);
 }
 
 .sucesso-column-head h2 {
@@ -117,6 +148,14 @@
   font-weight: 700;
   color: var(--text);
   line-height: 1.3;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sucesso-status-check {
+  display: inline-flex;
+  color: var(--status-color);
 }
 
 .sucesso-column-head p {
@@ -133,8 +172,9 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--coral-soft);
-  color: var(--coral-dark);
+  gap: 4px;
+  background: var(--status-soft);
+  color: var(--status-color);
   font-size: 0.78rem;
   font-weight: 700;
 }
@@ -159,6 +199,7 @@
 .sucesso-card {
   background: var(--white);
   border: 1px solid var(--border);
+  border-left: 3px solid var(--status-color);
   border-radius: 12px;
   padding: 12px;
   cursor: grab;
@@ -177,6 +218,11 @@
   opacity: 0.55;
 }
 
+.sucesso-card.status-finalizado {
+  background: color-mix(in srgb, #16a34a 8%, var(--white));
+  border-color: color-mix(in srgb, #16a34a 35%, var(--border));
+}
+
 .sucesso-card-top {
   display: flex;
   align-items: flex-start;
@@ -187,12 +233,20 @@
 .sucesso-card-top strong {
   font-size: 0.85rem;
   color: var(--text);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sucesso-card-check {
+  display: inline-flex;
+  color: #16a34a;
 }
 
 .sucesso-card-top span {
   font-size: 0.8rem;
   font-weight: 700;
-  color: var(--coral);
+  color: var(--status-color);
   white-space: nowrap;
 }
 

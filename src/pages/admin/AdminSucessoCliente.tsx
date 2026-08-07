@@ -16,6 +16,22 @@ import {
 import '../Administrador.css';
 import './AdminSucessoCliente.css';
 
+const STATUS_CLASS: Record<KanbanStatus, string> = {
+  'Enviado ou gerado': 'status-enviado',
+  Faturado: 'status-faturado',
+  'Em trânsito': 'status-transito',
+  'Aguardando recebimento': 'status-aguardando',
+  'Entregue finalizado': 'status-finalizado',
+};
+
+function IconCheck() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
 function formatCnpj(cnpj: string) {
   const d = cnpj.replace(/\D/g, '');
   if (d.length !== 14) return cnpj;
@@ -232,11 +248,13 @@ export default function AdminSucessoCliente() {
             const list = columns[status];
             const colTotal = list.reduce((a, c) => a + c.valor, 0);
             const isOver = dropTarget === status;
+            const statusClass = STATUS_CLASS[status];
+            const isFinalizado = status === 'Entregue finalizado';
 
             return (
               <section
                 key={status}
-                className={`sucesso-column ${isOver ? 'is-over' : ''}`}
+                className={`sucesso-column ${statusClass} ${isOver ? 'is-over' : ''}`}
                 onDragOver={(e) => {
                   e.preventDefault();
                   setDropTarget(status);
@@ -254,12 +272,22 @@ export default function AdminSucessoCliente() {
               >
                 <header className="sucesso-column-head">
                   <div>
-                    <h2>{status}</h2>
+                    <h2>
+                      {isFinalizado && (
+                        <span className="sucesso-status-check" aria-hidden>
+                          <IconCheck />
+                        </span>
+                      )}
+                      {status}
+                    </h2>
                     <p>
                       {list.length} · {formatKanbanValor(colTotal)}
                     </p>
                   </div>
-                  <span className="sucesso-column-count">{list.length}</span>
+                  <span className="sucesso-column-count">
+                    {isFinalizado && list.length > 0 ? <IconCheck /> : null}
+                    {list.length}
+                  </span>
                 </header>
 
                 <div className="sucesso-column-body">
@@ -269,7 +297,7 @@ export default function AdminSucessoCliente() {
                     list.map((card) => (
                       <article
                         key={card.vendaId}
-                        className={`sucesso-card ${draggingId === card.vendaId ? 'is-dragging' : ''}`}
+                        className={`sucesso-card ${statusClass} ${draggingId === card.vendaId ? 'is-dragging' : ''}`}
                         draggable
                         onDragStart={(e) => {
                           setDraggingId(card.vendaId);
@@ -282,7 +310,14 @@ export default function AdminSucessoCliente() {
                         }}
                       >
                         <div className="sucesso-card-top">
-                          <strong>{card.numeroPedido}</strong>
+                          <strong>
+                            {isFinalizado && (
+                              <span className="sucesso-card-check" aria-hidden>
+                                <IconCheck />
+                              </span>
+                            )}
+                            {card.numeroPedido}
+                          </strong>
                           <span>{formatKanbanValor(card.valor)}</span>
                         </div>
                         <p className="sucesso-card-cliente">{card.cliente}</p>
