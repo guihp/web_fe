@@ -48,8 +48,8 @@ function formatData(iso: string) {
 export default function AdminSucessoCliente() {
   const { showToast } = useToast();
   const current = currentMesAnoLabel();
-  const [mes, setMes] = useState(current.mes);
-  const [ano, setAno] = useState(current.ano);
+  const [mes, setMes] = useState<string>(current.mes);
+  const [ano, setAno] = useState<string>(current.ano);
   const [industria, setIndustria] = useState('Todas');
   const [vendedor, setVendedor] = useState('Todos');
   const [estado, setEstado] = useState('Todos');
