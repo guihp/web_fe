@@ -26,6 +26,7 @@ import AdminUsuarios from './pages/admin/AdminUsuarios';
 import AdminEmpresa from './pages/admin/AdminEmpresa';
 import AdminSucessoCliente from './pages/admin/AdminSucessoCliente';
 import AdminSectionPlaceholder from './pages/AdminSectionPlaceholder';
+import Validades from './pages/Validades';
 
 export default function App() {
   return (
@@ -41,6 +42,7 @@ export default function App() {
           <Route path="/colaboradores" element={<Colaboradores />} />
           <Route path="/treinamento" element={<Treinamentos />} />
           <Route path="/financeiro" element={<Financeiro />} />
+          <Route path="/validades" element={<Validades />} />
           <Route path="/administrador" element={<Administrador />} />
           <Route path="/administrador/usuarios" element={<AdminUsuarios />} />
           <Route path="/administrador/empresa" element={<AdminEmpresa />} />

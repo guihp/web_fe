@@ -48,6 +48,13 @@ const NAV_ITEMS: NavItem[] = [
     section: 'financeiro.home',
   },
   {
+    id: 'validades',
+    label: 'Validades',
+    icon: '📅',
+    path: '/validades',
+    section: 'validades.home',
+  },
+  {
     id: 'administrador',
     label: 'Administrador',
     icon: '🛡️',

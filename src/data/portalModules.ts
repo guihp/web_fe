@@ -3,10 +3,16 @@ export const PORTAL_MODULE_IDS = [
   'atividades',
   'vendas',
   'financeiro',
+  'validades',
   'administrador',
 ] as const;
 
 export type PortalModuleId = (typeof PORTAL_MODULE_IDS)[number];
+
+/** Módulos liberados para todos os usuários autenticados (não dependem de nível_acesso). */
+export const ALWAYS_AVAILABLE_MODULE_IDS: readonly PortalModuleId[] = ['validades'];
+
+export const ALWAYS_AVAILABLE_SECTION_IDS = ['validades.home'] as const;
 
 export type PortalSectionDef = {
   id: string;
@@ -75,6 +81,17 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
     path: '/financeiro',
     sections: [
       { id: 'financeiro.home', title: 'Financeiro', path: '/financeiro', icon: '💵' },
+    ],
+  },
+  {
+    id: 'validades',
+    title: 'Validades',
+    description: 'Controle de validades — acesso liberado para todos os usuários.',
+    badge: 'Todos',
+    icon: '📅',
+    path: '/validades',
+    sections: [
+      { id: 'validades.home', title: 'Validades', path: '/validades', icon: '📅' },
     ],
   },
   {
@@ -193,6 +210,11 @@ export function sanitizeSecoes(cargo: string, secoes: string[] | null | undefine
   let next = picked;
   if (!canManageUsers(cargo)) {
     next = next.filter((id) => !id.startsWith('administrador.'));
+  }
+
+  // Sempre inclui módulos liberados para todos
+  for (const id of ALWAYS_AVAILABLE_SECTION_IDS) {
+    if (!next.includes(id)) next = [...next, id];
   }
 
   if (next.length === 0) {
@@ -314,6 +336,9 @@ export function firstPathForModule(
 ): string {
   const mod = PORTAL_MODULES.find((m) => m.id === moduleId);
   if (!mod) return '/';
+  if (ALWAYS_AVAILABLE_MODULE_IDS.includes(moduleId)) {
+    return mod.path;
+  }
   const granted = new Set(secoes ?? []);
   const hit = mod.sections.find((s) => granted.has(s.id));
   return hit?.path ?? mod.path;
@@ -359,6 +384,9 @@ export function userHasSectionAccess(
   secoes: string[] | null | undefined,
   sectionId: string,
 ): boolean {
+  if ((ALWAYS_AVAILABLE_SECTION_IDS as readonly string[]).includes(sectionId)) {
+    return true;
+  }
   if (sectionId.startsWith('administrador.') && !canManageUsers(cargo)) {
     return false;
   }
@@ -375,6 +403,9 @@ export function userHasModuleAccess(
   moduleId: PortalModuleId,
   secoes?: string[] | null,
 ): boolean {
+  if (ALWAYS_AVAILABLE_MODULE_IDS.includes(moduleId)) {
+    return true;
+  }
   if (moduleId === 'administrador' && !canManageUsers(cargo)) {
     return false;
   }

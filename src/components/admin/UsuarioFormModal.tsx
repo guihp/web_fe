@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { maskCpfInput, maskPhoneInput } from '../../lib/cpf';
 import {
+  ALWAYS_AVAILABLE_MODULE_IDS,
   PORTAL_MODULES,
   USER_FORM_CARGOS,
   canManageUsers,
@@ -83,6 +84,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
   };
 
   const toggleModule = (moduleId: PortalModuleId) => {
+    if (ALWAYS_AVAILABLE_MODULE_IDS.includes(moduleId)) return;
     const ids = sectionIdsOf(moduleId);
     setSecoes((prev) => {
       const allOn = ids.every((id) => prev.includes(id));
@@ -95,6 +97,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
   };
 
   const toggleSection = (sectionId: string) => {
+    if (ALWAYS_AVAILABLE_MODULE_IDS.some((id) => sectionId.startsWith(`${id}.`))) return;
     setSecoes((prev) =>
       prev.includes(sectionId) ? prev.filter((id) => id !== sectionId) : [...prev, sectionId],
     );
@@ -245,15 +248,16 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
           <legend>Balões / seções de acesso</legend>
           <p className="usuario-modulos-hint">
             Marque o balão inteiro ou abra e escolha só as seções desejadas (ex.: Relatórios, Projeção
-            de metas).
+            de metas). <strong>Validades</strong> fica liberada para todos os usuários.
             {managerCargo
               ? ' Administrador fica disponível para Gerente, CEO, Presidente e Dono.'
               : ' O balão Administrador só pode ser liberado para Gerente, CEO ou Presidente.'}
           </p>
           <div className="usuario-modulos-grid">
             {moduleOptions.map((mod) => {
-              const checked = isModuleChecked(mod.id);
-              const partial = isModulePartial(mod.id);
+              const alwaysOn = ALWAYS_AVAILABLE_MODULE_IDS.includes(mod.id);
+              const checked = alwaysOn || isModuleChecked(mod.id);
+              const partial = !alwaysOn && isModulePartial(mod.id);
               const isOpen = expanded[mod.id] ?? (partial || checked);
               const hasManySections = mod.sections.length > 1;
 
@@ -267,6 +271,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
                       <input
                         type="checkbox"
                         checked={checked}
+                        disabled={alwaysOn}
                         ref={(el) => {
                           if (el) el.indeterminate = partial && !checked;
                         }}
@@ -277,7 +282,11 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
                       </span>
                       <span>
                         <strong>{mod.title}</strong>
-                        <small>{mod.description}</small>
+                        <small>
+                          {alwaysOn
+                            ? 'Acesso liberado para todos os usuários'
+                            : mod.description}
+                        </small>
                       </span>
                     </label>
                     {hasManySections && (
