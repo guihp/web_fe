@@ -1,36 +1,96 @@
 .validades-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
   min-width: 0;
 }
 
-.validades-header {
+.validades-legend {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.validades-subtitle {
-  margin-top: 6px;
-  font-size: 0.9rem;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 14px;
+  padding: 0 22px 12px;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  max-width: 520px;
-  line-height: 1.45;
 }
 
-.validades-placeholder {
-  padding: 28px 24px;
+.validades-legend-item {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
 }
 
-.validades-placeholder h2 {
-  margin: 0 0 8px;
-  font-size: 1.05rem;
+.validades-legend-item.soon {
+  background: var(--coral-soft-strong);
+  border-color: var(--coral);
 }
 
-.validades-placeholder p {
-  margin: 0;
-  color: var(--text-muted);
-  font-size: 0.9rem;
+.validades-legend-item.expired {
+  background: var(--danger-bg);
+  border-color: var(--danger);
+}
+
+.validades-table tbody tr.row-expiring-soon td {
+  background: var(--coral-soft);
+}
+
+.validades-table tbody tr.row-expiring-soon td.col-emphasis,
+.validades-table tbody tr.row-expiring-soon td.col-vencimento {
+  background: var(--coral-soft-strong);
+  font-weight: 700;
+  color: var(--coral-dark);
+}
+
+.validades-table tbody tr.row-expiring-soon td.col-vencimento {
+  color: var(--coral);
+}
+
+.validades-table tbody tr.row-expired td {
+  background: var(--danger-bg);
+}
+
+.validades-table tbody tr.row-expired td.col-emphasis,
+.validades-table tbody tr.row-expired td.col-vencimento {
+  font-weight: 700;
+  color: var(--danger);
+}
+
+.validades-table .col-produto {
+  min-width: 180px;
+  max-width: 280px;
+}
+
+@media (max-width: 900px) {
+  .validades-filters {
+    align-items: stretch;
+  }
+
+  .validades-filters .filter-icon {
+    display: none;
+  }
+
+  .validades-filters select {
+    flex: 1 1 100%;
+    min-width: 0;
+    width: 100%;
+  }
+
+  .validades-page .base-vendas-actions {
+    width: 100%;
+  }
+
+  .validades-page .base-vendas-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .validades-page .base-vendas-pagination {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .validades-table .col-produto {
+    min-width: 140px;
+    max-width: 200px;
+  }
 }

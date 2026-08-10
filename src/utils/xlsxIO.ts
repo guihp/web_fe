@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import type { ClienteForm } from '../data/clientesData';
+import type { Validade } from '../services/validadeService';
 import type { BaseCliente, BaseVenda } from '../utils/vendasDomain';
 import { formatCdc, mesAnoFromDate, MESES_PT, VENDEDORES } from '../utils/vendasDomain';
 
@@ -411,4 +412,52 @@ export function parseVendasXlsx(file: File): Promise<VendaImportRow[]> {
     reader.onerror = () => reject(new Error('Erro ao ler arquivo.'));
     reader.readAsArrayBuffer(file);
   });
+}
+
+/** Colunas alinhadas à tabela public.validades (exceto id/created_at). */
+export const VALIDADE_SHEET_HEADERS = [
+  'promotor',
+  'lojas',
+  'uf',
+  'industria',
+  'codigo',
+  'descricao',
+  'preco',
+  'qtde_unit',
+  'lote',
+  'data_vencimento',
+] as const;
+
+export function exportValidadesXlsx(validades: Validade[]) {
+  if (validades.length === 0) {
+    const ws = XLSX.utils.aoa_to_sheet([[...VALIDADE_SHEET_HEADERS]]);
+    ws['!cols'] = VALIDADE_SHEET_HEADERS.map((h) => ({ wch: Math.max(14, h.length + 2) }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Validades');
+    XLSX.writeFile(wb, `validades-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    return;
+  }
+
+  const rows = validades.map((v) => ({
+    promotor: v.promotor ?? '',
+    lojas: v.lojas ?? '',
+    uf: v.uf ?? '',
+    industria: v.industria ?? '',
+    codigo: v.codigo ?? '',
+    descricao: v.descricao ?? '',
+    preco: v.preco ?? '',
+    qtde_unit: v.qtde_unit ?? '',
+    lote: v.lote ?? '',
+    data_vencimento: (() => {
+      if (!v.data_vencimento) return '';
+      const [y, m, d] = v.data_vencimento.slice(0, 10).split('-');
+      return y && m && d ? `${d}/${m}/${y}` : v.data_vencimento.slice(0, 10);
+    })(),
+  }));
+
+  const ws = XLSX.utils.json_to_sheet(rows, { header: [...VALIDADE_SHEET_HEADERS] });
+  ws['!cols'] = VALIDADE_SHEET_HEADERS.map((h) => ({ wch: Math.max(14, h.length + 2) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Validades');
+  XLSX.writeFile(wb, `validades-${new Date().toISOString().slice(0, 10)}.xlsx`);
 }
