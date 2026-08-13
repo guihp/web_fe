@@ -36,7 +36,7 @@ const MERCH_CARDS = [
     id: 'price',
     title: 'Price',
     description: 'Módulo Price — conteúdo a definir.',
-    path: '/administrador/price',
+    path: '/merchandising/price',
     tone: 'sky',
     icon: '🏷️',
     section: 'merchandising.price',

@@ -49,7 +49,7 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
       { id: 'treinamentos.home', title: 'Treinamentos', path: '/treinamento', icon: '💼' },
       { id: 'atividades.home', title: 'Atividades', path: '/atividades', icon: '📋' },
       { id: 'validades.home', title: 'Validades', path: '/validades', icon: '📅' },
-      { id: 'merchandising.price', title: 'Price', path: '/administrador/price', icon: '🏷️' },
+      { id: 'merchandising.price', title: 'Price', path: '/merchandising/price', icon: '🏷️' },
     ],
   },
   {
@@ -347,9 +347,12 @@ export function sectionIdForPath(pathname: string): string | 'home' | null {
 
   const normalized = pathname.replace(/\/$/, '') || '/';
 
-  // Mesma rota nos dois hubs; usa a seção operacional (não exige Gerente).
-  if (normalized === '/administrador/price') {
+  if (normalized === '/merchandising/price') {
     return 'merchandising.price';
+  }
+  // Rota do hub Admin — acesso equivalente via alias em userHasSectionAccess
+  if (normalized === '/administrador/price') {
+    return 'administrador.price';
   }
 
   if (

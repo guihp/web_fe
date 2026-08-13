@@ -40,6 +40,7 @@ export default function App() {
         <Route element={<ManagerLayout />}>
           <Route path="/" element={<PortalHome />} />
           <Route path="/merchandising" element={<Merchandising />} />
+          <Route path="/merchandising/price" element={<AdminSectionPlaceholder />} />
           <Route path="/atividades" element={<Atividades />} />
           <Route path="/colaboradores" element={<Colaboradores />} />
           <Route path="/treinamento" element={<Treinamentos />} />

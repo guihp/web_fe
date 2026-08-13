@@ -1,4 +1,4 @@
-import { Link, Navigate, useParams } from 'react-router-dom';
+import { Link, Navigate, useLocation, useParams } from 'react-router-dom';
 import AdminClientes from './admin/AdminClientes';
 import AdminEmpresa from './admin/AdminEmpresa';
 import AdminFiliais from './admin/AdminFiliais';
@@ -22,7 +22,11 @@ const SECTION_TITLES: Record<string, string> = {
 };
 
 export default function AdminSectionPlaceholder() {
-  const { section } = useParams<{ section: string }>();
+  const { section: paramSection } = useParams<{ section: string }>();
+  const location = useLocation();
+  const fromMerchandising = location.pathname.startsWith('/merchandising');
+  const section =
+    paramSection ?? (location.pathname.endsWith('/price') ? 'price' : undefined);
 
   if (section === 'usuarios') {
     return <AdminUsuarios />;
@@ -57,16 +61,18 @@ export default function AdminSectionPlaceholder() {
   }
 
   const title = section ? SECTION_TITLES[section] : undefined;
+  const hubPath = fromMerchandising ? '/merchandising' : '/administrador';
+  const hubLabel = fromMerchandising ? 'Voltar ao Merchandising' : 'Voltar ao Administrador';
 
   if (!title) {
-    return <Navigate to="/administrador" replace />;
+    return <Navigate to={hubPath} replace />;
   }
 
   return (
     <div className="admin-section-page">
-      <Link to="/administrador" className="admin-section-back">
+      <Link to={hubPath} className="admin-section-back">
         <span aria-hidden>←</span>
-        Voltar ao Administrador
+        {hubLabel}
       </Link>
 
       <header className="admin-header">
