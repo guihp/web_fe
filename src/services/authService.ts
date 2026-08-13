@@ -20,12 +20,13 @@ export type AuthUser = {
 
 const WEB_ALLOWED_CARGOS = [
   'Gerente',
-  'Dono',
-  'CEO',
-  'Presidente',
   'Supervisor',
+  'Financeiro',
+  'RH',
   'Analista admin',
-  'Aux. administrativo',
+  'Vendedor',
+  'Promotor',
+  'Demonstradora',
 ] as const;
 
 export function isWebAdminCargo(cargo: string): boolean {

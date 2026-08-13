@@ -125,7 +125,9 @@ export default function AddColaboradorModal({ onClose, onSuccess }: AddColaborad
           <span>Cargo</span>
           <div className="colab-select-wrap">
             <select value={form.cargo} onChange={(e) => updateField('cargo', e.target.value)}>
-              <option value="">Selecionar o cargo</option>
+              <option value="" disabled>
+                Selecionar o cargo
+              </option>
               {CARGOS.map((cargo) => (
                 <option key={cargo} value={cargo}>
                   {cargo}

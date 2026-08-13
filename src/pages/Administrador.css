@@ -158,4 +158,25 @@
   .admin-grid {
     grid-template-columns: 1fr;
   }
+
+  .admin-page {
+    max-width: none;
+  }
+
+  .admin-card {
+    padding: 18px 16px;
+  }
+}
+
+/* Hub com poucos cards (ex.: Merchandising) — grade 2x2 no desktop */
+.admin-grid--compact {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 720px;
+}
+
+@media (max-width: 640px) {
+  .admin-grid--compact {
+    grid-template-columns: 1fr;
+    max-width: none;
+  }
 }

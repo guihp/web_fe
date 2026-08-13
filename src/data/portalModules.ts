@@ -1,18 +1,23 @@
 export const PORTAL_MODULE_IDS = [
-  'treinamentos',
-  'atividades',
+  'merchandising',
   'vendas',
   'financeiro',
-  'validades',
   'administrador',
 ] as const;
 
 export type PortalModuleId = (typeof PORTAL_MODULE_IDS)[number];
 
 /** Módulos liberados para todos os usuários autenticados (não dependem de nível_acesso). */
-export const ALWAYS_AVAILABLE_MODULE_IDS: readonly PortalModuleId[] = ['validades'];
+export const ALWAYS_AVAILABLE_MODULE_IDS: readonly PortalModuleId[] = [];
 
 export const ALWAYS_AVAILABLE_SECTION_IDS = ['validades.home'] as const;
+
+/** IDs antigos de módulo → seções (compatível com nivel_acesso legado). */
+const LEGACY_MODULE_SECTIONS: Record<string, string[]> = {
+  treinamentos: ['treinamentos.home'],
+  atividades: ['atividades.home'],
+  validades: ['validades.home'],
+};
 
 export type PortalSectionDef = {
   id: string;
@@ -33,25 +38,18 @@ export type PortalModuleDef = {
 
 export const PORTAL_MODULES: PortalModuleDef[] = [
   {
-    id: 'treinamentos',
-    title: 'Treinamentos',
-    description: 'Materiais, vídeos e capacitação da equipe.',
-    badge: 'Capacitação',
-    icon: '💼',
-    path: '/treinamento',
-    sections: [
-      { id: 'treinamentos.home', title: 'Treinamentos', path: '/treinamento', icon: '💼' },
-    ],
-  },
-  {
-    id: 'atividades',
-    title: 'Atividade',
-    description: 'Controle de visitas e ações de merchandising em PDVs.',
+    id: 'merchandising',
+    title: 'Merchandising',
+    description: 'Treinamentos, atividades, validades e Price.',
     badge: 'Operação',
-    icon: '📋',
-    path: '/atividades',
+    icon: '🛍️',
+    path: '/merchandising',
     sections: [
+      { id: 'merchandising.hub', title: 'Hub Merchandising', path: '/merchandising', icon: '🛍️' },
+      { id: 'treinamentos.home', title: 'Treinamentos', path: '/treinamento', icon: '💼' },
       { id: 'atividades.home', title: 'Atividades', path: '/atividades', icon: '📋' },
+      { id: 'validades.home', title: 'Validades', path: '/validades', icon: '📅' },
+      { id: 'merchandising.price', title: 'Price', path: '/administrador/price', icon: '🏷️' },
     ],
   },
   {
@@ -81,17 +79,6 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
     path: '/financeiro',
     sections: [
       { id: 'financeiro.home', title: 'Financeiro', path: '/financeiro', icon: '💵' },
-    ],
-  },
-  {
-    id: 'validades',
-    title: 'Validades',
-    description: 'Controle de validades — acesso liberado para todos os usuários.',
-    badge: 'Todos',
-    icon: '📅',
-    path: '/validades',
-    sections: [
-      { id: 'validades.home', title: 'Validades', path: '/validades', icon: '📅' },
     ],
   },
   {
@@ -150,19 +137,17 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
 export const ALL_SECTION_IDS = PORTAL_MODULES.flatMap((m) => m.sections.map((s) => s.id));
 
 /** Cargos que podem gerenciar usuários e ver o balão Administrador. */
-export const USER_MANAGER_CARGOS = ['Gerente', 'CEO', 'Presidente', 'Dono'] as const;
+export const USER_MANAGER_CARGOS = ['Gerente'] as const;
 
 export const USER_FORM_CARGOS = [
-  'Dono',
-  'Presidente',
-  'CEO',
   'Gerente',
   'Supervisor',
+  'Financeiro',
+  'RH',
   'Analista admin',
-  'Aux. administrativo',
   'Vendedor',
   'Promotor',
-  'Degustação',
+  'Demonstradora',
 ] as const;
 
 function normalizeCargoKey(cargo: string) {
@@ -236,9 +221,14 @@ export function modulosFromSecoes(secoes: string[]): PortalModuleId[] {
 export function expandModulosToSecoes(modulos: string[]): string[] {
   const set = new Set<string>();
   for (const raw of modulos) {
-    const id = raw.trim().toLowerCase() as PortalModuleId;
+    const id = raw.trim().toLowerCase();
+    const legacy = LEGACY_MODULE_SECTIONS[id];
+    if (legacy) {
+      for (const section of legacy) set.add(section);
+      continue;
+    }
     if ((PORTAL_MODULE_IDS as readonly string[]).includes(id)) {
-      for (const section of sectionsOfModule(id)) set.add(section.id);
+      for (const section of sectionsOfModule(id as PortalModuleId)) set.add(section.id);
     } else if (ALL_SECTION_IDS.includes(raw.trim())) {
       set.add(raw.trim());
     }
@@ -336,6 +326,10 @@ export function firstPathForModule(
 ): string {
   const mod = PORTAL_MODULES.find((m) => m.id === moduleId);
   if (!mod) return '/';
+  // Hubs abrem a página central do módulo
+  if (moduleId === 'merchandising' || moduleId === 'administrador') {
+    return mod.path;
+  }
   if (ALWAYS_AVAILABLE_MODULE_IDS.includes(moduleId)) {
     return mod.path;
   }
@@ -345,10 +339,18 @@ export function firstPathForModule(
 }
 
 /** Mapeia rota atual para o id da seção. */
+/** Price existe nos hubs Merchandising e Administrador — qualquer uma das seções libera. */
+const PRICE_SECTION_IDS = ['merchandising.price', 'administrador.price'] as const;
+
 export function sectionIdForPath(pathname: string): string | 'home' | null {
   if (pathname === '/' || pathname === '') return 'home';
 
   const normalized = pathname.replace(/\/$/, '') || '/';
+
+  // Mesma rota nos dois hubs; usa a seção operacional (não exige Gerente).
+  if (normalized === '/administrador/price') {
+    return 'merchandising.price';
+  }
 
   if (
     normalized === '/administrador/perfis' ||
@@ -387,13 +389,28 @@ export function userHasSectionAccess(
   if ((ALWAYS_AVAILABLE_SECTION_IDS as readonly string[]).includes(sectionId)) {
     return true;
   }
-  if (sectionId.startsWith('administrador.') && !canManageUsers(cargo)) {
-    return false;
-  }
+
   const resolved = sanitizeSecoes(
     cargo,
     secoes?.length ? secoes : defaultSecoesForCargo(cargo),
   );
+
+  // Price: liberado se marcado em Merchandising ou em Administrador (antes do gate de Admin)
+  if ((PRICE_SECTION_IDS as readonly string[]).includes(sectionId)) {
+    return PRICE_SECTION_IDS.some((id) => resolved.includes(id));
+  }
+
+  if (sectionId.startsWith('administrador.') && !canManageUsers(cargo)) {
+    return false;
+  }
+
+  // Hub Merchandising: acesso se tiver qualquer seção do módulo
+  if (sectionId === 'merchandising.hub') {
+    return sectionsOfModule('merchandising').some(
+      (s) => s.id !== 'merchandising.hub' && resolved.includes(s.id),
+    );
+  }
+
   return resolved.includes(sectionId);
 }
 
@@ -419,6 +436,15 @@ export function userHasModuleAccess(
             ? modulosOrSecoes
             : expandModulosToSecoes(modulosOrSecoes ?? defaultModulosForCargo(cargo)),
         );
+
+  // Merchandising sempre visível porque Validades é liberada para todos
+  if (moduleId === 'merchandising') {
+    return sectionsOfModule(moduleId).some(
+      (s) =>
+        resolvedSecoes.includes(s.id) ||
+        (ALWAYS_AVAILABLE_SECTION_IDS as readonly string[]).includes(s.id),
+    );
+  }
 
   return sectionsOfModule(moduleId).some((s) => resolvedSecoes.includes(s.id));
 }

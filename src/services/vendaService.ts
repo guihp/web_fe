@@ -125,7 +125,27 @@ export async function fetchVendas(filters: VendaFilters = {}): Promise<VendaList
 }
 
 export async function updateVenda(id: string, patch: Partial<BaseVenda>): Promise<BaseVenda> {
-  const { data, error } = await supabase.from('baseVendas').update(patch).eq('id', id).select('*').single();
+  const payload: Record<string, unknown> = {};
+  if (patch.data !== undefined) payload.data = patch.data;
+  if (patch.cdc !== undefined) payload.cdc = patch.cdc;
+  if (patch.numero_pedido !== undefined) payload.numero_pedido = patch.numero_pedido;
+  if (patch.valor !== undefined) payload.valor = Number(patch.valor);
+  if (patch.industria !== undefined) payload.industria = patch.industria;
+  if (patch.categoria !== undefined) payload.categoria = patch.categoria;
+  if (patch.vendedor !== undefined) payload.vendedor = normalizeVendedor(patch.vendedor);
+  if (patch.cliente !== undefined) payload.cliente = patch.cliente;
+  if (patch.cnpj !== undefined) payload.cnpj = patch.cnpj;
+  if (patch.cidade !== undefined) payload.cidade = patch.cidade;
+  if (patch.estado !== undefined) payload.estado = normalizeEstado(patch.estado ?? '');
+  if (patch.mes !== undefined) payload.mes = (patch.mes ?? '').toUpperCase();
+  if (patch.ano !== undefined) payload.ano = patch.ano;
+
+  const { data, error } = await supabase
+    .from('baseVendas')
+    .update(payload)
+    .eq('id', id)
+    .select('*')
+    .single();
   if (error) throw new Error(error.message);
   const venda = mapRow(data);
   await sendVendaWebhook('venda_editada', { venda });

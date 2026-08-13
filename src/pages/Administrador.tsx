@@ -13,6 +13,7 @@ type AdminModule = {
   tone: string;
   icon: ReactNode;
   section: string;
+  altSections?: string[];
 };
 
 function IconUser() {
@@ -128,7 +129,9 @@ const ADMIN_MODULES: AdminModule[] = [
     path: '/administrador/price',
     tone: 'sky',
     icon: <IconBriefcase />,
+    // Aceita permissão do Admin ou do Merchandising
     section: 'administrador.price',
+    altSections: ['merchandising.price'],
   },
   {
     id: 'empresa',
@@ -188,11 +191,13 @@ const ADMIN_MODULES: AdminModule[] = [
 
 export default function Administrador() {
   const { user } = useAuth();
-  const modules = ADMIN_MODULES.filter(
-    (mod) =>
-      userHasSectionAccess(user?.cargo ?? '', user?.secoes_acesso, mod.section) ||
-      userHasSectionAccess(user?.cargo ?? '', user?.secoes_acesso, 'administrador.hub'),
-  );
+  const cargo = user?.cargo ?? '';
+  const secoes = user?.secoes_acesso;
+  const modules = ADMIN_MODULES.filter((mod) => {
+    if (userHasSectionAccess(cargo, secoes, mod.section)) return true;
+    if (mod.altSections?.some((id) => userHasSectionAccess(cargo, secoes, id))) return true;
+    return userHasSectionAccess(cargo, secoes, 'administrador.hub');
+  });
 
   return (
     <div className="admin-page">

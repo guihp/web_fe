@@ -57,7 +57,7 @@ export default function Treinamentos() {
 
   return (
     <div className="treinamentos-page">
-      <BackToPortal />
+      <BackToPortal to="/merchandising" label="Voltar ao Merchandising" />
       <div className="treinamentos-header">
         <h1 className="page-title">Lista de treinamentos</h1>
         <button type="button" className="btn-primary" onClick={() => setShowAddModal(true)}>

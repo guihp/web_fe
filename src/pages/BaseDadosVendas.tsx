@@ -16,6 +16,7 @@ import {
   parseVendasXlsx,
 } from '../utils/xlsxIO';
 import ModalShell from '../components/colaboradores/ModalShell';
+import EditVendaModal from '../components/vendas/EditVendaModal';
 import './BaseDadosVendas.css';
 
 function IconEdit() {
@@ -53,6 +54,7 @@ export default function BaseDadosVendas() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [deleteItem, setDeleteItem] = useState<BaseVenda | null>(null);
+  const [editItem, setEditItem] = useState<BaseVenda | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [filterOptions, setFilterOptions] = useState({
     industrias: ['Todas'],
@@ -285,7 +287,12 @@ export default function BaseDadosVendas() {
                       <td className="col-valor">{formatBRL(item.valor)}</td>
                       <td className="col-actions">
                         <div className="action-group">
-                          <button type="button" className="action-btn" aria-label="Editar" disabled>
+                          <button
+                            type="button"
+                            className="action-btn"
+                            aria-label="Editar"
+                            onClick={() => setEditItem(item)}
+                          >
                             <IconEdit />
                           </button>
                           <button
@@ -333,6 +340,17 @@ export default function BaseDadosVendas() {
           </div>
         </footer>
       </section>
+
+      {editItem && (
+        <EditVendaModal
+          venda={editItem}
+          onClose={() => setEditItem(null)}
+          onSuccess={() => {
+            showToast('Venda atualizada.', 'success');
+            loadVendas();
+          }}
+        />
+      )}
 
       {deleteItem && (
         <ModalShell onClose={() => setDeleteItem(null)}>

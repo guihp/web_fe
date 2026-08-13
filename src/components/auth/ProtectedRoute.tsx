@@ -37,6 +37,10 @@ export default function ProtectedRoute() {
     if (!hasAnyAdmin && !userHasSectionAccess(user.cargo, user.secoes_acesso, sectionId)) {
       return <Navigate to="/" replace />;
     }
+  } else if (sectionId === 'merchandising.hub') {
+    if (!userHasSectionAccess(user.cargo, user.secoes_acesso, sectionId)) {
+      return <Navigate to="/" replace />;
+    }
   } else if (
     sectionId &&
     sectionId !== 'home' &&

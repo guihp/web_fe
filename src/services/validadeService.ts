@@ -16,12 +16,16 @@ export type Validade = {
   data_vencimento: string | null;
 };
 
+export type ValidadeStatusFilter = 'all' | 'soon' | 'expired';
+
 export type ValidadeFilters = {
   search?: string;
   uf?: string;
   industria?: string;
   /** Formato YYYY-MM (mês de data_vencimento). */
   mes?: string;
+  /** Filtro da legenda: próximos 30 dias ou já vencidos. */
+  status?: ValidadeStatusFilter;
   page?: number;
   pageSize?: number;
 };
@@ -76,6 +80,21 @@ export async function fetchValidades(filters: ValidadeFilters = {}): Promise<Val
       const nextYear = month === 12 ? year + 1 : year;
       const end = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
       query = query.gte('data_vencimento', start).lt('data_vencimento', end);
+    }
+  }
+
+  if (filters.status === 'expired' || filters.status === 'soon') {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayIso = today.toISOString().slice(0, 10);
+
+    if (filters.status === 'expired') {
+      query = query.lt('data_vencimento', todayIso);
+    } else {
+      const limit = new Date(today);
+      limit.setDate(limit.getDate() + 30);
+      const limitIso = limit.toISOString().slice(0, 10);
+      query = query.gte('data_vencimento', todayIso).lte('data_vencimento', limitIso);
     }
   }
 
@@ -170,5 +189,10 @@ export function daysUntilVencimento(dateStr: string | null | undefined): number 
 
 export function isExpiringSoon(dateStr: string | null | undefined): boolean {
   const days = daysUntilVencimento(dateStr);
-  return days != null && days <= 30;
+  return days != null && days >= 0 && days <= 30;
+}
+
+export function isExpired(dateStr: string | null | undefined): boolean {
+  const days = daysUntilVencimento(dateStr);
+  return days != null && days < 0;
 }

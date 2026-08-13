@@ -27,6 +27,7 @@ import AdminEmpresa from './pages/admin/AdminEmpresa';
 import AdminSucessoCliente from './pages/admin/AdminSucessoCliente';
 import AdminSectionPlaceholder from './pages/AdminSectionPlaceholder';
 import Validades from './pages/Validades';
+import Merchandising from './pages/Merchandising';
 
 export default function App() {
   return (
@@ -38,6 +39,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<ManagerLayout />}>
           <Route path="/" element={<PortalHome />} />
+          <Route path="/merchandising" element={<Merchandising />} />
           <Route path="/atividades" element={<Atividades />} />
           <Route path="/colaboradores" element={<Colaboradores />} />
           <Route path="/treinamento" element={<Treinamentos />} />

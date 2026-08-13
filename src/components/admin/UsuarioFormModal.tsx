@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { maskCpfInput, maskPhoneInput } from '../../lib/cpf';
 import {
-  ALWAYS_AVAILABLE_MODULE_IDS,
+  ALWAYS_AVAILABLE_SECTION_IDS,
   PORTAL_MODULES,
   USER_FORM_CARGOS,
   canManageUsers,
@@ -70,22 +70,27 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
   };
 
   const sectionIdsOf = (moduleId: PortalModuleId) =>
-    sectionsOfModule(moduleId).map((s) => s.id);
+    sectionsOfModule(moduleId)
+      .filter((s) => !s.id.endsWith('.hub'))
+      .map((s) => s.id);
+
+  const isAlwaysSection = (sectionId: string) =>
+    (ALWAYS_AVAILABLE_SECTION_IDS as readonly string[]).includes(sectionId);
 
   const isModuleChecked = (moduleId: PortalModuleId) => {
     const ids = sectionIdsOf(moduleId);
-    return ids.length > 0 && ids.every((id) => secoes.includes(id));
+    return ids.length > 0 && ids.every((id) => secoes.includes(id) || isAlwaysSection(id));
   };
 
   const isModulePartial = (moduleId: PortalModuleId) => {
     const ids = sectionIdsOf(moduleId);
-    const count = ids.filter((id) => secoes.includes(id)).length;
+    const count = ids.filter((id) => secoes.includes(id) || isAlwaysSection(id)).length;
     return count > 0 && count < ids.length;
   };
 
   const toggleModule = (moduleId: PortalModuleId) => {
-    if (ALWAYS_AVAILABLE_MODULE_IDS.includes(moduleId)) return;
-    const ids = sectionIdsOf(moduleId);
+    const ids = sectionIdsOf(moduleId).filter((id) => !isAlwaysSection(id));
+    if (ids.length === 0) return;
     setSecoes((prev) => {
       const allOn = ids.every((id) => prev.includes(id));
       if (allOn) {
@@ -97,7 +102,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
   };
 
   const toggleSection = (sectionId: string) => {
-    if (ALWAYS_AVAILABLE_MODULE_IDS.some((id) => sectionId.startsWith(`${id}.`))) return;
+    if (isAlwaysSection(sectionId)) return;
     setSecoes((prev) =>
       prev.includes(sectionId) ? prev.filter((id) => id !== sectionId) : [...prev, sectionId],
     );
@@ -219,7 +224,9 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
           <span>Cargo</span>
           <div className="colab-select-wrap">
             <select value={form.cargo} onChange={(e) => handleCargoChange(e.target.value)}>
-              <option value="">Selecionar o cargo</option>
+              <option value="" disabled>
+                Selecionar o cargo
+              </option>
               {USER_FORM_CARGOS.map((cargo) => (
                 <option key={cargo} value={cargo}>
                   {cargo}
@@ -247,19 +254,22 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
         <fieldset className="colab-field full usuario-modulos-field">
           <legend>Balões / seções de acesso</legend>
           <p className="usuario-modulos-hint">
-            Marque o balão inteiro ou abra e escolha só as seções desejadas (ex.: Relatórios, Projeção
-            de metas). <strong>Validades</strong> fica liberada para todos os usuários.
+            Os balões seguem a home: <strong>Merchandising</strong> (Treinamentos, Atividades,
+            Validades e Price), Vendas, Financeiro e Administrador. Marque o balão inteiro ou abra{' '}
+            <em>Seções</em> para liberar só o que precisar. <strong>Validades</strong> fica
+            liberada para todos. <strong>Price</strong> pode ser liberado em Merchandising e/ou em
+            Administrador.
             {managerCargo
-              ? ' Administrador fica disponível para Gerente, CEO, Presidente e Dono.'
-              : ' O balão Administrador só pode ser liberado para Gerente, CEO ou Presidente.'}
+              ? ' Administrador fica disponível apenas para Gerente.'
+              : ' O balão Administrador só pode ser liberado para Gerente.'}
           </p>
           <div className="usuario-modulos-grid">
             {moduleOptions.map((mod) => {
-              const alwaysOn = ALWAYS_AVAILABLE_MODULE_IDS.includes(mod.id);
-              const checked = alwaysOn || isModuleChecked(mod.id);
-              const partial = !alwaysOn && isModulePartial(mod.id);
+              const checked = isModuleChecked(mod.id);
+              const partial = isModulePartial(mod.id);
               const isOpen = expanded[mod.id] ?? (partial || checked);
-              const hasManySections = mod.sections.length > 1;
+              const visibleSections = mod.sections.filter((s) => !s.id.endsWith('.hub'));
+              const hasManySections = visibleSections.length > 1;
 
               return (
                 <div
@@ -271,7 +281,6 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
                       <input
                         type="checkbox"
                         checked={checked}
-                        disabled={alwaysOn}
                         ref={(el) => {
                           if (el) el.indeterminate = partial && !checked;
                         }}
@@ -282,11 +291,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
                       </span>
                       <span>
                         <strong>{mod.title}</strong>
-                        <small>
-                          {alwaysOn
-                            ? 'Acesso liberado para todos os usuários'
-                            : mod.description}
-                        </small>
+                        <small>{mod.description}</small>
                       </span>
                     </label>
                     {hasManySections && (
@@ -305,8 +310,9 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
 
                   {hasManySections && isOpen && (
                     <div className="usuario-secoes-grid">
-                      {mod.sections.map((section) => {
-                        const sectionOn = secoes.includes(section.id);
+                      {visibleSections.map((section) => {
+                        const alwaysSection = isAlwaysSection(section.id);
+                        const sectionOn = alwaysSection || secoes.includes(section.id);
                         return (
                           <label
                             key={section.id}
@@ -315,10 +321,14 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
                             <input
                               type="checkbox"
                               checked={sectionOn}
+                              disabled={alwaysSection}
                               onChange={() => toggleSection(section.id)}
                             />
                             <span aria-hidden>{section.icon ?? '•'}</span>
-                            <span>{section.title}</span>
+                            <span>
+                              {section.title}
+                              {alwaysSection ? ' (todos)' : ''}
+                            </span>
                           </label>
                         );
                       })}

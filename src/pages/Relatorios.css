@@ -92,13 +92,13 @@
 .highlight-card.growth {
   background: #f0fdf4;
   border-color: #bbf7d0;
-  color: #166534;
+  color: #14532d;
 }
 
 .highlight-card.decline {
   background: #fef2f2;
   border-color: #fecaca;
-  color: #b91c1c;
+  color: #991b1b;
 }
 
 .highlight-card ul {
@@ -114,14 +114,18 @@
   font-size: 0.85rem;
 }
 
-.highlight-card li strong {
+.highlight-card.growth li strong {
+  color: #14532d;
+}
+
+.highlight-card.decline li strong {
   color: #b91c1c;
 }
 
 .empty-highlight {
   font-size: 0.85rem;
   font-style: italic;
-  color: #6b7280;
+  color: #4b5563;
 }
 
 .relatorios-table-section {
@@ -194,7 +198,7 @@
 }
 
 .variacao-badge.up {
-  color: #166534;
+  color: #14532d;
 }
 
 .variacao-badge.down {
@@ -210,19 +214,20 @@
   border: 1px solid #fde8df;
   border-radius: var(--radius);
   padding: 20px 22px;
+  color: #1f2937;
 }
 
 .resumo-executivo h3 {
   font-size: 0.95rem;
   font-weight: 700;
   margin-bottom: 12px;
-  color: var(--coral-dark);
+  color: #c2410c;
 }
 
 .resumo-executivo p {
   font-size: 0.88rem;
   line-height: 1.6;
-  color: var(--text);
+  color: #1f2937;
   margin-bottom: 8px;
 }
 
@@ -235,18 +240,19 @@
   border: 1px solid #bbf7d0;
   border-radius: var(--radius);
   padding: 20px 22px;
+  color: #14532d;
 }
 
 .crescimento-real h3 {
   font-size: 0.95rem;
   font-weight: 700;
   margin-bottom: 8px;
-  color: #166534;
+  color: #14532d;
 }
 
 .crescimento-real-note {
   font-size: 0.82rem;
-  color: var(--text-muted);
+  color: #3f6212;
   margin-bottom: 16px;
 }
 
@@ -262,20 +268,27 @@
   align-items: center;
   gap: 12px;
   font-size: 0.85rem;
+  color: #14532d;
 }
 
 .crescimento-real-row .label {
   font-weight: 700;
   min-width: 56px;
+  color: #14532d;
 }
 
 .crescimento-real-row .values {
-  color: var(--text-muted);
+  color: #3f6212;
 }
 
 .positive {
-  color: #166534;
-  font-weight: 600;
+  color: #14532d;
+  font-weight: 700;
+}
+
+.negative {
+  color: #b91c1c;
+  font-weight: 700;
 }
 
 .regiao-summary {
@@ -288,14 +301,16 @@
   border-radius: var(--radius);
   padding: 14px 18px;
   font-size: 0.85rem;
+  color: #14532d;
 }
 
 .regiao-summary .label {
   font-weight: 700;
+  color: #14532d;
 }
 
 .regiao-summary .values {
-  color: var(--text-muted);
+  color: #3f6212;
 }
 
 .relatorios-chart-section {
@@ -336,6 +351,24 @@
   font-size: 0.85rem;
 }
 
+.relatorios-chart-loading {
+  margin: 0;
+  padding: 40px 16px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.relatorios-updating {
+  margin: -8px 0 12px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.relatorios-filters.is-loading {
+  opacity: 0.85;
+}
+
 @media (max-width: 900px) {
   .relatorios-header {
     flex-direction: column;
@@ -344,6 +377,80 @@
   .relatorios-highlights {
     grid-template-columns: 1fr;
   }
+}
+
+html[data-theme='dark'] .highlight-card.growth {
+  background: rgba(20, 83, 45, 0.28);
+  border-color: rgba(74, 222, 128, 0.35);
+  color: #bbf7d0;
+}
+
+html[data-theme='dark'] .highlight-card.growth li strong {
+  color: #86efac;
+}
+
+html[data-theme='dark'] .highlight-card.decline {
+  background: rgba(127, 29, 29, 0.28);
+  border-color: rgba(248, 113, 113, 0.35);
+  color: #fecaca;
+}
+
+html[data-theme='dark'] .highlight-card.decline li strong {
+  color: #fca5a5;
+}
+
+html[data-theme='dark'] .empty-highlight {
+  color: #9ca3af;
+}
+
+html[data-theme='dark'] .resumo-executivo {
+  background: rgba(234, 102, 36, 0.14);
+  border-color: rgba(234, 102, 36, 0.35);
+  color: #f3f4f6;
+}
+
+html[data-theme='dark'] .resumo-executivo h3 {
+  color: #fdba74;
+}
+
+html[data-theme='dark'] .resumo-executivo p {
+  color: #e5e7eb;
+}
+
+html[data-theme='dark'] .crescimento-real,
+html[data-theme='dark'] .regiao-summary {
+  background: rgba(20, 83, 45, 0.28);
+  border-color: rgba(74, 222, 128, 0.35);
+  color: #bbf7d0;
+}
+
+html[data-theme='dark'] .crescimento-real h3,
+html[data-theme='dark'] .crescimento-real-row,
+html[data-theme='dark'] .crescimento-real-row .label,
+html[data-theme='dark'] .regiao-summary .label {
+  color: #bbf7d0;
+}
+
+html[data-theme='dark'] .crescimento-real-note,
+html[data-theme='dark'] .crescimento-real-row .values,
+html[data-theme='dark'] .regiao-summary .values {
+  color: #a7f3d0;
+}
+
+html[data-theme='dark'] .positive {
+  color: #86efac;
+}
+
+html[data-theme='dark'] .negative {
+  color: #fca5a5;
+}
+
+html[data-theme='dark'] .variacao-badge.up {
+  color: #86efac;
+}
+
+html[data-theme='dark'] .variacao-badge.down {
+  color: #fca5a5;
 }
 
 @media print {

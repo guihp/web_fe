@@ -10,6 +10,7 @@ import {
   isExpiringSoon,
   type Validade,
   type ValidadeMesOption,
+  type ValidadeStatusFilter,
 } from '../services/validadeService';
 import { exportValidadesXlsx } from '../utils/xlsxIO';
 import './BaseDadosVendas.css';
@@ -41,6 +42,7 @@ export default function Validades() {
   const [uf, setUf] = useState('Todos');
   const [industria, setIndustria] = useState('Todos');
   const [mes, setMes] = useState('Todos');
+  const [statusFilter, setStatusFilter] = useState<ValidadeStatusFilter>('all');
   const [ufs, setUfs] = useState<string[]>([]);
   const [industrias, setIndustrias] = useState<string[]>([]);
   const [meses, setMeses] = useState<ValidadeMesOption[]>([]);
@@ -68,6 +70,7 @@ export default function Validades() {
         uf: uf === 'Todos' ? undefined : uf,
         industria: industria === 'Todos' ? undefined : industria,
         mes: mes === 'Todos' ? undefined : mes,
+        status: statusFilter,
         page,
         pageSize: VALIDADE_PAGE_SIZE,
       });
@@ -80,7 +83,7 @@ export default function Validades() {
     } finally {
       setLoading(false);
     }
-  }, [search, uf, industria, mes, page, showToast]);
+  }, [search, uf, industria, mes, statusFilter, page, showToast]);
 
   useEffect(() => {
     loadFilterOptions();
@@ -90,6 +93,10 @@ export default function Validades() {
     loadValidades();
   }, [loadValidades]);
 
+  const toggleStatusFilter = (next: ValidadeStatusFilter) => {
+    setStatusFilter((prev) => (prev === next ? 'all' : next));
+    setPage(1);
+  };
   const totalPages = Math.max(1, Math.ceil(total / VALIDADE_PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const rangeStart = total === 0 ? 0 : (currentPage - 1) * VALIDADE_PAGE_SIZE + 1;
@@ -112,7 +119,7 @@ export default function Validades() {
 
   return (
     <div className="base-vendas-page validades-page">
-      <BackToPortal />
+      <BackToPortal to="/merchandising" label="Voltar ao Merchandising" />
 
       <header className="base-vendas-header">
         <h1 className="page-title">Validades</h1>
@@ -191,11 +198,37 @@ export default function Validades() {
           </select>
         </div>
 
-        <div className="validades-legend">
-          <span className="validades-legend-item soon" />
-          Menos de 1 mês
-          <span className="validades-legend-item expired" />
-          Já vencido
+        <div className="validades-legend" role="group" aria-label="Filtrar por situação">
+          <button
+            type="button"
+            className={`validades-legend-btn soon ${statusFilter === 'soon' ? 'is-active' : ''}`}
+            onClick={() => toggleStatusFilter('soon')}
+            aria-pressed={statusFilter === 'soon'}
+          >
+            <span className="validades-legend-item soon" aria-hidden />
+            Menos de 1 mês
+          </button>
+          <button
+            type="button"
+            className={`validades-legend-btn expired ${statusFilter === 'expired' ? 'is-active' : ''}`}
+            onClick={() => toggleStatusFilter('expired')}
+            aria-pressed={statusFilter === 'expired'}
+          >
+            <span className="validades-legend-item expired" aria-hidden />
+            Já vencido
+          </button>
+          {statusFilter !== 'all' && (
+            <button
+              type="button"
+              className="validades-legend-clear"
+              onClick={() => {
+                setStatusFilter('all');
+                setPage(1);
+              }}
+            >
+              Limpar filtro
+            </button>
+          )}
         </div>
 
         <div className="base-vendas-table-wrap">

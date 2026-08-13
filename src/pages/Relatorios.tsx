@@ -3,9 +3,10 @@ import { VerticalBarChart } from '../components/vendas/DashboardCharts';
 import {
   fetchComparativoIndustrias,
   fetchCrescimentoRegional,
+  fetchVendasMensais,
   fetchVendasMensaisComparativo,
 } from '../services/dashboardService';
-import { mesNumeroFromNome } from '../utils/vendasDomain';
+import { mesNumeroFromNome, MESES_PT, type Regiao } from '../utils/vendasDomain';
 import { formatBRL, formatBRLCompact } from '../utils/currency';
 import { fetchIndustriaNomes } from '../services/industriaService';
 import './Relatorios.css';
@@ -13,6 +14,12 @@ import './Relatorios.css';
 function calcDiff(a: number | null, b: number | null) {
   if (a === null || b === null) return null;
   return b - a;
+}
+
+function chartRegiaoToDomain(regiao: string): Regiao | undefined {
+  if (regiao === 'MA/PI') return 'MA/PI';
+  if (regiao === 'Pará' || regiao === 'PA') return 'PA';
+  return undefined;
 }
 
 function VariacaoBadge({ value }: { value: number | null }) {
@@ -36,6 +43,8 @@ export default function Relatorios() {
   const [anoChart, setAnoChart] = useState(String(currentYear));
   const [regiaoChart, setRegiaoChart] = useState('Todas');
   const [loading, setLoading] = useState(true);
+  const [hasLoaded, setHasLoaded] = useState(false);
+  const [chartLoading, setChartLoading] = useState(true);
   const [comparativo, setComparativo] = useState<
     { industria: string; valorBase: number; valorComp: number; variacao: number | null }[]
   >([]);
@@ -45,23 +54,29 @@ export default function Relatorios() {
     geral: { atual: 0, anterior: 0, variacao: null as number | null },
   });
   const [mensalComp, setMensalComp] = useState<{ mes: string; base: number; comp: number }[]>([]);
+  const [mensalChart, setMensalChart] = useState<{ mes: string; valor: number }[]>([]);
   const [industriasFiltro, setIndustriasFiltro] = useState<string[]>([]);
 
-  const ateMesNumero = mes === 'Todos os Meses' ? new Date().getMonth() + 1 : mesNumeroFromNome(mes.toUpperCase());
+  const ateMesNumero =
+    mes === 'Todos os Meses' ? new Date().getMonth() + 1 : mesNumeroFromNome(mes.toUpperCase());
+  const mesNomeFiltro =
+    mes === 'Todos os Meses' ? undefined : MESES_PT[ateMesNumero - 1];
+  const regiaoFiltro = chartRegiaoToDomain(regiao);
 
   useEffect(() => {
     fetchIndustriaNomes()
       .then(setIndustriasFiltro)
       .catch(() => setIndustriasFiltro([]));
   }, []);
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
 
     Promise.all([
-      fetchComparativoIndustrias(anoBase, anoComp),
-      fetchCrescimentoRegional(anoBase, anoComp, ateMesNumero),
-      fetchVendasMensaisComparativo(anoBase, anoComp),
+      fetchComparativoIndustrias(anoBase, anoComp, regiaoFiltro, mesNomeFiltro, ateMesNumero),
+      fetchCrescimentoRegional(anoBase, anoComp, ateMesNumero, regiaoFiltro),
+      fetchVendasMensaisComparativo(anoBase, anoComp, regiaoFiltro),
     ])
       .then(([comp, cresc, mensal]) => {
         if (cancelled) return;
@@ -70,36 +85,100 @@ export default function Relatorios() {
         setMensalComp(mensal);
       })
       .finally(() => {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setHasLoaded(true);
+        }
       });
 
     return () => {
       cancelled = true;
     };
-  }, [anoBase, anoComp, ateMesNumero]);
+  }, [anoBase, anoComp, ateMesNumero, mesNomeFiltro, regiaoFiltro]);
+
+  useEffect(() => {
+    let cancelled = false;
+    setChartLoading(true);
+
+    const regiaoDomain = chartRegiaoToDomain(regiaoChart);
+    const industria =
+      industriaChart === 'Todas as Indústrias' ? undefined : industriaChart;
+
+    fetchVendasMensais(anoChart, regiaoDomain, industria)
+      .then((rows) => {
+        if (cancelled) return;
+        setMensalChart(rows.map((r) => ({ mes: r.label, valor: r.value })));
+      })
+      .catch(() => {
+        if (!cancelled) setMensalChart([]);
+      })
+      .finally(() => {
+        if (!cancelled) setChartLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [industriaChart, anoChart, regiaoChart]);
 
   const topQueda = useMemo(
     () =>
       [...comparativo]
-        .filter((c) => c.variacao !== null && c.variacao < 0)
+        .filter((c) => c.variacao !== null && c.variacao < 0 && c.valorBase > 0)
         .sort((a, b) => (a.variacao ?? 0) - (b.variacao ?? 0))
         .slice(0, 3),
-    [comparativo]
+    [comparativo],
   );
 
   const topCrescimento = useMemo(
     () =>
       [...comparativo]
-        .filter((c) => c.variacao !== null && c.variacao > 0)
-        .sort((a, b) => (b.variacao ?? 0) - (a.variacao ?? 0))
+        .filter((c) => c.variacao !== null && c.variacao > 0 && c.valorComp > 0)
+        .sort((a, b) => {
+          const diffA = a.valorComp - a.valorBase;
+          const diffB = b.valorComp - b.valorBase;
+          // Prioriza maior ganho absoluto; empate pela variação %
+          if (diffB !== diffA) return diffB - diffA;
+          return (b.variacao ?? 0) - (a.variacao ?? 0);
+        })
         .slice(0, 3),
-    [comparativo]
+    [comparativo],
   );
 
-  const anos = [String(currentYear - 2), String(currentYear - 1), String(currentYear), String(currentYear + 1)];
-  const meses = ['Todos os Meses', 'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const crescimentoRows = useMemo(() => {
+    const rows = [
+      { label: 'MA/PI', ...crescimentoRegional.mapi },
+      { label: 'Pará', ...crescimentoRegional.pa },
+      { label: 'Geral', ...crescimentoRegional.geral },
+    ];
+    if (regiao === 'MA/PI') return rows.filter((r) => r.label === 'MA/PI');
+    if (regiao === 'Pará') return rows.filter((r) => r.label === 'Pará');
+    return rows;
+  }, [crescimentoRegional, regiao]);
 
-  if (loading) {
+  const anos = [
+    String(currentYear - 2),
+    String(currentYear - 1),
+    String(currentYear),
+    String(currentYear + 1),
+  ];
+  const meses = [
+    'Todos os Meses',
+    'Janeiro',
+    'Fevereiro',
+    'Março',
+    'Abril',
+    'Maio',
+    'Junho',
+    'Julho',
+    'Agosto',
+    'Setembro',
+    'Outubro',
+    'Novembro',
+    'Dezembro',
+  ];
+
+  if (!hasLoaded && loading) {
     return (
       <div className="relatorios-page">
         <p style={{ padding: 24 }}>Carregando relatórios...</p>
@@ -107,7 +186,12 @@ export default function Relatorios() {
     );
   }
 
-  const paraResumo = { label: 'Pará', valor2025: crescimentoRegional.pa.anterior, valor2026: crescimentoRegional.pa.atual, variacao: crescimentoRegional.pa.variacao };
+  const paraResumo = {
+    label: 'Pará',
+    valor2025: crescimentoRegional.pa.anterior,
+    valor2026: crescimentoRegional.pa.atual,
+    variacao: crescimentoRegional.pa.variacao,
+  };
 
   return (
     <div className="relatorios-page">
@@ -116,6 +200,10 @@ export default function Relatorios() {
           <h1 className="page-title">Relatórios de Crescimento</h1>
           <p className="relatorios-subtitle">
             Comparativo de desempenho {anoBase} x {anoComp}
+            {mes === 'Todos os Meses'
+              ? ` · YTD até ${MESES_PT[ateMesNumero - 1]?.slice(0, 3) ?? ''}`
+              : ` · ${mes}`}
+            {regiao !== 'Todas' ? ` · ${regiao}` : ''}
           </p>
         </div>
         <button type="button" className="btn-primary" onClick={() => window.print()}>
@@ -123,10 +211,10 @@ export default function Relatorios() {
         </button>
       </header>
 
-      <div className="relatorios-filters card">
+      <div className={`relatorios-filters card ${loading ? 'is-loading' : ''}`}>
         <label>
           <span>Mês</span>
-          <select value={mes} onChange={(e) => setMes(e.target.value)}>
+          <select value={mes} onChange={(e) => setMes(e.target.value)} disabled={loading}>
             {meses.map((m) => (
               <option key={m} value={m}>
                 {m}
@@ -136,7 +224,7 @@ export default function Relatorios() {
         </label>
         <label>
           <span>Região</span>
-          <select value={regiao} onChange={(e) => setRegiao(e.target.value)}>
+          <select value={regiao} onChange={(e) => setRegiao(e.target.value)} disabled={loading}>
             {['Todas', 'MA/PI', 'Pará'].map((r) => (
               <option key={r} value={r}>
                 {r}
@@ -147,7 +235,11 @@ export default function Relatorios() {
         <label className="ano-compare">
           <span>Ano Base</span>
           <div className="ano-compare-row">
-            <select value={anoBase} onChange={(e) => setAnoBase(e.target.value)}>
+            <select
+              value={anoBase}
+              onChange={(e) => setAnoBase(e.target.value)}
+              disabled={loading}
+            >
               {anos.map((a) => (
                 <option key={a} value={a}>
                   {a}
@@ -155,7 +247,11 @@ export default function Relatorios() {
               ))}
             </select>
             <span className="vs">vs</span>
-            <select value={anoComp} onChange={(e) => setAnoComp(e.target.value)}>
+            <select
+              value={anoComp}
+              onChange={(e) => setAnoComp(e.target.value)}
+              disabled={loading}
+            >
               {anos.map((a) => (
                 <option key={a} value={a}>
                   {a}
@@ -165,6 +261,8 @@ export default function Relatorios() {
           </div>
         </label>
       </div>
+
+      {loading && <p className="relatorios-updating">Atualizando relatórios...</p>}
 
       <div className="relatorios-highlights">
         <article className="highlight-card growth">
@@ -236,11 +334,7 @@ export default function Relatorios() {
                       )}
                     </td>
                     <td className={`col-num ${diff !== null && diff < 0 ? 'negative' : ''}`}>
-                      {diff === null ? (
-                        <em className="muted">-</em>
-                      ) : (
-                        formatBRL(diff)
-                      )}
+                      {diff === null ? <em className="muted">-</em> : formatBRL(diff)}
                     </td>
                     <td className="col-var">
                       {insuficiente ? <em className="muted">-</em> : <VariacaoBadge value={variacao} />}
@@ -260,7 +354,9 @@ export default function Relatorios() {
           {crescimentoRegional.geral.variacao !== null ? (
             <>
               {crescimentoRegional.geral.variacao >= 0 ? 'Crescimento' : 'Retração'} de{' '}
-              <strong className={crescimentoRegional.geral.variacao >= 0 ? 'positive' : 'negative'}>
+              <strong
+                className={crescimentoRegional.geral.variacao >= 0 ? 'positive' : 'negative'}
+              >
                 {crescimentoRegional.geral.variacao.toFixed(1).replace('.', ',')}%
               </strong>{' '}
               no comparativo YTD ({formatBRLCompact(crescimentoRegional.geral.anterior)} →{' '}
@@ -273,23 +369,23 @@ export default function Relatorios() {
       </section>
 
       <section className="crescimento-real">
-        <h3>📈 Crescimento Real (YTD) — {anoBase} x {anoComp}</h3>
+        <h3>
+          📈 Crescimento Real (YTD) — {anoBase} x {anoComp}
+        </h3>
         <p className="crescimento-real-note">
           Comparação considerando apenas os meses já realizados em ambos os anos (até o mês atual).
         </p>
         <div className="crescimento-real-list">
-          {[
-            { label: 'MA/PI', ...crescimentoRegional.mapi },
-            { label: 'Pará', ...crescimentoRegional.pa },
-            { label: 'Geral', ...crescimentoRegional.geral },
-          ].map((item) => (
+          {crescimentoRows.map((item) => (
             <div key={item.label} className="crescimento-real-row">
               <span className="label">{item.label}</span>
               <span className="values">
                 {formatBRLCompact(item.anterior)} → {formatBRLCompact(item.atual)}
               </span>
               <span className={item.variacao !== null && item.variacao >= 0 ? 'positive' : 'negative'}>
-                {item.variacao !== null ? `${item.variacao >= 0 ? '+' : ''}${item.variacao.toFixed(1).replace('.', ',')}%` : '-'}
+                {item.variacao !== null
+                  ? `${item.variacao >= 0 ? '+' : ''}${item.variacao.toFixed(1).replace('.', ',')}%`
+                  : '-'}
               </span>
               <span>
                 ({item.variacao !== null && item.variacao >= 0 ? '+' : ''}
@@ -305,7 +401,11 @@ export default function Relatorios() {
         <span className="values">
           {formatBRLCompact(paraResumo.valor2025)} → {formatBRLCompact(paraResumo.valor2026)}
         </span>
-        <span className={paraResumo.variacao !== null && paraResumo.variacao >= 0 ? 'positive' : 'negative'}>
+        <span
+          className={
+            paraResumo.variacao !== null && paraResumo.variacao >= 0 ? 'positive' : 'negative'
+          }
+        >
           {paraResumo.variacao !== null
             ? `${paraResumo.variacao >= 0 ? '+' : ''}${paraResumo.variacao.toFixed(1).replace('.', ',')}% (+${formatBRLCompact(paraResumo.valor2026 - paraResumo.valor2025)})`
             : '-'}
@@ -313,7 +413,9 @@ export default function Relatorios() {
       </div>
 
       <section className="card relatorios-table-section">
-        <h2>Comparativo Mensal ({anoBase} x {anoComp})</h2>
+        <h2>
+          Comparativo Mensal ({anoBase} x {anoComp})
+        </h2>
         <div className="relatorios-table-wrap">
           <table className="relatorios-table mensal">
             <thead>
@@ -328,21 +430,22 @@ export default function Relatorios() {
               {mensalComp.map((item) => {
                 const variacao = item.base > 0 ? ((item.comp - item.base) / item.base) * 100 : null;
                 return (
-                <tr key={item.mes}>
-                  <td>{item.mes}</td>
-                  <td className="col-num">{item.base ? formatBRLCompact(item.base) : '-'}</td>
-                  <td className="col-num">
-                    {item.comp ? (
-                      formatBRLCompact(item.comp)
-                    ) : (
-                      <em className="muted">Aguardando dados</em>
-                    )}
-                  </td>
-                  <td className="col-var">
-                    <VariacaoBadge value={variacao} />
-                  </td>
-                </tr>
-              );})}
+                  <tr key={item.mes}>
+                    <td>{item.mes}</td>
+                    <td className="col-num">{item.base ? formatBRLCompact(item.base) : '-'}</td>
+                    <td className="col-num">
+                      {item.comp ? (
+                        formatBRLCompact(item.comp)
+                      ) : (
+                        <em className="muted">Aguardando dados</em>
+                      )}
+                    </td>
+                    <td className="col-var">
+                      <VariacaoBadge value={variacao} />
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
@@ -383,10 +486,11 @@ export default function Relatorios() {
             </select>
           </label>
         </div>
-        <VerticalBarChart
-          data={mensalComp.map((m) => ({ mes: m.mes.slice(0, 3), valor: m.comp }))}
-          color="#ea6624"
-        />
+        {chartLoading ? (
+          <p className="relatorios-chart-loading">Atualizando gráfico...</p>
+        ) : (
+          <VerticalBarChart data={mensalChart} color="#ea6624" />
+        )}
       </section>
     </div>
   );

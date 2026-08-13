@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { MESES_PT, regiaoFromEstado, type Regiao } from '../utils/vendasDomain';
+import { MESES_PT, industriasMatch, normalizeIndustriaKey, regiaoFromEstado, type Regiao } from '../utils/vendasDomain';
 import { fetchMetasDashboard } from './metasService';
 
 export type DashboardFilters = {
@@ -70,12 +70,22 @@ export async function fetchVendasPorIndustria(ano: string, mes?: string, regiao?
     .sort((a, b) => b.value - a.value);
 }
 
-export async function fetchVendasMensais(ano: string, regiao?: Regiao) {
+export async function fetchVendasMensais(
+  ano: string,
+  regiao?: Regiao,
+  industria?: string,
+) {
   const rows = await fetchVendasRaw(ano);
   const map = new Map<string, number>();
+  const filterIndustria =
+    Boolean(industria?.trim()) &&
+    !['todas as indústrias', 'todas as industrias', 'todas'].includes(
+      industria!.trim().toLowerCase().normalize('NFD').replace(/\p{M}/gu, ''),
+    );
 
   for (const row of rows) {
     if (regiao && regiaoFromEstado(row.estado ?? '') !== regiao) continue;
+    if (filterIndustria && !industriasMatch(row.industria ?? '', industria!)) continue;
     const mes = row.mes ?? 'JANEIRO';
     map.set(mes, (map.get(mes) ?? 0) + Number(row.valor));
   }
@@ -130,17 +140,48 @@ export async function fetchRealizadoVsMeta(ano: string, mes?: string) {
 
 export { fetchMetasDashboard };
 
-export async function fetchCrescimentoRegional(anoBase: string, anoComp: string, ateMesNumero: number) {
-  const mesesOrdem = MESES_PT;
+function matchesRegiao(estado: string | null | undefined, regiao?: Regiao) {
+  if (!regiao) return true;
+  return regiaoFromEstado(estado ?? '') === regiao;
+}
 
+function mesIndex(mesRow: string | null | undefined): number {
+  const raw = (mesRow ?? '').trim().toUpperCase().normalize('NFD').replace(/\p{M}/gu, '');
+  return MESES_PT.findIndex(
+    (m) => m.normalize('NFD').replace(/\p{M}/gu, '') === raw,
+  );
+}
+
+/** Mês específico OU YTD até ateMesNumero (índice 1..12). */
+function matchesMesPeriodo(
+  mesRow: string | null | undefined,
+  ateMesNumero: number,
+  mesNome?: string,
+) {
+  const idx = mesIndex(mesRow);
+  if (idx < 0) return false;
+  if (mesNome) {
+    const target = mesNome.trim().toUpperCase().normalize('NFD').replace(/\p{M}/gu, '');
+    const row = (mesRow ?? '').trim().toUpperCase().normalize('NFD').replace(/\p{M}/gu, '');
+    return row === target;
+  }
+  return idx < ateMesNumero;
+}
+
+export async function fetchCrescimentoRegional(
+  anoBase: string,
+  anoComp: string,
+  ateMesNumero: number,
+  regiao?: Regiao,
+) {
   const sumAteMes = async (ano: string) => {
     const rows = await fetchVendasRaw(ano);
     let mapi = 0;
     let pa = 0;
 
     for (const row of rows) {
-      const idx = mesesOrdem.indexOf((row.mes ?? '').toUpperCase() as (typeof MESES_PT)[number]);
-      if (idx < 0 || idx >= ateMesNumero) continue;
+      if (!matchesMesPeriodo(row.mes, ateMesNumero)) continue;
+      if (!matchesRegiao(row.estado, regiao)) continue;
       if (regiaoFromEstado(row.estado ?? '') === 'PA') pa += Number(row.valor);
       else mapi += Number(row.valor);
     }
@@ -160,36 +201,68 @@ export async function fetchCrescimentoRegional(anoBase: string, anoComp: string,
   };
 }
 
-export async function fetchComparativoIndustrias(anoBase: string, anoComp: string) {
+export async function fetchComparativoIndustrias(
+  anoBase: string,
+  anoComp: string,
+  regiao?: Regiao,
+  mesNome?: string,
+  ateMesNumero = 12,
+) {
   const [baseRows, compRows] = await Promise.all([fetchVendasRaw(anoBase), fetchVendasRaw(anoComp)]);
 
   const sumByIndustria = (rows: typeof baseRows) => {
-    const map = new Map<string, number>();
+    const map = new Map<string, { valor: number; label: string }>();
     for (const row of rows) {
-      const key = row.industria ?? 'Outros';
-      map.set(key, (map.get(key) ?? 0) + Number(row.valor));
+      if (!matchesRegiao(row.estado, regiao)) continue;
+      if (!matchesMesPeriodo(row.mes, ateMesNumero, mesNome)) continue;
+      const label = (row.industria ?? 'Outros').trim() || 'Outros';
+      const key = normalizeIndustriaKey(label) || 'OUTROS';
+      const prev = map.get(key);
+      if (prev) {
+        prev.valor += Number(row.valor);
+        if (label.length > prev.label.length) prev.label = label;
+      } else {
+        map.set(key, { valor: Number(row.valor), label });
+      }
     }
     return map;
   };
 
   const base = sumByIndustria(baseRows);
   const comp = sumByIndustria(compRows);
-  const industrias = new Set([...base.keys(), ...comp.keys()]);
+  const keys = new Set([...base.keys(), ...comp.keys()]);
 
-  return Array.from(industrias).map((industria) => {
-    const valorBase = base.get(industria) ?? 0;
-    const valorComp = comp.get(industria) ?? 0;
-    const variacao = valorBase > 0 ? ((valorComp - valorBase) / valorBase) * 100 : null;
-    return { industria, valorBase, valorComp, variacao };
-  });
+  return Array.from(keys)
+    .map((key) => {
+      const baseItem = base.get(key);
+      const compItem = comp.get(key);
+      const valorBase = baseItem?.valor ?? 0;
+      const valorComp = compItem?.valor ?? 0;
+      const industria = compItem?.label ?? baseItem?.label ?? key;
+      let variacao: number | null = null;
+      if (valorBase > 0) {
+        variacao = ((valorComp - valorBase) / valorBase) * 100;
+      } else if (valorComp > 0) {
+        // Indústria só no ano comparativo: conta como crescimento
+        variacao = 100;
+      }
+      return { industria, valorBase, valorComp, variacao };
+    })
+    .filter((item) => item.valorBase > 0 || item.valorComp > 0)
+    .sort((a, b) => b.valorComp - a.valorComp || b.valorBase - a.valorBase);
 }
 
-export async function fetchVendasMensaisComparativo(anoBase: string, anoComp: string) {
+export async function fetchVendasMensaisComparativo(
+  anoBase: string,
+  anoComp: string,
+  regiao?: Regiao,
+) {
   const [baseRows, compRows] = await Promise.all([fetchVendasRaw(anoBase), fetchVendasRaw(anoComp)]);
 
   const sumByMes = (rows: typeof baseRows) => {
     const map = new Map<string, number>();
     for (const row of rows) {
+      if (!matchesRegiao(row.estado, regiao)) continue;
       const mes = row.mes ?? 'JANEIRO';
       map.set(mes, (map.get(mes) ?? 0) + Number(row.valor));
     }

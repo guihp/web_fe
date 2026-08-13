@@ -19,11 +19,11 @@ type NavItem = {
 const NAV_ITEMS: NavItem[] = [
   { id: 'home', label: 'Início', icon: '🏠', path: '/', section: 'home' },
   {
-    id: 'atividades',
-    label: 'Atividades',
-    icon: '📋',
-    path: '/atividades',
-    section: 'atividades.home',
+    id: 'merchandising',
+    label: 'Merchandising',
+    icon: '🛍️',
+    path: '/merchandising',
+    section: 'merchandising.hub',
   },
   {
     id: 'colaboradores',
@@ -34,25 +34,11 @@ const NAV_ITEMS: NavItem[] = [
     managersOnly: true,
   },
   {
-    id: 'treinamento',
-    label: 'Treinamento',
-    icon: '💼',
-    path: '/treinamento',
-    section: 'treinamentos.home',
-  },
-  {
     id: 'financeiro',
     label: 'Financeiro',
     icon: '💵',
     path: '/financeiro',
     section: 'financeiro.home',
-  },
-  {
-    id: 'validades',
-    label: 'Validades',
-    icon: '📅',
-    path: '/validades',
-    section: 'validades.home',
   },
   {
     id: 'administrador',

@@ -103,7 +103,7 @@ export default function Atividades() {
 
   return (
     <div className="atividades-page">
-      <BackToPortal />
+      <BackToPortal to="/merchandising" label="Voltar ao Merchandising" />
       <header className="atividades-header">
         <div className="atividades-header-text">
           <h1 className="page-title">Atividades</h1>

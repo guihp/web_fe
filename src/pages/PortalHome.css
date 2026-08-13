@@ -26,8 +26,10 @@
 
 .portal-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 20px;
+  max-width: 820px;
+  margin: 0 auto;
 }
 
 .portal-card {
@@ -131,14 +133,21 @@
   color: var(--btn-primary-text);
 }
 
-@media (max-width: 1100px) {
-  .portal-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 700px) {
   .portal-grid {
     grid-template-columns: 1fr;
+    max-width: none;
+  }
+
+  .portal-greeting {
+    font-size: 1.4rem;
+  }
+
+  .portal-hero {
+    margin-bottom: 24px;
+  }
+
+  .portal-card {
+    padding: 18px 16px 16px;
   }
 }
