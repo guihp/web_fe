@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, Navigate } from 'react-router-dom';
+import AppIcon from '../../components/icons/AppIcon';
 import UsuarioFormModal from '../../components/admin/UsuarioFormModal';
 import DeleteColaboradorModal from '../../components/colaboradores/DeleteColaboradorModal';
 import { useAuth } from '../../context/AuthContext';
@@ -141,7 +142,7 @@ export default function AdminUsuarios() {
 
       <div className="colaboradores-search">
         <span className="search-icon" aria-hidden>
-          🔍
+          <AppIcon name="search" size={16} />
         </span>
         <input
           type="search"
@@ -199,7 +200,7 @@ export default function AdminUsuarios() {
                         const mod = PORTAL_MODULES.find((m) => m.id === id);
                         return (
                           <span key={id} className="admin-usuarios-modulo-tag" title={mod?.title}>
-                            {mod?.icon} {mod?.title ?? id}
+                            {mod ? <AppIcon name={mod.icon} size={14} /> : null} {mod?.title ?? id}
                           </span>
                         );
                       })}

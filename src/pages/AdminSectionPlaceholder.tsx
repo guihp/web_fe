@@ -5,13 +5,11 @@ import AdminFiliais from './admin/AdminFiliais';
 import AdminIndustrias from './admin/AdminIndustrias';
 import AdminMetas from './admin/AdminMetas';
 import AdminRegionais from './admin/AdminRegionais';
-import AdminSucessoCliente from './admin/AdminSucessoCliente';
 import AdminUsuarios from './admin/AdminUsuarios';
 import './Administrador.css';
 
 const SECTION_TITLES: Record<string, string> = {
   usuarios: 'Usuários',
-  perfis: 'Sucesso do cliente',
   price: 'Price',
   empresa: 'Empresa',
   regionais: 'Regionais',
@@ -37,7 +35,7 @@ export default function AdminSectionPlaceholder() {
   }
 
   if (section === 'perfis' || section === 'sucesso-cliente') {
-    return <AdminSucessoCliente />;
+    return <Navigate to="/merchandising/sucesso-cliente" replace />;
   }
 
   if (section === 'filiais') {

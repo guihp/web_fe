@@ -156,9 +156,10 @@
 }
 
 .atividades-period-icon {
-  font-size: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  color: var(--coral);
   line-height: 1;
-  opacity: 0.85;
 }
 
 .atividades-date-field {

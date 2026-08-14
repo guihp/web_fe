@@ -84,6 +84,9 @@
 }
 
 .highlight-card h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.9rem;
   font-weight: 700;
   margin-bottom: 14px;

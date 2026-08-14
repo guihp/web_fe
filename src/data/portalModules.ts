@@ -1,3 +1,5 @@
+import type { AppIconName } from '../components/icons/AppIcon';
+
 export const PORTAL_MODULE_IDS = [
   'merchandising',
   'vendas',
@@ -23,7 +25,7 @@ export type PortalSectionDef = {
   id: string;
   title: string;
   path: string;
-  icon?: string;
+  icon?: AppIconName;
 };
 
 export type PortalModuleDef = {
@@ -31,7 +33,7 @@ export type PortalModuleDef = {
   title: string;
   description: string;
   badge: string;
-  icon: string;
+  icon: AppIconName;
   path: string;
   sections: PortalSectionDef[];
 };
@@ -40,16 +42,22 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
   {
     id: 'merchandising',
     title: 'Merchandising',
-    description: 'Treinamentos, atividades, validades e Price.',
+    description: 'Treinamentos, atividades, validades, Price e Sucesso do cliente.',
     badge: 'Operação',
-    icon: '🛍️',
+    icon: 'merchandising',
     path: '/merchandising',
     sections: [
-      { id: 'merchandising.hub', title: 'Hub Merchandising', path: '/merchandising', icon: '🛍️' },
-      { id: 'treinamentos.home', title: 'Treinamentos', path: '/treinamento', icon: '💼' },
-      { id: 'atividades.home', title: 'Atividades', path: '/atividades', icon: '📋' },
-      { id: 'validades.home', title: 'Validades', path: '/validades', icon: '📅' },
-      { id: 'merchandising.price', title: 'Price', path: '/merchandising/price', icon: '🏷️' },
+      { id: 'merchandising.hub', title: 'Hub Merchandising', path: '/merchandising', icon: 'merchandising' },
+      { id: 'treinamentos.home', title: 'Treinamentos', path: '/treinamento', icon: 'briefcase' },
+      { id: 'atividades.home', title: 'Atividades', path: '/atividades', icon: 'clipboard' },
+      { id: 'validades.home', title: 'Validades', path: '/validades', icon: 'calendar' },
+      { id: 'merchandising.price', title: 'Price', path: '/merchandising/price', icon: 'tag' },
+      {
+        id: 'merchandising.sucesso',
+        title: 'Sucesso do cliente',
+        path: '/merchandising/sucesso-cliente',
+        icon: 'check',
+      },
     ],
   },
   {
@@ -57,16 +65,16 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
     title: 'Vendas',
     description: 'Gestão completa de vendas, clientes e metas comerciais.',
     badge: 'Comercial',
-    icon: '🛒',
+    icon: 'cart',
     path: '/vendas',
     sections: [
-      { id: 'vendas.relatorios', title: 'Relatórios', path: '/relatorios', icon: '📊' },
-      { id: 'vendas.projecao-metas', title: 'Projeção de metas', path: '/projecao-metas', icon: '🎯' },
-      { id: 'vendas.dashboard', title: 'Vendas', path: '/vendas', icon: '🛒' },
-      { id: 'vendas.lancamento', title: 'Lançamento de vendas', path: '/lancamento', icon: '💰' },
-      { id: 'vendas.clientes', title: 'Cadastro de clientes', path: '/clientes', icon: '🏢' },
-      { id: 'vendas.base-clientes', title: 'Base de clientes', path: '/base-clientes', icon: '📋' },
-      { id: 'vendas.base-vendas', title: 'Base de dados', path: '/base-vendas', icon: '🗃️' },
+      { id: 'vendas.relatorios', title: 'Relatórios', path: '/relatorios', icon: 'chart' },
+      { id: 'vendas.projecao-metas', title: 'Projeção de metas', path: '/projecao-metas', icon: 'target' },
+      { id: 'vendas.dashboard', title: 'Vendas', path: '/vendas', icon: 'cart' },
+      { id: 'vendas.lancamento', title: 'Lançamento de vendas', path: '/lancamento', icon: 'money' },
+      { id: 'vendas.clientes', title: 'Cadastro de clientes', path: '/clientes', icon: 'building' },
+      { id: 'vendas.base-clientes', title: 'Base de clientes', path: '/base-clientes', icon: 'clipboard' },
+      { id: 'vendas.base-vendas', title: 'Base de dados', path: '/base-vendas', icon: 'archive' },
     ],
   },
   {
@@ -74,12 +82,12 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
     title: 'Financeiro',
     description: 'Gestão de comissões e relatórios financeiros.',
     badge: 'Financeiro',
-    icon: '💵',
+    icon: 'dollar',
     path: '/financeiro',
     sections: [
-      { id: 'financeiro.home', title: 'Financeiro', path: '/financeiro', icon: '💵' },
-      { id: 'financeiro.composicao', title: 'Composição', path: '/financeiro?tab=composicao', icon: '🧩' },
-      { id: 'financeiro.comissao', title: 'Comissão', path: '/financeiro?tab=comissao', icon: '📈' },
+      { id: 'financeiro.home', title: 'Financeiro', path: '/financeiro', icon: 'dollar' },
+      { id: 'financeiro.composicao', title: 'Composição', path: '/financeiro?tab=composicao', icon: 'puzzle' },
+      { id: 'financeiro.comissao', title: 'Comissão', path: '/financeiro?tab=comissao', icon: 'trend' },
     ],
   },
   {
@@ -87,49 +95,43 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
     title: 'Administrador',
     description: 'Gestão de usuários, empresas, regionais e indústrias.',
     badge: 'Admin',
-    icon: '🛡️',
+    icon: 'shield',
     path: '/administrador',
     sections: [
-      { id: 'administrador.hub', title: 'Hub Administrador', path: '/administrador', icon: '🛡️' },
-      { id: 'administrador.usuarios', title: 'Usuários', path: '/administrador/usuarios', icon: '👤' },
-      {
-        id: 'administrador.sucesso',
-        title: 'Sucesso do cliente',
-        path: '/administrador/perfis',
-        icon: '✅',
-      },
+      { id: 'administrador.hub', title: 'Hub Administrador', path: '/administrador', icon: 'shield' },
+      { id: 'administrador.usuarios', title: 'Usuários', path: '/administrador/usuarios', icon: 'user' },
       {
         id: 'administrador.price',
         title: 'Price',
         path: '/administrador/price',
-        icon: '💼',
+        icon: 'briefcase',
       },
-      { id: 'administrador.empresa', title: 'Empresa', path: '/administrador/empresa', icon: '🏢' },
+      { id: 'administrador.empresa', title: 'Empresa', path: '/administrador/empresa', icon: 'building' },
       {
         id: 'administrador.regionais',
         title: 'Regionais',
         path: '/administrador/regionais',
-        icon: '📍',
+        icon: 'pin',
       },
-      { id: 'administrador.filiais', title: 'Filiais', path: '/administrador/filiais', icon: '🏪' },
+      { id: 'administrador.filiais', title: 'Filiais', path: '/administrador/filiais', icon: 'store' },
       {
         id: 'administrador.industrias',
         title: 'Indústrias',
         path: '/administrador/industrias',
-        icon: '🏭',
+        icon: 'factory',
       },
       {
         id: 'administrador.clientes',
         title: 'Clientes',
         path: '/administrador/clientes',
-        icon: '🪪',
+        icon: 'idCard',
       },
-      { id: 'administrador.metas', title: 'Metas', path: '/administrador/metas', icon: '🎯' },
+      { id: 'administrador.metas', title: 'Metas', path: '/administrador/metas', icon: 'target' },
       {
         id: 'administrador.colaboradores',
         title: 'Colaboradores',
         path: '/colaboradores',
-        icon: '👥',
+        icon: 'users',
       },
     ],
   },
@@ -198,6 +200,8 @@ export function sanitizeSecoes(cargo: string, secoes: string[] | null | undefine
           const id = s.trim();
           // Comissão saiu de Vendas → Financeiro
           if (id === 'vendas.comissao') return 'financeiro.comissao';
+          // Sucesso do cliente saiu de Administrador → Merchandising
+          if (id === 'administrador.sucesso') return 'merchandising.sucesso';
           return id;
         })
         .filter((s) => allowed.has(s)),
@@ -362,16 +366,20 @@ export function sectionIdForPath(pathname: string): string | 'home' | null {
   if (normalized === '/merchandising/price') {
     return 'merchandising.price';
   }
+  if (normalized === '/merchandising/sucesso-cliente') {
+    return 'merchandising.sucesso';
+  }
   // Rota do hub Admin — acesso equivalente via alias em userHasSectionAccess
   if (normalized === '/administrador/price') {
     return 'administrador.price';
   }
 
+  // Rotas legadas de Sucesso do cliente (agora em Merchandising)
   if (
     normalized === '/administrador/perfis' ||
     normalized === '/administrador/sucesso-cliente'
   ) {
-    return 'administrador.sucesso';
+    return 'merchandising.sucesso';
   }
 
   // Mais específico primeiro

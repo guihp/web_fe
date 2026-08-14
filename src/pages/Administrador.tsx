@@ -25,14 +25,6 @@ function IconUser() {
   );
 }
 
-function IconShield() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <path d="M12 3 4 6v6c0 5 3.5 8.5 8 9.5 4.5-1 8-4.5 8-9.5V6l-8-3Z" />
-    </svg>
-  );
-}
-
 function IconBriefcase() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -112,15 +104,6 @@ const ADMIN_MODULES: AdminModule[] = [
     tone: 'blue',
     icon: <IconUser />,
     section: 'administrador.usuarios',
-  },
-  {
-    id: 'perfis',
-    title: 'Sucesso do cliente',
-    description: 'Kanban de pedidos e acompanhamento do cliente',
-    path: '/administrador/perfis',
-    tone: 'violet',
-    icon: <IconShield />,
-    section: 'administrador.sucesso',
   },
   {
     id: 'price',

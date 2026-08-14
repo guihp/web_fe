@@ -1,8 +1,18 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AppIcon, { type AppIconName } from '../icons/AppIcon';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
+import {
+  countUnread,
+  fetchAppNotifications,
+  formatNotificationTime,
+  getNotificationsSeenAt,
+  markNotificationsSeen,
+  type AppNotification,
+  type NotificationKind,
+} from '../../services/notificationsService';
 import {
   getProfileAvatarUrl,
   removeProfilePhoto,
@@ -27,16 +37,61 @@ function IconMoon() {
   );
 }
 
+function kindIcon(kind: NotificationKind): AppIconName {
+  if (kind === 'venda') return 'money';
+  if (kind === 'kanban_pedido') return 'cart';
+  return 'dollar';
+}
+
 export default function TopBar() {
   const navigate = useNavigate();
   const { user, logout, updateUser } = useAuth();
   const { isDark, toggleMode } = useTheme();
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const notifWrapRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [unread, setUnread] = useState(0);
   const firstName = user?.nome?.split(' ')[0] ?? 'Usuário';
   const avatarUrl = getProfileAvatarUrl(user);
+
+  const loadNotifications = async () => {
+    setNotifLoading(true);
+    try {
+      const items = await fetchAppNotifications(24);
+      setNotifications(items);
+      setUnread(countUnread(items, getNotificationsSeenAt()));
+    } catch {
+      setNotifications([]);
+      setUnread(0);
+    } finally {
+      setNotifLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void loadNotifications();
+    const timer = window.setInterval(() => {
+      void loadNotifications();
+    }, 60_000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (!notifOpen && !menuOpen) return;
+    const onPointerDown = (event: MouseEvent) => {
+      const target = event.target as Node;
+      if (notifOpen && notifWrapRef.current && !notifWrapRef.current.contains(target)) {
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    return () => document.removeEventListener('mousedown', onPointerDown);
+  }, [notifOpen, menuOpen]);
 
   const handleLogout = () => {
     logout();
@@ -82,6 +137,22 @@ export default function TopBar() {
     }
   };
 
+  const toggleNotifications = async () => {
+    const next = !notifOpen;
+    setNotifOpen(next);
+    setMenuOpen(false);
+    if (next) {
+      await loadNotifications();
+      markNotificationsSeen();
+      setUnread(0);
+    }
+  };
+
+  const openNotification = (item: AppNotification) => {
+    setNotifOpen(false);
+    navigate(item.href);
+  };
+
   return (
     <header className="topbar">
       <div className="topbar-left">
@@ -90,7 +161,7 @@ export default function TopBar() {
 
       <div className="topbar-search">
         <span className="search-icon" aria-hidden>
-          🔍
+          <AppIcon name="search" size={16} />
         </span>
         <input type="search" placeholder="Está procurando algo?" />
       </div>
@@ -105,14 +176,67 @@ export default function TopBar() {
         >
           {isDark ? <IconSun /> : <IconMoon />}
         </button>
-        <button type="button" className="icon-btn" aria-label="Notificações">
-          🔔
-        </button>
+
+        <div className="notif-wrap" ref={notifWrapRef}>
+          <button
+            type="button"
+            className={`icon-btn notif-btn ${notifOpen ? 'is-open' : ''}`}
+            aria-label="Notificações"
+            aria-expanded={notifOpen}
+            title="Notificações"
+            onClick={() => void toggleNotifications()}
+          >
+            <AppIcon name="bell" size={18} />
+            {unread > 0 && (
+              <span className="notif-badge" aria-label={`${unread} não lidas`}>
+                {unread > 9 ? '9+' : unread}
+              </span>
+            )}
+          </button>
+
+          {notifOpen && (
+            <div className="notif-dropdown card" role="dialog" aria-label="Lista de notificações">
+              <header className="notif-dropdown-header">
+                <strong>Notificações</strong>
+                <span>Vendas e kanbans</span>
+              </header>
+
+              <div className="notif-list">
+                {notifLoading && <p className="notif-empty">Carregando...</p>}
+                {!notifLoading && notifications.length === 0 && (
+                  <p className="notif-empty">Nenhuma notificação recente.</p>
+                )}
+                {!notifLoading &&
+                  notifications.map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      className="notif-item"
+                      onClick={() => openNotification(item)}
+                    >
+                      <span className="notif-item-icon" aria-hidden>
+                        <AppIcon name={kindIcon(item.kind)} size={16} />
+                      </span>
+                      <span className="notif-item-body">
+                        <span className="notif-item-title">{item.title}</span>
+                        <span className="notif-item-detail">{item.detail}</span>
+                      </span>
+                      <span className="notif-item-time">{formatNotificationTime(item.at)}</span>
+                    </button>
+                  ))}
+              </div>
+            </div>
+          )}
+        </div>
+
         <div className="profile-menu-wrap">
           <button
             type="button"
             className="profile-btn"
-            onClick={() => setMenuOpen((open) => !open)}
+            onClick={() => {
+              setMenuOpen((open) => !open);
+              setNotifOpen(false);
+            }}
             aria-expanded={menuOpen}
           >
             <img src={avatarUrl} alt={user?.nome ?? 'Usuário'} className="profile-avatar" />

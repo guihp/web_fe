@@ -40,6 +40,7 @@ export default function App() {
           <Route path="/" element={<PortalHome />} />
           <Route path="/merchandising" element={<Merchandising />} />
           <Route path="/merchandising/price" element={<AdminSectionPlaceholder />} />
+          <Route path="/merchandising/sucesso-cliente" element={<AdminSucessoCliente />} />
           <Route path="/atividades" element={<Atividades />} />
           <Route path="/colaboradores" element={<Colaboradores />} />
           <Route path="/treinamento" element={<Treinamentos />} />
@@ -48,8 +49,14 @@ export default function App() {
           <Route path="/administrador" element={<Administrador />} />
           <Route path="/administrador/usuarios" element={<AdminUsuarios />} />
           <Route path="/administrador/empresa" element={<AdminEmpresa />} />
-          <Route path="/administrador/perfis" element={<AdminSucessoCliente />} />
-          <Route path="/administrador/sucesso-cliente" element={<AdminSucessoCliente />} />
+          <Route
+            path="/administrador/perfis"
+            element={<Navigate to="/merchandising/sucesso-cliente" replace />}
+          />
+          <Route
+            path="/administrador/sucesso-cliente"
+            element={<Navigate to="/merchandising/sucesso-cliente" replace />}
+          />
           <Route path="/administrador/filiais" element={<AdminFiliais />} />
           <Route path="/administrador/regionais" element={<AdminRegionais />} />
           <Route path="/administrador/industrias" element={<AdminIndustrias />} />

@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import AppIcon from '../components/icons/AppIcon';
 import { useAuth } from '../context/AuthContext';
 import {
   PORTAL_MODULES,
@@ -41,7 +42,7 @@ export default function PortalHome() {
             </div>
 
             <div className="portal-card-icon" aria-hidden>
-              {mod.icon}
+              <AppIcon name={mod.icon} size={26} />
             </div>
 
             <h2 className="portal-card-title">{mod.title}</h2>

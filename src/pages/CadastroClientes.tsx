@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AppIcon from '../components/icons/AppIcon';
 import { useToast } from '../context/ToastContext';
 import { emptyClienteForm, ESTADOS_CLIENTES, type ClienteForm } from '../data/clientesData';
 import { createCliente } from '../services/clienteService';
@@ -156,13 +157,13 @@ export default function CadastroClientes() {
 
         <div className="clientes-actions">
           <button type="button" className="clientes-btn primary" disabled={saving} onClick={handleSave}>
-            <span>💾</span> {saving ? 'SALVANDO...' : 'SALVAR'}
+            <AppIcon name="save" size={16} /> {saving ? 'SALVANDO...' : 'SALVAR'}
           </button>
           <button type="button" className="clientes-btn outline" onClick={handleClear}>
-            <span>🗑</span> APAGAR
+            <AppIcon name="trash" size={16} /> APAGAR
           </button>
           <button type="button" className="clientes-btn soft" onClick={() => navigate(-1)}>
-            <span>←</span> VOLTAR
+            <AppIcon name="arrowLeft" size={16} /> VOLTAR
           </button>
         </div>
       </section>

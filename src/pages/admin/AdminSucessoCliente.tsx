@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import BackToPortal from '../../components/layout/BackToPortal';
 import { useToast } from '../../context/ToastContext';
 import { MESES_PT } from '../../utils/vendasDomain';
 import {
@@ -146,10 +146,7 @@ export default function AdminSucessoCliente() {
 
   return (
     <div className="sucesso-page">
-      <Link to="/administrador" className="admin-section-back">
-        <span aria-hidden>←</span>
-        Voltar ao Administrador
-      </Link>
+      <BackToPortal to="/merchandising" label="Voltar ao Merchandising" />
 
       <header className="sucesso-header">
         <div>

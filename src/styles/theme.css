@@ -262,42 +262,18 @@ html[data-theme='dark'] .back-to-portal {
   color: var(--coral);
 }
 
-/* Cards admin: ícones legíveis no escuro */
-html[data-theme='dark'] .admin-card--blue .admin-card-icon {
-  background: #1e2a44;
-  color: #93c5fd;
-}
-html[data-theme='dark'] .admin-card--violet .admin-card-icon {
-  background: #2a2244;
-  color: #c4b5fd;
-}
-html[data-theme='dark'] .admin-card--sky .admin-card-icon {
-  background: #1a2f3d;
-  color: #7dd3fc;
-}
-html[data-theme='dark'] .admin-card--green .admin-card-icon {
-  background: #1a3228;
-  color: #6ee7b7;
-}
-html[data-theme='dark'] .admin-card--orange .admin-card-icon {
-  background: #3a2418;
-  color: #fdba74;
-}
-html[data-theme='dark'] .admin-card--rose .admin-card-icon {
-  background: #3a1f28;
-  color: #fda4af;
-}
-html[data-theme='dark'] .admin-card--indigo .admin-card-icon {
-  background: #222444;
-  color: #a5b4fc;
-}
-html[data-theme='dark'] .admin-card--teal .admin-card-icon {
-  background: #1a3230;
-  color: #5eead4;
-}
+/* Cards admin: ícones na cor da marca no escuro */
+html[data-theme='dark'] .admin-card--blue .admin-card-icon,
+html[data-theme='dark'] .admin-card--violet .admin-card-icon,
+html[data-theme='dark'] .admin-card--sky .admin-card-icon,
+html[data-theme='dark'] .admin-card--green .admin-card-icon,
+html[data-theme='dark'] .admin-card--orange .admin-card-icon,
+html[data-theme='dark'] .admin-card--rose .admin-card-icon,
+html[data-theme='dark'] .admin-card--indigo .admin-card-icon,
+html[data-theme='dark'] .admin-card--teal .admin-card-icon,
 html[data-theme='dark'] .admin-card--lime .admin-card-icon {
-  background: #1a3220;
-  color: #86efac;
+  background: var(--coral-soft);
+  color: var(--coral);
 }
 
 /* Tabelas / filtros / chips claros recorrentes */

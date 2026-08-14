@@ -9,12 +9,13 @@ import {
   userHasSectionAccess,
   type PortalModuleId,
 } from '../../data/portalModules';
+import AppIcon, { type AppIconName } from '../icons/AppIcon';
 import './Sidebar.css';
 
 type NavItem = {
   id: string;
   label: string;
-  icon: string;
+  icon: AppIconName;
   path: string;
   section: string | 'home';
 };
@@ -22,7 +23,7 @@ type NavItem = {
 const HOME_ITEM: NavItem = {
   id: 'home',
   label: 'Início',
-  icon: '🏠',
+  icon: 'home',
   path: '/',
   section: 'home',
 };
@@ -135,7 +136,7 @@ export default function Sidebar() {
       nav.push({
         id: section.id,
         label,
-        icon: section.icon ?? '•',
+        icon: section.icon ?? 'clipboard',
         path: section.path,
         section: section.id,
       });
@@ -170,7 +171,9 @@ export default function Sidebar() {
                 aria-label="Ocultar menu"
                 title="Ocultar menu"
               >
-                <span aria-hidden>«</span>
+                <span aria-hidden>
+                  <AppIcon name="chevronLeft" size={16} />
+                </span>
                 <span className="sidebar-toggle-label">Ocultar</span>
               </button>
             ) : (
@@ -181,7 +184,9 @@ export default function Sidebar() {
                 aria-label={collapsed ? 'Mostrar menu' : 'Esconder menu'}
                 title={collapsed ? 'Mostrar menu' : 'Esconder menu'}
               >
-                <span aria-hidden>{collapsed ? '»' : '«'}</span>
+                <span aria-hidden>
+                  <AppIcon name={collapsed ? 'chevronRight' : 'chevronLeft'} size={16} />
+                </span>
               </button>
             )}
           </div>
@@ -201,7 +206,7 @@ export default function Sidebar() {
                   }}
                 >
                   <span className="sidebar-icon" aria-hidden>
-                    {item.icon}
+                    <AppIcon name={item.icon} size={20} />
                   </span>
                   <span className="sidebar-label">{item.label}</span>
                 </NavLink>
@@ -219,7 +224,9 @@ export default function Sidebar() {
           title="Mostrar menu"
           aria-label="Mostrar menu lateral"
         >
-          <span aria-hidden>☰</span>
+          <span aria-hidden>
+            <AppIcon name="menu" size={20} />
+          </span>
         </button>
       )}
     </>

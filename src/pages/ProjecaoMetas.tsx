@@ -4,6 +4,7 @@ import MetaIndustriaFormModal, {
   type MetaIndustriaFormValues,
 } from '../components/admin/MetaIndustriaFormModal';
 import ModalShell from '../components/colaboradores/ModalShell';
+import AppIcon from '../components/icons/AppIcon';
 import { useToast } from '../context/ToastContext';
 import {
   ANOS_PROJECAO,
@@ -337,7 +338,7 @@ export default function ProjecaoMetas({ adminMode = false }: ProjecaoMetasProps)
 
       {hasManual && (
         <div className="projecao-alert">
-          <span>⚠</span>
+          <AppIcon name="warning" size={18} />
           <p>
             <strong>Atenção:</strong> Algumas indústrias estão usando metas manuais. Quando o modo
             manual está ativo, o cálculo baseado no ano anterior é ignorado. Você só pode usar um

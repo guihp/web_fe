@@ -5,6 +5,7 @@ import DeleteColaboradorModal from '../components/colaboradores/DeleteColaborado
 import EditColaboradorModal from '../components/colaboradores/EditColaboradorModal';
 import ViewColaboradorModal from '../components/colaboradores/ViewColaboradorModal';
 import BackToPortal from '../components/layout/BackToPortal';
+import AppIcon from '../components/icons/AppIcon';
 import { useAuth } from '../context/AuthContext';
 import { canManageUsers } from '../data/portalModules';
 import { fetchUsers, updateUserStatus } from '../services/userFetchService';
@@ -152,7 +153,7 @@ export default function Colaboradores() {
 
       <div className="colaboradores-search">
         <span className="search-icon" aria-hidden>
-          🔍
+          <AppIcon name="search" size={16} />
         </span>
         <input
           type="search"

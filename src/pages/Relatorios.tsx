@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import AppIcon from '../components/icons/AppIcon';
 import { VerticalBarChart } from '../components/vendas/DashboardCharts';
 import {
   fetchComparativoIndustrias,
@@ -207,7 +208,7 @@ export default function Relatorios() {
           </p>
         </div>
         <button type="button" className="btn-primary" onClick={() => window.print()}>
-          <span>📄</span> Exportar PDF
+          <AppIcon name="file" size={16} /> Exportar PDF
         </button>
       </header>
 
@@ -266,7 +267,9 @@ export default function Relatorios() {
 
       <div className="relatorios-highlights">
         <article className="highlight-card growth">
-          <h3>🏅 Top 3 Crescimento</h3>
+          <h3>
+            <AppIcon name="medal" size={18} /> Top 3 Crescimento
+          </h3>
           {topCrescimento.length === 0 ? (
             <p className="empty-highlight">Nenhum crescimento registrado</p>
           ) : (
@@ -283,7 +286,9 @@ export default function Relatorios() {
           )}
         </article>
         <article className="highlight-card decline">
-          <h3>⚠ Top 3 Queda</h3>
+          <h3>
+            <AppIcon name="warning" size={18} /> Top 3 Queda
+          </h3>
           {topQueda.length === 0 ? (
             <p className="empty-highlight">Nenhuma queda registrada</p>
           ) : (
@@ -352,7 +357,9 @@ export default function Relatorios() {
       </section>
 
       <section className="resumo-executivo">
-        <h3>💡 Resumo Executivo</h3>
+        <h3>
+          <AppIcon name="lightbulb" size={18} /> Resumo Executivo
+        </h3>
         <p>
           <strong>Total geral:</strong>{' '}
           {crescimentoRegional.geral.variacao !== null ? (
@@ -374,7 +381,7 @@ export default function Relatorios() {
 
       <section className="crescimento-real">
         <h3>
-          📈 Crescimento Real (YTD) — {anoBase} x {anoComp}
+          <AppIcon name="trend" size={18} /> Crescimento Real (YTD) — {anoBase} x {anoComp}
         </h3>
         <p className="crescimento-real-note">
           Comparação considerando apenas os meses já realizados em ambos os anos (até o mês atual).

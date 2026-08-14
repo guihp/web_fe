@@ -39,18 +39,28 @@
 .atividade-select-wrap select {
   width: 100%;
   padding: 12px 14px;
-  border: 1.5px solid #f0b89a;
+  border: 1.5px solid var(--border);
   border-radius: 10px;
-  background: #fafafa;
+  background: var(--input-bg);
   font-size: 0.88rem;
   color: var(--text);
   outline: none;
 }
 
+.atividade-field input::placeholder {
+  color: var(--input-placeholder);
+}
+
 .atividade-field input:focus,
 .atividade-select-wrap select:focus {
   border-color: var(--coral);
-  background: var(--white);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--coral-soft);
+}
+
+.atividade-select-wrap select option {
+  background: var(--surface);
+  color: var(--text);
 }
 
 .atividade-select-wrap {
@@ -120,7 +130,7 @@
   height: 32px;
   border: 1px solid var(--border);
   border-radius: 50%;
-  background: var(--white);
+  background: var(--surface-2);
   color: var(--text-muted);
   font-size: 0.85rem;
   cursor: pointer;
@@ -128,7 +138,8 @@
 }
 
 .atividade-confirm-close:hover {
-  background: #f3f4f6;
+  background: var(--surface-hover);
+  color: var(--text);
 }
 
 .atividade-confirm-message {
@@ -216,9 +227,9 @@
   max-height: 180px;
   overflow-y: auto;
   padding: 10px;
-  border: 1.5px solid #f0b89a;
+  border: 1.5px solid var(--border);
   border-radius: 10px;
-  background: #fafafa;
+  background: var(--surface-2);
 }
 
 .atividade-industria-option {
@@ -228,15 +239,20 @@
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--white);
+  background: var(--surface);
   cursor: pointer;
   font-size: 0.85rem;
   color: var(--text);
 }
 
+.atividade-industria-option:hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+
 .atividade-industria-option.checked {
   border-color: var(--coral);
-  background: #fff7f3;
+  background: var(--coral-soft);
 }
 
 .atividade-industria-option input {
@@ -265,7 +281,7 @@
   padding: 14px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: #fafafa;
+  background: var(--surface-2);
   font-size: 0.85rem;
   color: var(--text);
 }
@@ -325,7 +341,7 @@
   padding: 10px 16px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--white);
+  background: var(--surface);
   color: var(--text);
   font-size: 0.85rem;
   font-weight: 600;
@@ -333,7 +349,7 @@
 }
 
 .atividade-btn-outline:hover {
-  background: #f9fafb;
+  background: var(--surface-hover);
 }
 
 .atividade-btn-outline.warn {
@@ -401,7 +417,7 @@
   font-size: 0.85rem;
   color: var(--text-muted);
   padding: 16px;
-  background: #fafafa;
+  background: var(--surface-2);
   border: 1px dashed var(--border);
   border-radius: 10px;
 }
@@ -431,20 +447,20 @@
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
-  background: var(--white);
+  background: var(--surface);
   cursor: pointer;
   text-align: left;
 }
 
 .atividade-dia-item:hover {
-  border-color: #f0b89a;
-  background: #fffaf7;
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
 }
 
 .atividade-dia-item.active {
   border-color: var(--coral);
-  background: #fff7f3;
-  box-shadow: 0 0 0 2px rgba(242, 139, 102, 0.12);
+  background: var(--coral-soft);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--coral) 18%, transparent);
 }
 
 .atividade-dia-item-date {
@@ -476,7 +492,7 @@
 .atividade-dia-panel {
   border: 1px solid var(--border);
   border-radius: 12px;
-  background: #fafafa;
+  background: var(--surface-2);
   padding: 16px;
   min-height: 280px;
 }
@@ -542,7 +558,7 @@
   border: 1px solid var(--border);
   border-radius: 10px;
   overflow: hidden;
-  background: var(--white);
+  background: var(--surface);
 }
 
 .atividade-dia-photos img {
@@ -550,7 +566,7 @@
   width: 100%;
   aspect-ratio: 4 / 3;
   object-fit: cover;
-  background: #eee;
+  background: var(--surface-3);
 }
 
 .atividade-dia-photos figcaption {

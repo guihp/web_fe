@@ -255,16 +255,19 @@ export default function Comissao() {
                     <tr key={row.nome}>
                       <td className="col-nome">{row.nome}</td>
                       <td className="col-pct">
-                        <input
-                          type="number"
-                          step="0.01"
-                          value={row.percentual}
-                          onChange={(e) =>
-                            handlePercentualChange(row.nome, Number(e.target.value) || 0)
-                          }
-                          style={{ width: 80 }}
-                        />
-                        %
+                        <label className="comissao-pct-field">
+                          <input
+                            type="number"
+                            step="0.01"
+                            min="0"
+                            value={row.percentual}
+                            onChange={(e) =>
+                              handlePercentualChange(row.nome, Number(e.target.value) || 0)
+                            }
+                            aria-label={`Percentual de comissão ${row.nome}`}
+                          />
+                          <span aria-hidden>%</span>
+                        </label>
                       </td>
                     </tr>
                   ))}

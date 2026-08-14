@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import AppIcon from '../components/icons/AppIcon';
 import { useAtividadeModal } from '../context/AtividadeModalContext';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -48,7 +49,7 @@ export default function ManagerHome() {
 
   return (
     <>
-      <h1 className="greeting">👋 Olá, {userName}. Bem-vindo!</h1>
+      <h1 className="greeting">Olá, {userName}. Bem-vindo!</h1>
 
       <section className="card">
         <div className="card-header">
@@ -110,7 +111,9 @@ export default function ManagerHome() {
             <p className="card-subtitle">Veja/Adicione seus colaboradores</p>
           </div>
           <div className="empty-state">
-            <div className="empty-icon">👥</div>
+            <div className="empty-icon">
+              <AppIcon name="users" size={28} />
+            </div>
             <p className="empty-title">Gerencie sua equipe</p>
             <p className="empty-desc">
               Cadastre promotores e acompanhe os colaboradores da representação.
@@ -127,7 +130,9 @@ export default function ManagerHome() {
             <p className="card-subtitle">cadastre seus treinamentos</p>
           </div>
           <div className="empty-state">
-            <div className="empty-icon">📋</div>
+            <div className="empty-icon">
+              <AppIcon name="clipboard" size={28} />
+            </div>
             <p className="empty-title">Você ainda não possui treinamentos</p>
             <p className="empty-desc">
               No momento, ainda não existem tarefas agendadas para você.

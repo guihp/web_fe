@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import ExcluirFilialModal from '../../components/admin/ExcluirFilialModal';
 import FilialFormModal from '../../components/admin/FilialFormModal';
+import AppIcon from '../../components/icons/AppIcon';
 import { useToast } from '../../context/ToastContext';
 import {
   createLoja,
@@ -182,7 +183,9 @@ export default function AdminFiliais() {
       <section className="card filiais-card">
         <div className="filiais-toolbar">
           <div className="filiais-search">
-            <span aria-hidden>🔍</span>
+            <span aria-hidden>
+              <AppIcon name="search" size={16} />
+            </span>
             <input
               type="search"
               placeholder="Buscar filial..."
@@ -239,7 +242,9 @@ export default function AdminFiliais() {
                     <td>{formatCnpjDisplay(loja.cnpj)}</td>
                     <td>
                       <span className="filiais-regional-cell">
-                        <span aria-hidden>📍</span>
+                        <span aria-hidden>
+                          <AppIcon name="pin" size={14} />
+                        </span>
                         {loja.regional || '—'}
                       </span>
                     </td>

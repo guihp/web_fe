@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import BackToPortal from '../components/layout/BackToPortal';
 import ContratoDetail from '../components/financeiro/ContratoDetail';
 import ComposicaoTab from '../components/financeiro/ComposicaoTab';
+import AppIcon from '../components/icons/AppIcon';
 import Comissao from './Comissao';
 import {
   type ComparativoMes,
@@ -429,7 +430,9 @@ function ContratosTab({
     <div className="fin-contratos">
       <div className="fin-toolbar">
         <div className="fin-search">
-          <span aria-hidden>🔍</span>
+          <span aria-hidden>
+            <AppIcon name="search" size={16} />
+          </span>
           <input
             type="search"
             placeholder="Buscar por título, número ou indústria..."
@@ -858,7 +861,9 @@ function RelatoriosTab({
 
       <section className="card fin-panel">
         <header className="fin-panel-header">
-          <span className="fin-panel-icon">📅</span>
+          <span className="fin-panel-icon">
+            <AppIcon name="calendar" size={18} />
+          </span>
           <h2>Receita por Mês (Contratos + Comissões)</h2>
         </header>
         <StackedMonthChart data={receitaMes} />
@@ -874,7 +879,9 @@ function RelatoriosTab({
 
       <section className="card fin-panel">
         <header className="fin-panel-header">
-          <span className="fin-panel-icon">📊</span>
+          <span className="fin-panel-icon">
+            <AppIcon name="chart" size={18} />
+          </span>
           <h2>Receita por Indústria (Contratos + Comissões)</h2>
         </header>
         <IndustriaChart data={receitaIndustria} />

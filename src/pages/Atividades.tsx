@@ -4,6 +4,7 @@ import DeleteAtividadeModal from '../components/atividades/DeleteAtividadeModal'
 import EditAtividadeModal from '../components/atividades/EditAtividadeModal';
 import ViewAtividadeModal from '../components/atividades/ViewAtividadeModal';
 import BackToPortal from '../components/layout/BackToPortal';
+import AppIcon from '../components/icons/AppIcon';
 import { useAtividadeModal } from '../context/AtividadeModalContext';
 import { useToast } from '../context/ToastContext';
 import {
@@ -206,7 +207,7 @@ export default function Atividades() {
 
           <div className="atividades-period-filter">
             <span className="atividades-period-icon" aria-hidden>
-              📅
+              <AppIcon name="calendar" size={18} />
             </span>
             <label className="atividades-date-field">
               <span>De</span>

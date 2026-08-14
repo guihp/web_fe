@@ -65,8 +65,9 @@
   gap: 4px;
   padding: 3px 8px;
   border-radius: 8px;
-  background: var(--bg-soft, rgba(0, 0, 0, 0.04));
+  background: var(--coral-soft);
   border: 1px solid var(--border);
+  color: var(--coral);
   font-size: 0.7rem;
   white-space: nowrap;
 }
@@ -213,8 +214,11 @@
 }
 
 .usuario-modulo-icon {
-  font-size: 1.1rem;
-  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--coral);
+  line-height: 1;
 }
 
 .usuario-modulo-chip strong {

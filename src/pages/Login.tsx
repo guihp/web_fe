@@ -82,12 +82,14 @@ export default function Login() {
       <div className="login-shell">
         <aside className="login-visual" aria-hidden>
           <div className="login-visual-art">
-            <img src="/login-illustration.png" alt="" />
+            <img src="/login-equipe.png" alt="" />
           </div>
-          <div className="login-dots">
-            <span />
-            <span className="active" />
-            <span />
+          <div className="login-visual-brand">
+            <img
+              className="login-marca-f"
+              src="/feisotipo.png"
+              alt="Fé Merchandising"
+            />
           </div>
         </aside>
 

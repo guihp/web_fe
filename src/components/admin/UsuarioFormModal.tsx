@@ -13,6 +13,7 @@ import {
 import { saveUser, updateUser } from '../../services/userService';
 import type { Usuario } from '../../utils/format';
 import { formatCpf } from '../../utils/format';
+import AppIcon from '../icons/AppIcon';
 import ModalShell from '../colaboradores/ModalShell';
 
 type UsuarioFormModalProps = {
@@ -287,7 +288,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
                         onChange={() => toggleModule(mod.id)}
                       />
                       <span className="usuario-modulo-icon" aria-hidden>
-                        {mod.icon}
+                        <AppIcon name={mod.icon} size={18} />
                       </span>
                       <span>
                         <strong>{mod.title}</strong>
@@ -324,7 +325,9 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
                               disabled={alwaysSection}
                               onChange={() => toggleSection(section.id)}
                             />
-                            <span aria-hidden>{section.icon ?? '•'}</span>
+                            <span aria-hidden>
+                              <AppIcon name={section.icon ?? 'clipboard'} size={16} />
+                            </span>
                             <span>
                               {section.title}
                               {alwaysSection ? ' (todos)' : ''}

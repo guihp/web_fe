@@ -185,6 +185,50 @@
   color: var(--text-muted);
 }
 
+.comissao-pct-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  padding: 6px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text-muted);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.comissao-pct-field:focus-within {
+  border-color: var(--coral);
+  background: var(--surface);
+  box-shadow: 0 0 0 3px var(--coral-soft);
+}
+
+.comissao-pct-field input {
+  width: 72px;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  -moz-appearance: textfield;
+}
+
+.comissao-pct-field input::-webkit-outer-spin-button,
+.comissao-pct-field input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.comissao-pct-field span {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--coral);
+}
+
 .col-comissao {
   text-align: right;
   font-weight: 700;

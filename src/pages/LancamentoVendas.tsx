@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import AppIcon from '../components/icons/AppIcon';
 import { useToast } from '../context/ToastContext';
 import { fetchIndustrias } from '../services/industriaService';
 import { fetchClienteByCdc } from '../services/clienteService';
@@ -245,13 +246,13 @@ export default function LancamentoVendas() {
 
         <div className="lancamento-actions">
           <button type="button" className="lancamento-btn primary" disabled={submitting} onClick={handleSubmit}>
-            <span>🚀</span> {submitting ? 'LANÇANDO...' : 'LANÇAR'}
+            <AppIcon name="rocket" size={16} /> {submitting ? 'LANÇANDO...' : 'LANÇAR'}
           </button>
           <button type="button" className="lancamento-btn outline" onClick={handleClear}>
-            <span>🗑</span> APAGAR
+            <AppIcon name="trash" size={16} /> APAGAR
           </button>
           <button type="button" className="lancamento-btn soft" onClick={() => navigate('/clientes')}>
-            <span>👤+</span> NOVO CLIENTE
+            <AppIcon name="userPlus" size={16} /> NOVO CLIENTE
           </button>
         </div>
       </section>

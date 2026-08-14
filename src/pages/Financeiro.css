@@ -40,23 +40,28 @@
   gap: 12px;
 }
 
-.fin-kpi > div:first-child {
+.fin-kpi > div:not(.fin-kpi-icon) {
   display: flex;
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  flex: 1;
 }
 
 .fin-kpi span {
+  display: block;
   font-size: 0.8rem;
   color: var(--text-muted);
   font-weight: 600;
+  line-height: 1.25;
 }
 
 .fin-kpi strong {
+  display: block;
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--text);
+  line-height: 1.2;
 }
 
 .fin-kpi em {
@@ -575,7 +580,9 @@
 }
 
 .fin-panel-icon {
-  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  color: var(--coral);
 }
 
 .fin-chart-legend {

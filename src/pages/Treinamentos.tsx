@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import AddTreinamentoModal from '../components/treinamentos/AddTreinamentoModal';
 import DownloadTreinamentoModal from '../components/treinamentos/DownloadTreinamentoModal';
+import AppIcon from '../components/icons/AppIcon';
 import BackToPortal from '../components/layout/BackToPortal';
 import {
   downloadPdf,
@@ -100,7 +101,9 @@ export default function Treinamentos() {
                   onClick={() => handleAction(item)}
                   disabled={!item.link_material}
                 >
-                  <span aria-hidden>{isVideo ? '▶' : '📄'}</span>
+                  <span aria-hidden>
+                    <AppIcon name={isVideo ? 'play' : 'file'} size={16} />
+                  </span>
                   {isVideo ? 'Abrir vídeo' : 'Baixar PDF'}
                 </button>
               </article>

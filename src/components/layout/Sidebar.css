@@ -86,9 +86,16 @@
 
 .sidebar-icon {
   width: 20px;
-  text-align: center;
-  font-size: 1rem;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
+  color: inherit;
+}
+
+.sidebar-icon svg {
+  display: block;
 }
 
 .sidebar-label {

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import InativarIndustriaModal from '../../components/admin/InativarIndustriaModal';
 import IndustriaFormModal from '../../components/admin/IndustriaFormModal';
+import AppIcon from '../../components/icons/AppIcon';
 import { useToast } from '../../context/ToastContext';
 import {
   createIndustria,
@@ -161,7 +162,9 @@ export default function AdminIndustrias() {
       <section className="card filiais-card">
         <div className="filiais-toolbar">
           <div className="filiais-search">
-            <span aria-hidden>🔍</span>
+            <span aria-hidden>
+              <AppIcon name="search" size={16} />
+            </span>
             <input
               type="search"
               placeholder="Buscar indústria..."

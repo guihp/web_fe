@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import AppIcon from '../icons/AppIcon';
 import ModalShell from '../colaboradores/ModalShell';
 import { addTreinamento } from '../../services/treinamentoService';
 import './TreinamentoModals.css';
@@ -78,14 +79,14 @@ export default function AddTreinamentoModal({ onClose, onSuccess }: AddTreinamen
           className={`treinamento-type-btn ${tipo === 'PDF' ? 'active pdf' : ''}`}
           onClick={() => setTipo('PDF')}
         >
-          <span>📄</span> Arquivo
+          <AppIcon name="file" size={16} /> Arquivo
         </button>
         <button
           type="button"
           className={`treinamento-type-btn ${tipo === 'Video' ? 'active video' : ''}`}
           onClick={() => setTipo('Video')}
         >
-          <span>▶</span> Link do Youtube
+          <AppIcon name="play" size={16} /> Link do Youtube
         </button>
       </div>
 

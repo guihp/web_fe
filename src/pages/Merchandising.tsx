@@ -1,17 +1,26 @@
 import { Link } from 'react-router-dom';
+import AppIcon, { type AppIconName } from '../components/icons/AppIcon';
 import BackToPortal from '../components/layout/BackToPortal';
 import { useAuth } from '../context/AuthContext';
 import { userHasSectionAccess } from '../data/portalModules';
 import './Administrador.css';
 
-const MERCH_CARDS = [
+const MERCH_CARDS: {
+  id: string;
+  title: string;
+  description: string;
+  path: string;
+  tone: 'orange' | 'blue' | 'green' | 'sky';
+  icon: AppIconName;
+  section: string;
+}[] = [
   {
     id: 'treinamentos',
     title: 'Treinamentos',
     description: 'Materiais, vídeos e capacitação da equipe.',
     path: '/treinamento',
     tone: 'orange',
-    icon: '💼',
+    icon: 'briefcase',
     section: 'treinamentos.home',
   },
   {
@@ -19,8 +28,8 @@ const MERCH_CARDS = [
     title: 'Atividades',
     description: 'Controle de visitas e ações de merchandising em PDVs.',
     path: '/atividades',
-    tone: 'blue',
-    icon: '📋',
+    tone: 'orange',
+    icon: 'clipboard',
     section: 'atividades.home',
   },
   {
@@ -28,8 +37,8 @@ const MERCH_CARDS = [
     title: 'Validades',
     description: 'Controle de validades — liberado para todos os usuários.',
     path: '/validades',
-    tone: 'green',
-    icon: '📅',
+    tone: 'orange',
+    icon: 'calendar',
     section: 'validades.home',
   },
   {
@@ -37,11 +46,20 @@ const MERCH_CARDS = [
     title: 'Price',
     description: 'Módulo Price — conteúdo a definir.',
     path: '/merchandising/price',
-    tone: 'sky',
-    icon: '🏷️',
+    tone: 'orange',
+    icon: 'tag',
     section: 'merchandising.price',
   },
-] as const;
+  {
+    id: 'sucesso',
+    title: 'Sucesso do cliente',
+    description: 'Kanban de pedidos e acompanhamento do cliente.',
+    path: '/merchandising/sucesso-cliente',
+    tone: 'orange',
+    icon: 'check',
+    section: 'merchandising.sucesso',
+  },
+];
 
 export default function Merchandising() {
   const { user } = useAuth();
@@ -56,7 +74,7 @@ export default function Merchandising() {
       <header className="admin-header">
         <h1 className="page-title">Merchandising</h1>
         <p className="admin-subtitle">
-          Treinamentos, atividades em loja, validades e Price.
+          Treinamentos, atividades em loja, validades, Price e Sucesso do cliente.
         </p>
       </header>
 
@@ -64,7 +82,7 @@ export default function Merchandising() {
         {cards.map((card) => (
           <Link key={card.id} to={card.path} className={`admin-card admin-card--${card.tone}`}>
             <span className="admin-card-icon" aria-hidden>
-              {card.icon}
+              <AppIcon name={card.icon} size={22} />
             </span>
             <h2 className="admin-card-title">{card.title}</h2>
             <p className="admin-card-desc">{card.description}</p>

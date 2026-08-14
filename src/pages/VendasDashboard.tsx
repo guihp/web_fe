@@ -7,6 +7,7 @@ import {
   KpiCardView,
   VerticalBarChart,
 } from '../components/vendas/DashboardCharts';
+import AppIcon from '../components/icons/AppIcon';
 import {
   fetchRealizadoVsMeta,
   fetchVendasMensais,
@@ -301,7 +302,7 @@ export default function VendasDashboard() {
 
         <div className="vendas-header-actions">
           <button type="button" className="btn-primary vendas-export-btn" onClick={handleExport}>
-            <span>📄</span> Exportar PDF
+            <AppIcon name="file" size={16} /> Exportar PDF
           </button>
           <select className="vendas-select" value={mes} onChange={(e) => setMes(e.target.value)}>
             <option value="Todos">Todos os Meses</option>
