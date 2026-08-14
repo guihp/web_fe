@@ -114,13 +114,18 @@ export default function Comissao() {
   }, [ano, mesFilter, regiaoFilter, tab, showToast]);
 
   useEffect(() => {
-    if (tab !== 'percentuais') loadData();
-    else {
-      fetchPercentuais()
-        .then((pct) => setPercentuais(pct.map((p) => ({ nome: p.industria, percentual: p.percentual }))))
-        .catch(() => undefined);
+    if (tab !== 'percentuais') {
+      loadData();
+      return;
     }
-  }, [loadData, tab]);
+    setLoading(true);
+    fetchPercentuais()
+      .then((pct) => setPercentuais(pct.map((p) => ({ nome: p.industria, percentual: p.percentual }))))
+      .catch((err) =>
+        showToast(err instanceof Error ? err.message : 'Erro ao carregar percentuais.', 'error'),
+      )
+      .finally(() => setLoading(false));
+  }, [loadData, tab, showToast]);
 
   const totals = useMemo(() => {
     const totalVendas = rows.reduce((a, r) => a + r.vendas, 0);
@@ -231,35 +236,41 @@ export default function Comissao() {
           ))}
         </div>
 
-        {loading && tab !== 'percentuais' ? (
+        {loading ? (
           <p style={{ padding: 24 }}>Carregando...</p>
         ) : tab === 'percentuais' ? (
           <div className="comissao-table-wrap">
-            <table className="comissao-table">
-              <thead>
-                <tr>
-                  <th>Indústria</th>
-                  <th>% Comissão</th>
-                </tr>
-              </thead>
-              <tbody>
-                {percentuais.map((row) => (
-                  <tr key={row.nome}>
-                    <td className="col-nome">{row.nome}</td>
-                    <td className="col-pct">
-                      <input
-                        type="number"
-                        step="0.01"
-                        value={row.percentual}
-                        onChange={(e) => handlePercentualChange(row.nome, Number(e.target.value) || 0)}
-                        style={{ width: 80 }}
-                      />
-                      %
-                    </td>
+            {percentuais.length === 0 ? (
+              <p style={{ padding: 24 }}>Nenhuma indústria encontrada.</p>
+            ) : (
+              <table className="comissao-table">
+                <thead>
+                  <tr>
+                    <th>Indústria</th>
+                    <th>% Comissão</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {percentuais.map((row) => (
+                    <tr key={row.nome}>
+                      <td className="col-nome">{row.nome}</td>
+                      <td className="col-pct">
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={row.percentual}
+                          onChange={(e) =>
+                            handlePercentualChange(row.nome, Number(e.target.value) || 0)
+                          }
+                          style={{ width: 80 }}
+                        />
+                        %
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         ) : (
           <ComissaoTable rows={rows} showPercent={tab === 'industria'} />

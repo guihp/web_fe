@@ -903,6 +903,13 @@
   margin-top: 4px;
 }
 
+.fin-kanban-card-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
 .fin-kanban-money {
   font-size: 0.85rem;
   font-weight: 700;
@@ -957,5 +964,282 @@
 @media (max-width: 640px) {
   .fin-kpi-grid.four {
     grid-template-columns: 1fr;
+  }
+}
+
+/* —— Composição —— */
+.fin-composicao {
+  display: grid;
+  gap: 16px;
+}
+
+.fin-composicao-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  padding: 18px 20px;
+}
+
+.fin-composicao-toolbar h2 {
+  margin: 0 0 6px;
+  font-size: 1.1rem;
+}
+
+.fin-composicao-toolbar p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  max-width: 640px;
+  line-height: 1.45;
+}
+
+.fin-composicao-period {
+  display: flex;
+  gap: 10px;
+}
+
+.fin-composicao-period label,
+.fin-comp-actions label,
+.fin-comp-industria-grid label {
+  display: grid;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.fin-composicao-period select,
+.fin-comp-actions select,
+.fin-comp-actions input,
+.fin-comp-industria-grid select,
+.fin-comp-industria-grid input,
+.fin-comp-editor input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--surface-2, var(--surface));
+  color: var(--text);
+  min-width: 120px;
+}
+
+.fin-composicao-layout {
+  display: grid;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.fin-composicao-list {
+  padding: 14px;
+}
+
+.fin-composicao-list h3 {
+  margin: 0 0 10px;
+  font-size: 0.95rem;
+}
+
+.fin-composicao-list ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.fin-composicao-list button {
+  width: 100%;
+  text-align: left;
+  border: 1px solid var(--border);
+  background: var(--surface-2, transparent);
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: grid;
+  gap: 2px;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.fin-composicao-list button.active {
+  border-color: var(--coral);
+  box-shadow: 0 0 0 1px var(--coral);
+}
+
+.fin-composicao-list button strong {
+  font-size: 0.9rem;
+}
+
+.fin-composicao-list button span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.fin-composicao-list button em {
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.fin-composicao-list button em.ok {
+  color: #16a34a;
+}
+
+.fin-composicao-list button em.pendente {
+  color: #ea6624;
+}
+
+.fin-composicao-editor {
+  padding: 18px;
+  min-height: 360px;
+}
+
+.fin-muted {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.fin-comp-editor header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.fin-comp-editor header h3 {
+  margin: 0 0 4px;
+}
+
+.fin-comp-editor header p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.fin-comp-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: end;
+  margin-bottom: 14px;
+}
+
+.fin-btn {
+  border: 1px solid var(--border);
+  background: var(--surface-2, var(--surface));
+  color: var(--text);
+  border-radius: 10px;
+  padding: 9px 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.fin-btn.primary {
+  background: var(--btn-primary-bg, #ea6624);
+  border-color: transparent;
+  color: var(--btn-primary-text, #fff);
+}
+
+.fin-btn.ghost {
+  background: transparent;
+}
+
+.fin-comp-footer {
+  margin-top: 16px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.fin-comp-industria-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.fin-comp-preview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.fin-comp-preview article {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.fin-comp-preview span {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.fin-lojas-pick {
+  max-height: 280px;
+  overflow: auto;
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.fin-loja-chip {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-size: 0.85rem;
+}
+
+.fin-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 80;
+  padding: 16px;
+}
+
+.fin-modal-backdrop .fin-modal {
+  width: min(720px, 100%);
+  max-height: 90vh;
+  overflow: auto;
+  padding: 18px;
+}
+
+.fin-modal-backdrop .fin-modal header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.fin-modal-backdrop .fin-modal footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.fin-icon-btn.danger {
+  border: none;
+  background: transparent;
+  color: #e11d48;
+  cursor: pointer;
+  font-size: 1.1rem;
+}
+
+.comissao-embedded .comissao-header h1 {
+  font-size: 1.2rem;
+}
+
+@media (max-width: 960px) {
+  .fin-composicao-layout,
+  .fin-comp-industria-grid,
+  .fin-comp-preview {
+    grid-template-columns: 1fr;
+  }
+
+  .fin-composicao-toolbar {
+    flex-direction: column;
   }
 }

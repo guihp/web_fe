@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import BackToPortal from '../components/layout/BackToPortal';
 import ContratoDetail from '../components/financeiro/ContratoDetail';
+import ComposicaoTab from '../components/financeiro/ComposicaoTab';
+import Comissao from './Comissao';
 import {
   type ComparativoMes,
   type Contrato,
@@ -31,7 +34,9 @@ import {
 import { useToast } from '../context/ToastContext';
 import './Financeiro.css';
 
-type Tab = 'contratos' | 'relatorios' | 'kanban';
+type Tab = 'contratos' | 'composicao' | 'relatorios' | 'kanban' | 'comissao';
+
+const VALID_TABS: Tab[] = ['contratos', 'composicao', 'relatorios', 'kanban', 'comissao'];
 
 const TIPOS = ['Todos os tipos', 'Contrato de Indústria', 'Cobertura de Merchandising', 'Ação de Vendas'];
 const STATUS_OPTS = ['Todos', 'Rascunho', 'Ativo', 'Encerrado', 'Cancelado'];
@@ -925,11 +930,13 @@ function KanbanTab({
   onAdvance,
   onMove,
   onGenerate,
+  onConfigure,
 }: {
   tasks: KanbanTask[];
   onAdvance: (id: string) => void;
   onMove: (id: string, coluna: KanbanTask['coluna']) => void;
   onGenerate: () => void;
+  onConfigure: (contratoId: string) => void;
 }) {
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [overCol, setOverCol] = useState<KanbanTask['coluna'] | null>(null);
@@ -1044,15 +1051,26 @@ function KanbanTab({
                   </p>
                   <footer>
                     <span className="fin-kanban-money">$ {formatCompactMoney(task.valor)}</span>
-                    {col.key !== 'faturado' && (
-                      <button
-                        type="button"
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={() => onAdvance(task.id)}
-                      >
-                        Avançar →
-                      </button>
-                    )}
+                    <div className="fin-kanban-card-actions">
+                      {col.key === 'pendente' && (
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={() => onConfigure(task.contratoId)}
+                        >
+                          Configurar
+                        </button>
+                      )}
+                      {col.key !== 'faturado' && (
+                        <button
+                          type="button"
+                          onMouseDown={(e) => e.stopPropagation()}
+                          onClick={() => onAdvance(task.id)}
+                        >
+                          Avançar →
+                        </button>
+                      )}
+                    </div>
                   </footer>
                 </article>
               ))}
@@ -1066,7 +1084,18 @@ function KanbanTab({
 
 export default function Financeiro() {
   const { showToast } = useToast();
-  const [tab, setTab] = useState<Tab>('contratos');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab');
+  const tab: Tab = VALID_TABS.includes(tabParam as Tab) ? (tabParam as Tab) : 'contratos';
+  const setTab = (next: Tab) => {
+    const params = new URLSearchParams(searchParams);
+    if (next === 'contratos') params.delete('tab');
+    else params.set('tab', next);
+    if (next !== 'composicao') params.delete('contrato');
+    setSearchParams(params, { replace: true });
+  };
+  const focusContratoId = searchParams.get('contrato');
+
   const [contratos, setContratos] = useState<Contrato[]>([]);
   const [tasks, setTasks] = useState<KanbanTask[]>([]);
   const [kpis, setKpis] = useState<FinanceiroKpis>({
@@ -1160,10 +1189,19 @@ export default function Financeiro() {
 
   const handleCreateContrato = async (input: ContratoCreateInput) => {
     try {
-      await createContrato(input);
+      const created = await createContrato(input);
       await loadAll();
-      setTab('contratos');
-      showToast('Contrato criado e enviado ao Kanban (Pendente).', 'success');
+      setTab('composicao');
+      setSearchParams(
+        (prev) => {
+          const params = new URLSearchParams(prev);
+          params.set('tab', 'composicao');
+          params.set('contrato', created.id);
+          return params;
+        },
+        { replace: true },
+      );
+      showToast('Contrato criado. Configure a composição do mês.', 'success');
     } catch (error) {
       console.error(error);
       showToast('Não foi possível criar o contrato.', 'error');
@@ -1293,6 +1331,13 @@ export default function Financeiro() {
         </button>
         <button
           type="button"
+          className={tab === 'composicao' ? 'active' : ''}
+          onClick={() => setTab('composicao')}
+        >
+          <IconBuilding /> Composição
+        </button>
+        <button
+          type="button"
           className={tab === 'relatorios' ? 'active' : ''}
           onClick={() => setTab('relatorios')}
         >
@@ -1300,6 +1345,13 @@ export default function Financeiro() {
         </button>
         <button type="button" className={tab === 'kanban' ? 'active' : ''} onClick={() => setTab('kanban')}>
           <IconKanban /> Kanban
+        </button>
+        <button
+          type="button"
+          className={tab === 'comissao' ? 'active' : ''}
+          onClick={() => setTab('comissao')}
+        >
+          <IconDollar /> Comissão
         </button>
       </nav>
 
@@ -1310,6 +1362,15 @@ export default function Financeiro() {
           onSave={handleSaveContrato}
           onView={setViewing}
           onCreate={handleCreateContrato}
+        />
+      )}
+      {tab === 'composicao' && (
+        <ComposicaoTab
+          contratos={contratos}
+          focusContratoId={focusContratoId}
+          onDone={async () => {
+            await loadAll();
+          }}
         />
       )}
       {tab === 'relatorios' && (
@@ -1326,7 +1387,23 @@ export default function Financeiro() {
           onAdvance={advanceTask}
           onMove={moveTask}
           onGenerate={handleGenerateKanban}
+          onConfigure={(contratoId) => {
+            setSearchParams(
+              (prev) => {
+                const params = new URLSearchParams(prev);
+                params.set('tab', 'composicao');
+                params.set('contrato', contratoId);
+                return params;
+              },
+              { replace: true },
+            );
+          }}
         />
+      )}
+      {tab === 'comissao' && (
+        <div className="comissao-embedded">
+          <Comissao />
+        </div>
       )}
     </div>
   );

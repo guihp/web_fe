@@ -208,7 +208,23 @@ export async function fetchComparativoIndustrias(
   mesNome?: string,
   ateMesNumero = 12,
 ) {
-  const [baseRows, compRows] = await Promise.all([fetchVendasRaw(anoBase), fetchVendasRaw(anoComp)]);
+  const [baseRows, compRows, industriasAtivas] = await Promise.all([
+    fetchVendasRaw(anoBase),
+    fetchVendasRaw(anoComp),
+    supabase.from('industrias').select('"Nome", status'),
+  ]);
+
+  if (industriasAtivas.error) throw new Error(industriasAtivas.error.message);
+
+  const ativas = (industriasAtivas.data ?? [])
+    .filter((row: { Nome?: string; status?: string | null }) => {
+      const status = (row.status ?? 'Ativo').trim().toLowerCase();
+      return Boolean(row.Nome) && (status === 'ativo' || status === '');
+    })
+    .map((row: { Nome: string }) => row.Nome);
+
+  const isIndustriaAtiva = (nomeVenda: string) =>
+    ativas.some((nomeCadastro) => industriasMatch(nomeCadastro, nomeVenda));
 
   const sumByIndustria = (rows: typeof baseRows) => {
     const map = new Map<string, { valor: number; label: string }>();
@@ -216,6 +232,7 @@ export async function fetchComparativoIndustrias(
       if (!matchesRegiao(row.estado, regiao)) continue;
       if (!matchesMesPeriodo(row.mes, ateMesNumero, mesNome)) continue;
       const label = (row.industria ?? 'Outros').trim() || 'Outros';
+      if (!isIndustriaAtiva(label)) continue;
       const key = normalizeIndustriaKey(label) || 'OUTROS';
       const prev = map.get(key);
       if (prev) {

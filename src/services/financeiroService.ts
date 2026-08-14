@@ -1,16 +1,18 @@
 import { supabase } from '../lib/supabase';
 import type {
   ComparativoMes,
+  ComissaoBase,
   Contrato,
   ContratoAnexo,
   ContratoFilial,
   ContratoStatus,
   HistoricoEvento,
   KanbanTask,
+  ModeloCobranca,
   ReceitaIndustria,
   ReceitaMes,
 } from '../data/financeiroData';
-import { valorTotalFilial } from '../data/financeiroData';
+import { isContratoIndustria, isContratoLojas, valorTotalFilial } from '../data/financeiroData';
 
 const BUCKET = 'contrato-anexos';
 const MESES_CURTO = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -56,6 +58,11 @@ export type ContratoUpdateInput = Partial<{
   diaInicioFat: number;
   diaFimFat: number;
   valorMensal: number;
+  modeloCobranca: ModeloCobranca | null;
+  comissaoPercentual: number;
+  comissaoBase: ComissaoBase;
+  comissaoCategoria: string | null;
+  composicaoOk: boolean;
 }>;
 
 export type FinanceiroKpis = {
@@ -82,6 +89,11 @@ type ContratoRow = {
   dia_inicio_faturamento: number | null;
   dia_fim_faturamento: number | null;
   valor_mensal: number | string;
+  modelo_cobranca: ModeloCobranca | null;
+  comissao_percentual: number | string | null;
+  comissao_base: ComissaoBase | null;
+  comissao_categoria: string | null;
+  composicao_ok: boolean | null;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;
@@ -100,6 +112,10 @@ type FilialRow = {
   horas: number | string;
   visitas_sem: number | string;
   visitas_mes: number | string;
+  valor_fixo: number | string | null;
+  modelo_cobranca: 'hora_visita' | 'valor_fixo' | null;
+  ano: number;
+  mes: number;
   valor_total: number | string;
 };
 
@@ -172,12 +188,18 @@ function mapContrato(row: ContratoRow): Contrato {
     valorMensal: toNumber(row.valor_mensal),
     status: row.status,
     tipo: row.tipo,
+    modeloCobranca: row.modelo_cobranca ?? null,
+    comissaoPercentual: toNumber(row.comissao_percentual),
+    comissaoBase: row.comissao_base ?? 'venda_total',
+    comissaoCategoria: row.comissao_categoria ?? null,
+    composicaoOk: Boolean(row.composicao_ok),
   };
 }
 
 function mapFilial(row: FilialRow): ContratoFilial {
   return {
     id: row.id,
+    lojaId: row.loja_id,
     codigo: row.codigo ?? 0,
     nome: row.nome,
     cidade: row.cidade ?? '',
@@ -187,6 +209,10 @@ function mapFilial(row: FilialRow): ContratoFilial {
     horas: toNumber(row.horas),
     visitasSem: toNumber(row.visitas_sem),
     visitasMes: toNumber(row.visitas_mes),
+    valorFixo: toNumber(row.valor_fixo),
+    modeloCobranca: row.modelo_cobranca === 'valor_fixo' ? 'valor_fixo' : 'hora_visita',
+    ano: row.ano,
+    mes: row.mes,
   };
 }
 
@@ -216,6 +242,7 @@ function mapHistorico(row: HistoricoRow): HistoricoEvento {
 function mapKanban(row: FaturamentoRow): KanbanTask {
   return {
     id: row.id,
+    contratoId: row.contrato_id,
     periodo: row.periodo,
     tag: row.tag || row.contratos?.tipo || '',
     titulo: row.contratos?.titulo || 'Contrato',
@@ -223,6 +250,10 @@ function mapKanban(row: FaturamentoRow): KanbanTask {
     valor: toNumber(row.valor),
     coluna: row.coluna,
   };
+}
+
+export function currentFinanceiroPeriod() {
+  return currentPeriod();
 }
 
 function currentPeriod() {
@@ -249,11 +280,17 @@ async function addHistorico(
   if (error) throw new Error(error.message);
 }
 
-async function recalcContratoValor(contratoId: string) {
+async function recalcContratoValor(contratoId: string, ano?: number, mes?: number) {
+  const period = currentPeriod();
+  const targetAno = ano ?? period.ano;
+  const targetMes = mes ?? period.mes;
+
   const { data, error } = await supabase
     .from('contrato_filiais')
     .select('valor_total')
-    .eq('contrato_id', contratoId);
+    .eq('contrato_id', contratoId)
+    .eq('ano', targetAno)
+    .eq('mes', targetMes);
   if (error) throw new Error(error.message);
 
   const total = (data ?? []).reduce((acc, row) => acc + toNumber(row.valor_total), 0);
@@ -263,13 +300,12 @@ async function recalcContratoValor(contratoId: string) {
     .eq('id', contratoId);
   if (updateError) throw new Error(updateError.message);
 
-  const { ano, mes } = currentPeriod();
   await supabase
     .from('contrato_faturamento')
     .update({ valor: total, updated_at: new Date().toISOString() })
     .eq('contrato_id', contratoId)
-    .eq('ano', ano)
-    .eq('mes', mes);
+    .eq('ano', targetAno)
+    .eq('mes', targetMes);
 
   return total;
 }
@@ -286,6 +322,11 @@ export async function fetchContratos(): Promise<Contrato[]> {
 
 export async function createContrato(input: ContratoCreateInput): Promise<Contrato> {
   const { ano, mes, periodo } = currentPeriod();
+  const modeloDefault: ModeloCobranca | null = isContratoIndustria(input.tipo)
+    ? 'comissao_industria'
+    : isContratoLojas(input.tipo)
+      ? 'hora_visita'
+      : null;
 
   const { data, error } = await supabase
     .from('contratos')
@@ -302,6 +343,8 @@ export async function createContrato(input: ContratoCreateInput): Promise<Contra
       dia_fim_faturamento: input.diaFimFat ?? 28,
       valor_mensal: input.valorMensal ?? 0,
       criado_por: input.criadoPor ?? null,
+      modelo_cobranca: modeloDefault,
+      composicao_ok: false,
     })
     .select('*')
     .single();
@@ -338,6 +381,11 @@ export async function updateContrato(id: string, patch: ContratoUpdateInput): Pr
   if (patch.diaInicioFat !== undefined) payload.dia_inicio_faturamento = patch.diaInicioFat;
   if (patch.diaFimFat !== undefined) payload.dia_fim_faturamento = patch.diaFimFat;
   if (patch.valorMensal !== undefined) payload.valor_mensal = patch.valorMensal;
+  if (patch.modeloCobranca !== undefined) payload.modelo_cobranca = patch.modeloCobranca;
+  if (patch.comissaoPercentual !== undefined) payload.comissao_percentual = patch.comissaoPercentual;
+  if (patch.comissaoBase !== undefined) payload.comissao_base = patch.comissaoBase;
+  if (patch.comissaoCategoria !== undefined) payload.comissao_categoria = patch.comissaoCategoria;
+  if (patch.composicaoOk !== undefined) payload.composicao_ok = patch.composicaoOk;
 
   const { data, error } = await supabase
     .from('contratos')
@@ -381,11 +429,21 @@ export async function updateContratoStatus(id: string, status: ContratoStatus, p
   return mapContrato(data as ContratoRow);
 }
 
-export async function fetchContratoFiliais(contratoId: string): Promise<ContratoFilial[]> {
+export async function fetchContratoFiliais(
+  contratoId: string,
+  ano?: number,
+  mes?: number,
+): Promise<ContratoFilial[]> {
+  const period = currentPeriod();
+  const targetAno = ano ?? period.ano;
+  const targetMes = mes ?? period.mes;
+
   const { data, error } = await supabase
     .from('contrato_filiais')
     .select('*')
     .eq('contrato_id', contratoId)
+    .eq('ano', targetAno)
+    .eq('mes', targetMes)
     .order('created_at', { ascending: true });
   if (error) throw new Error(error.message);
   return ((data ?? []) as FilialRow[]).map(mapFilial);
@@ -403,16 +461,26 @@ export async function addContratoFiliais(
     valorHora: number;
     horas: number;
     visitasSem: number;
-  }>
+    valorFixo?: number;
+    modeloCobranca?: 'hora_visita' | 'valor_fixo';
+  }>,
+  ano?: number,
+  mes?: number,
 ): Promise<ContratoFilial[]> {
   if (filiais.length === 0) return [];
+  const period = currentPeriod();
+  const targetAno = ano ?? period.ano;
+  const targetMes = mes ?? period.mes;
 
   const rows = filiais.map((f) => {
+    const modelo = f.modeloCobranca ?? 'hora_visita';
     const visitasMes = f.visitasSem * 4;
     const valorTotal = valorTotalFilial({
       valorHora: f.valorHora,
       horas: f.horas,
       visitasMes,
+      valorFixo: f.valorFixo ?? 0,
+      modeloCobranca: modelo,
     });
     return {
       contrato_id: contratoId,
@@ -426,6 +494,10 @@ export async function addContratoFiliais(
       horas: f.horas,
       visitas_sem: f.visitasSem,
       visitas_mes: visitasMes,
+      valor_fixo: f.valorFixo ?? 0,
+      modelo_cobranca: modelo,
+      ano: targetAno,
+      mes: targetMes,
       valor_total: valorTotal,
     };
   });
@@ -435,12 +507,12 @@ export async function addContratoFiliais(
 
   const prev = await supabase.from('contratos').select('valor_mensal').eq('id', contratoId).single();
   const oldValor = toNumber(prev.data?.valor_mensal);
-  const newValor = await recalcContratoValor(contratoId);
+  const newValor = await recalcContratoValor(contratoId, targetAno, targetMes);
 
   await addHistorico(
     contratoId,
     'filial',
-    `${rows.length} filial(is) adicionada(s)`,
+    `${rows.length} filial(is) adicionada(s) (${targetMes}/${targetAno})`,
     rows.map((r) => r.codigo ?? r.nome).join(', ')
   );
   await addHistorico(contratoId, 'valor', 'Valor total ajustado', `${Math.round(oldValor)} → ${Math.round(newValor)}`);
@@ -452,10 +524,20 @@ export async function removeContratoFilial(contratoId: string, filialId: string,
   const prev = await supabase.from('contratos').select('valor_mensal').eq('id', contratoId).single();
   const oldValor = toNumber(prev.data?.valor_mensal);
 
+  const { data: filialRow } = await supabase
+    .from('contrato_filiais')
+    .select('ano, mes')
+    .eq('id', filialId)
+    .maybeSingle();
+
   const { error } = await supabase.from('contrato_filiais').delete().eq('id', filialId);
   if (error) throw new Error(error.message);
 
-  const newValor = await recalcContratoValor(contratoId);
+  const newValor = await recalcContratoValor(
+    contratoId,
+    filialRow?.ano ?? undefined,
+    filialRow?.mes ?? undefined,
+  );
   await addHistorico(contratoId, 'filial', 'Filial removida do contrato', label);
   await addHistorico(contratoId, 'valor', 'Valor total ajustado', `${Math.round(oldValor)} → ${Math.round(newValor)}`);
 }
@@ -805,4 +887,319 @@ export async function fetchFiliaisCatalog(): Promise<FilialCatalogItem[]> {
         regional: row.regional ?? '',
       }),
     );
+}
+
+export type ContratoComissaoMes = {
+  id: string;
+  contratoId: string;
+  ano: number;
+  mes: number;
+  percentual: number;
+  base: ComissaoBase;
+  categoria: string | null;
+  valorVenda: number;
+  valorComissao: number;
+  concluido: boolean;
+};
+
+export async function updateContratoFilialValores(
+  filialId: string,
+  patch: Partial<{
+    valorHora: number;
+    horas: number;
+    visitasSem: number;
+    valorFixo: number;
+    modeloCobranca: 'hora_visita' | 'valor_fixo';
+  }>,
+) {
+  const { data: current, error: fetchError } = await supabase
+    .from('contrato_filiais')
+    .select('*')
+    .eq('id', filialId)
+    .single();
+  if (fetchError) throw new Error(fetchError.message);
+
+  const row = current as FilialRow;
+  const modelo =
+    patch.modeloCobranca ??
+    (row.modelo_cobranca === 'valor_fixo' ? 'valor_fixo' : 'hora_visita');
+  const valorHora = patch.valorHora ?? toNumber(row.valor_hora);
+  const horas = patch.horas ?? toNumber(row.horas);
+  const visitasSem = patch.visitasSem ?? toNumber(row.visitas_sem);
+  const visitasMes = visitasSem * 4;
+  const valorFixo = patch.valorFixo ?? toNumber(row.valor_fixo);
+  const valorTotal = valorTotalFilial({
+    valorHora,
+    horas,
+    visitasMes,
+    valorFixo,
+    modeloCobranca: modelo,
+  });
+
+  const { error } = await supabase
+    .from('contrato_filiais')
+    .update({
+      valor_hora: valorHora,
+      horas,
+      visitas_sem: visitasSem,
+      visitas_mes: visitasMes,
+      valor_fixo: valorFixo,
+      modelo_cobranca: modelo,
+      valor_total: valorTotal,
+    })
+    .eq('id', filialId);
+  if (error) throw new Error(error.message);
+
+  await recalcContratoValor(row.contrato_id, row.ano, row.mes);
+}
+
+export async function copyFiliaisMesAnterior(contratoId: string, ano: number, mes: number) {
+  const prev = new Date(ano, mes - 2, 1);
+  const prevAno = prev.getFullYear();
+  const prevMes = prev.getMonth() + 1;
+
+  const existing = await fetchContratoFiliais(contratoId, ano, mes);
+  if (existing.length > 0) {
+    throw new Error('Este mês já possui lojas. Remova-as antes de copiar o mês anterior.');
+  }
+
+  const source = await fetchContratoFiliais(contratoId, prevAno, prevMes);
+  if (source.length === 0) {
+    throw new Error('Não há lojas no mês anterior para copiar.');
+  }
+
+  return addContratoFiliais(
+    contratoId,
+    source.map((f) => ({
+      lojaId: f.lojaId,
+      codigo: f.codigo,
+      nome: f.nome,
+      cidade: f.cidade,
+      estado: f.estado,
+      regional: f.regional,
+      valorHora: f.valorHora,
+      horas: f.horas,
+      visitasSem: f.visitasSem,
+      valorFixo: f.valorFixo,
+      modeloCobranca: f.modeloCobranca,
+    })),
+    ano,
+    mes,
+  );
+}
+
+export async function fetchCategoriasVendaIndustria(industria: string): Promise<string[]> {
+  const { data, error } = await supabase
+    .from('baseVendas')
+    .select('categoria')
+    .ilike('industria', `%${industria.split(' ')[0] ?? industria}%`)
+    .not('categoria', 'is', null)
+    .limit(500);
+  if (error) throw new Error(error.message);
+  return [...new Set((data ?? []).map((r: { categoria: string | null }) => r.categoria).filter(Boolean) as string[])].sort();
+}
+
+export async function previewVendasContratoIndustria(params: {
+  industria: string;
+  ano: number;
+  mes: number;
+  base: ComissaoBase;
+  categoria?: string | null;
+  percentual: number;
+}) {
+  const mesNome = MESES_LONGO[params.mes - 1];
+  let query = supabase
+    .from('baseVendas')
+    .select('valor, categoria, mes, ano, industria')
+    .eq('ano', String(params.ano));
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+
+  const industriaKey = params.industria.trim().toLowerCase();
+  const rows = (data ?? []).filter((row: {
+    industria: string | null;
+    mes: string | null;
+    categoria: string | null;
+    valor: number | string;
+  }) => {
+    const ind = (row.industria ?? '').toLowerCase();
+    if (!ind.includes(industriaKey.slice(0, 6)) && !industriaKey.includes(ind.slice(0, 6))) {
+      return false;
+    }
+    const mesRow = (row.mes ?? '').toLowerCase();
+    if (!mesRow.startsWith(mesNome.slice(0, 3))) return false;
+    if (params.base === 'venda_categoria') {
+      if (!params.categoria) return false;
+      return (row.categoria ?? '').toLowerCase() === params.categoria.toLowerCase();
+    }
+    return true;
+  });
+
+  const valorVenda = rows.reduce((acc, row) => acc + toNumber(row.valor), 0);
+  const valorComissao = (valorVenda * params.percentual) / 100;
+  return { valorVenda, valorComissao, qtdPedidos: rows.length };
+}
+
+export async function fetchContratoComissaoMes(
+  contratoId: string,
+  ano: number,
+  mes: number,
+): Promise<ContratoComissaoMes | null> {
+  const { data, error } = await supabase
+    .from('contrato_comissao_mes')
+    .select('*')
+    .eq('contrato_id', contratoId)
+    .eq('ano', ano)
+    .eq('mes', mes)
+    .maybeSingle();
+  if (error) throw new Error(error.message);
+  if (!data) return null;
+  return {
+    id: data.id,
+    contratoId: data.contrato_id,
+    ano: data.ano,
+    mes: data.mes,
+    percentual: toNumber(data.percentual),
+    base: data.base as ComissaoBase,
+    categoria: data.categoria,
+    valorVenda: toNumber(data.valor_venda),
+    valorComissao: toNumber(data.valor_comissao),
+    concluido: Boolean(data.concluido),
+  };
+}
+
+export async function isComposicaoMesCompleta(
+  contrato: Contrato,
+  ano: number,
+  mes: number,
+): Promise<boolean> {
+  if (isContratoIndustria(contrato.tipo)) {
+    const row = await fetchContratoComissaoMes(contrato.id, ano, mes);
+    return Boolean(row?.concluido);
+  }
+  if (isContratoLojas(contrato.tipo)) {
+    const filiais = await fetchContratoFiliais(contrato.id, ano, mes);
+    if (filiais.length === 0) return false;
+    const { data } = await supabase
+      .from('contrato_faturamento')
+      .select('coluna')
+      .eq('contrato_id', contrato.id)
+      .eq('ano', ano)
+      .eq('mes', mes)
+      .maybeSingle();
+    return data?.coluna === 'aguardando' || data?.coluna === 'faturado';
+  }
+  return contrato.composicaoOk;
+}
+
+/** Conclui a composição do mês: Ativo + Kanban Aguardando Autorização */
+export async function concluirComposicaoMes(params: {
+  contrato: Contrato;
+  ano: number;
+  mes: number;
+  modeloCobranca?: ModeloCobranca;
+  percentual?: number;
+  comissaoBase?: ComissaoBase;
+  categoria?: string | null;
+}) {
+  const { contrato, ano, mes } = params;
+  const periodo = `${MESES_CURTO[mes - 1]}/${ano}`;
+  let valor = 0;
+
+  if (isContratoLojas(contrato.tipo)) {
+    const filiais = await fetchContratoFiliais(contrato.id, ano, mes);
+    if (filiais.length === 0) {
+      throw new Error('Selecione ao menos uma loja antes de concluir.');
+    }
+    const modelo = (params.modeloCobranca === 'valor_fixo' ? 'valor_fixo' : 'hora_visita') as
+      | 'hora_visita'
+      | 'valor_fixo';
+    valor = filiais.reduce((acc, f) => acc + valorTotalFilial({ ...f, modeloCobranca: modelo }), 0);
+
+    await supabase
+      .from('contratos')
+      .update({
+        modelo_cobranca: modelo,
+        valor_mensal: valor,
+        status: 'Ativo',
+        composicao_ok: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', contrato.id);
+  } else if (isContratoIndustria(contrato.tipo)) {
+    const percentual = params.percentual ?? contrato.comissaoPercentual;
+    const base = params.comissaoBase ?? contrato.comissaoBase;
+    const categoria = params.categoria ?? contrato.comissaoCategoria;
+    if (percentual <= 0) throw new Error('Informe o percentual de comissão.');
+    if (base === 'venda_categoria' && !categoria) {
+      throw new Error('Selecione a categoria de venda.');
+    }
+
+    const preview = await previewVendasContratoIndustria({
+      industria: contrato.industria,
+      ano,
+      mes,
+      base,
+      categoria,
+      percentual,
+    });
+    valor = preview.valorComissao;
+
+    await supabase.from('contrato_comissao_mes').upsert(
+      {
+        contrato_id: contrato.id,
+        ano,
+        mes,
+        percentual,
+        base,
+        categoria: categoria ?? null,
+        valor_venda: preview.valorVenda,
+        valor_comissao: preview.valorComissao,
+        concluido: true,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'contrato_id,ano,mes' },
+    );
+
+    await supabase
+      .from('contratos')
+      .update({
+        modelo_cobranca: 'comissao_industria',
+        comissao_percentual: percentual,
+        comissao_base: base,
+        comissao_categoria: categoria ?? null,
+        valor_mensal: valor,
+        status: 'Ativo',
+        composicao_ok: true,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', contrato.id);
+  } else {
+    throw new Error('Tipo de contrato não suportado na composição.');
+  }
+
+  const { error: fatError } = await supabase.from('contrato_faturamento').upsert(
+    {
+      contrato_id: contrato.id,
+      periodo,
+      ano,
+      mes,
+      coluna: 'aguardando',
+      valor,
+      tag: contrato.tipo,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: 'contrato_id,ano,mes' },
+  );
+  if (fatError) throw new Error(fatError.message);
+
+  await addHistorico(
+    contrato.id,
+    'status',
+    'Composição do mês concluída',
+    `${periodo} → Aguardando Autorização (${Math.round(valor)})`,
+  );
+
+  return valor;
 }

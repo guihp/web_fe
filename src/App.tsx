@@ -13,7 +13,6 @@ import BaseDadosClientes from './pages/BaseDadosClientes';
 import BaseDadosVendas from './pages/BaseDadosVendas';
 import Relatorios from './pages/Relatorios';
 import ProjecaoMetas from './pages/ProjecaoMetas';
-import Comissao from './pages/Comissao';
 import Atividades from './pages/Atividades';
 import Financeiro from './pages/Financeiro';
 import Administrador from './pages/Administrador';
@@ -61,7 +60,7 @@ export default function App() {
           <Route element={<VendasModuleLayout />}>
             <Route path="/relatorios" element={<Relatorios />} />
             <Route path="/projecao-metas" element={<ProjecaoMetas />} />
-            <Route path="/comissao" element={<Comissao />} />
+            <Route path="/comissao" element={<Navigate to="/financeiro?tab=comissao" replace />} />
             <Route path="/vendas" element={<VendasDashboard />} />
             <Route path="/lancamento" element={<LancamentoVendas />} />
             <Route path="/clientes" element={<CadastroClientes />} />

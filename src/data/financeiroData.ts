@@ -1,5 +1,8 @@
 export type ContratoStatus = 'Rascunho' | 'Ativo' | 'Encerrado' | 'Cancelado';
 
+export type ModeloCobranca = 'hora_visita' | 'valor_fixo' | 'comissao_industria';
+export type ComissaoBase = 'venda_total' | 'venda_categoria';
+
 export type Contrato = {
   id: string;
   titulo: string;
@@ -9,10 +12,16 @@ export type Contrato = {
   valorMensal: number;
   status: ContratoStatus;
   tipo: string;
+  modeloCobranca: ModeloCobranca | null;
+  comissaoPercentual: number;
+  comissaoBase: ComissaoBase;
+  comissaoCategoria: string | null;
+  composicaoOk: boolean;
 };
 
 export type KanbanTask = {
   id: string;
+  contratoId: string;
   periodo: string;
   tag: string;
   titulo: string;
@@ -51,6 +60,11 @@ export const CONTRATOS_MOCK: Contrato[] = [
     valorMensal: 64080,
     status: 'Ativo',
     tipo: 'Cobertura de Merchandising',
+    modeloCobranca: 'hora_visita',
+    comissaoPercentual: 0,
+    comissaoBase: 'venda_total',
+    comissaoCategoria: null,
+    composicaoOk: true,
   },
   {
     id: '2',
@@ -61,6 +75,11 @@ export const CONTRATOS_MOCK: Contrato[] = [
     valorMensal: 0,
     status: 'Ativo',
     tipo: 'Contrato de Indústria',
+    modeloCobranca: 'comissao_industria',
+    comissaoPercentual: 2,
+    comissaoBase: 'venda_total',
+    comissaoCategoria: null,
+    composicaoOk: true,
   },
   {
     id: '3',
@@ -71,6 +90,11 @@ export const CONTRATOS_MOCK: Contrato[] = [
     valorMensal: 21492,
     status: 'Ativo',
     tipo: 'Ação de Vendas',
+    modeloCobranca: 'valor_fixo',
+    comissaoPercentual: 0,
+    comissaoBase: 'venda_total',
+    comissaoCategoria: null,
+    composicaoOk: true,
   },
   {
     id: '4',
@@ -81,12 +105,18 @@ export const CONTRATOS_MOCK: Contrato[] = [
     valorMensal: 15400,
     status: 'Ativo',
     tipo: 'Cobertura de Merchandising',
+    modeloCobranca: 'hora_visita',
+    comissaoPercentual: 0,
+    comissaoBase: 'venda_total',
+    comissaoCategoria: null,
+    composicaoOk: true,
   },
 ];
 
 export const KANBAN_MOCK: KanbanTask[] = [
   {
     id: 'k1',
+    contratoId: '4',
     periodo: 'Jul/2026',
     tag: 'Cobertura de Merchandising',
     titulo: 'Cobertura de Merchandising 2026',
@@ -96,6 +126,7 @@ export const KANBAN_MOCK: KanbanTask[] = [
   },
   {
     id: 'k2',
+    contratoId: '3',
     periodo: 'Jul/2026',
     tag: 'Ajuda de Custo',
     titulo: 'Ajuda de Custo | Predilecta Alim.',
@@ -155,6 +186,7 @@ export const FINANCEIRO_KPIS = {
 
 export type ContratoFilial = {
   id: string;
+  lojaId: number | null;
   codigo: number;
   nome: string;
   cidade: string;
@@ -164,6 +196,10 @@ export type ContratoFilial = {
   horas: number;
   visitasSem: number;
   visitasMes: number;
+  valorFixo: number;
+  modeloCobranca: 'hora_visita' | 'valor_fixo';
+  ano: number;
+  mes: number;
 };
 
 export type ContratoAnexo = {
@@ -210,19 +246,34 @@ const FILIAIS_BASE: Array<{
   { codigo: 132, nome: 'SUPERMERCADO LIDER - MARABA', cidade: 'MARABA', estado: 'PA', regional: 'PA' },
 ];
 
-export function valorTotalFilial(f: Pick<ContratoFilial, 'valorHora' | 'horas' | 'visitasMes'>) {
-  return f.valorHora * f.horas * f.visitasMes;
+export function valorTotalFilial(
+  f: Pick<ContratoFilial, 'valorHora' | 'horas' | 'visitasMes'> &
+    Partial<Pick<ContratoFilial, 'valorFixo' | 'modeloCobranca'>>,
+) {
+  if (f.modeloCobranca === 'valor_fixo') return Number(f.valorFixo) || 0;
+  return (Number(f.valorHora) || 0) * (Number(f.horas) || 0) * (Number(f.visitasMes) || 0);
+}
+
+export function isContratoLojas(tipo: string) {
+  const t = tipo.toLowerCase();
+  return t.includes('merchandising') || t.includes('ação de vendas') || t.includes('acao de vendas');
+}
+
+export function isContratoIndustria(tipo: string) {
+  return tipo.toLowerCase().includes('indústria') || tipo.toLowerCase().includes('industria');
 }
 
 export function buildFiliaisIniciais(contratoId: string): ContratoFilial[] {
   const seed = Number(contratoId) || 1;
-  return FILIAIS_BASE.slice(0, 8 + (seed % 5)).map((base, index) => {
+  const now = new Date();
+  return FILIAIS_BASE.slice(0, 8 + (seed % 5)).map((base) => {
     const valorHora = 30;
     const horas = 2;
     const visitasSem = 3;
     const visitasMes = visitasSem * 4;
     return {
       id: `${contratoId}-f-${base.codigo}`,
+      lojaId: null,
       codigo: base.codigo,
       nome: base.nome,
       cidade: base.cidade,
@@ -232,8 +283,10 @@ export function buildFiliaisIniciais(contratoId: string): ContratoFilial[] {
       horas,
       visitasSem,
       visitasMes,
-      // keep index used to vary slightly
-      ...(index === 0 ? {} : {}),
+      valorFixo: 0,
+      modeloCobranca: 'hora_visita' as const,
+      ano: now.getFullYear(),
+      mes: now.getMonth() + 1,
     };
   });
 }

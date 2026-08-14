@@ -2,8 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
+  PORTAL_MODULES,
   canManageUsers,
+  moduleIdFromSection,
+  sectionIdForPath,
   userHasSectionAccess,
+  type PortalModuleId,
 } from '../../data/portalModules';
 import './Sidebar.css';
 
@@ -12,119 +16,68 @@ type NavItem = {
   label: string;
   icon: string;
   path: string;
-  section?: string | 'home';
-  managersOnly?: boolean;
+  section: string | 'home';
 };
 
-const NAV_ITEMS: NavItem[] = [
-  { id: 'home', label: 'Início', icon: '🏠', path: '/', section: 'home' },
-  {
-    id: 'merchandising',
-    label: 'Merchandising',
-    icon: '🛍️',
-    path: '/merchandising',
-    section: 'merchandising.hub',
-  },
-  {
-    id: 'colaboradores',
-    label: 'Colaboradores',
-    icon: '👥',
-    path: '/colaboradores',
-    section: 'administrador.colaboradores',
-    managersOnly: true,
-  },
-  {
-    id: 'financeiro',
-    label: 'Financeiro',
-    icon: '💵',
-    path: '/financeiro',
-    section: 'financeiro.home',
-  },
-  {
-    id: 'administrador',
-    label: 'Administrador',
-    icon: '🛡️',
-    path: '/administrador',
-    section: 'administrador.hub',
-    managersOnly: true,
-  },
-  {
-    id: 'relatorios',
-    label: 'Relatórios',
-    icon: '📊',
-    path: '/relatorios',
-    section: 'vendas.relatorios',
-  },
-  {
-    id: 'projecao-metas',
-    label: 'Projeção de metas',
-    icon: '🎯',
-    path: '/projecao-metas',
-    section: 'vendas.projecao-metas',
-  },
-  {
-    id: 'comissao',
-    label: 'Comissão',
-    icon: '💵',
-    path: '/comissao',
-    section: 'vendas.comissao',
-  },
-  { id: 'vendas', label: 'Vendas', icon: '🛒', path: '/vendas', section: 'vendas.dashboard' },
-  {
-    id: 'lancamento',
-    label: 'Lançamento de vendas',
-    icon: '💰',
-    path: '/lancamento',
-    section: 'vendas.lancamento',
-  },
-  {
-    id: 'clientes',
-    label: 'Cadastro de clientes',
-    icon: '🏢',
-    path: '/clientes',
-    section: 'vendas.clientes',
-  },
-  {
-    id: 'base-clientes',
-    label: 'Base de clientes',
-    icon: '📋',
-    path: '/base-clientes',
-    section: 'vendas.base-clientes',
-  },
-  {
-    id: 'base-vendas',
-    label: 'Base de dados',
-    icon: '🗃️',
-    path: '/base-vendas',
-    section: 'vendas.base-vendas',
-  },
-];
+const HOME_ITEM: NavItem = {
+  id: 'home',
+  label: 'Início',
+  icon: '🏠',
+  path: '/',
+  section: 'home',
+};
 
-const STORAGE_KEY = 'fe_web_sidebar_collapsed';
-const MOBILE_MQ = '(max-width: 900px)';
-
-function readCollapsed(): boolean {
-  try {
-    return localStorage.getItem(STORAGE_KEY) === '1';
-  } catch {
-    return false;
-  }
+function currentModuleId(pathname: string): PortalModuleId | null {
+  const section = sectionIdForPath(pathname);
+  if (!section || section === 'home') return null;
+  return moduleIdFromSection(section);
 }
 
-function isMobileViewport() {
-  if (typeof window === 'undefined') return false;
-  return window.matchMedia(MOBILE_MQ).matches;
+function pathMatches(itemPath: string, pathname: string, search: string) {
+  const [path, query = ''] = itemPath.split('?');
+
+  if (path === '/') return pathname === '/';
+
+  if (query) {
+    if (pathname !== path) return false;
+    const want = new URLSearchParams(query);
+    const have = new URLSearchParams(search);
+    for (const [key, value] of want.entries()) {
+      if (have.get(key) !== value) return false;
+    }
+    return true;
+  }
+
+  // Visão geral do Financeiro (sem ?tab=)
+  if (path === '/financeiro') {
+    return pathname === '/financeiro' && !new URLSearchParams(search).get('tab');
+  }
+
+  // Hubs: só path exato
+  if (path === '/administrador' || path === '/merchandising') {
+    return pathname === path;
+  }
+
+  return pathname === path || pathname.startsWith(`${path}/`);
 }
 
 export default function Sidebar() {
   const { user } = useAuth();
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState(readCollapsed);
-  const [isMobile, setIsMobile] = useState(isMobileViewport);
+  const [collapsed, setCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem('fe_web_sidebar_collapsed') === '1';
+    } catch {
+      return false;
+    }
+  });
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(max-width: 900px)').matches : false,
+  );
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const mq = window.matchMedia(MOBILE_MQ);
+    const mq = window.matchMedia('(max-width: 900px)');
     const onChange = () => {
       setIsMobile(mq.matches);
       if (!mq.matches) setMobileOpen(false);
@@ -136,7 +89,7 @@ export default function Sidebar() {
 
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0');
+      localStorage.setItem('fe_web_sidebar_collapsed', collapsed ? '1' : '0');
     } catch {
       /* ignore */
     }
@@ -144,25 +97,52 @@ export default function Sidebar() {
 
   useEffect(() => {
     if (isMobile) setMobileOpen(false);
-  }, [location.pathname, isMobile]);
+  }, [location.pathname, location.search, isMobile]);
 
   const items = useMemo(() => {
     const cargo = user?.cargo ?? '';
     const secoes = user?.secoes_acesso;
-    const isManager = canManageUsers(cargo);
+    const moduleId = currentModuleId(location.pathname);
+    const nav: NavItem[] = [HOME_ITEM];
 
-    return NAV_ITEMS.filter((item) => {
-      if (item.managersOnly && !isManager) return false;
-      if (!item.section || item.section === 'home') return true;
-      if (item.section === 'administrador.hub') {
-        return (
-          userHasSectionAccess(cargo, secoes, 'administrador.hub') ||
-          (secoes ?? []).some((s) => s.startsWith('administrador.'))
-        );
+    if (!moduleId) return nav;
+
+    const mod = PORTAL_MODULES.find((m) => m.id === moduleId);
+    if (!mod) return nav;
+
+    for (const section of mod.sections) {
+      // Hub: usa o título do módulo
+      const label = section.id.endsWith('.hub')
+        ? mod.title
+        : section.id === 'financeiro.home'
+          ? 'Visão geral'
+          : section.title;
+
+      if (section.id.startsWith('administrador.') && !canManageUsers(cargo)) {
+        continue;
       }
-      return userHasSectionAccess(cargo, secoes, item.section);
-    });
-  }, [user]);
+
+      if (
+        !userHasSectionAccess(cargo, secoes, section.id) &&
+        !(
+          section.id === 'administrador.hub' &&
+          (secoes ?? []).some((s) => s.startsWith('administrador.'))
+        )
+      ) {
+        continue;
+      }
+
+      nav.push({
+        id: section.id,
+        label,
+        icon: section.icon ?? '•',
+        path: section.path,
+        section: section.id,
+      });
+    }
+
+    return nav;
+  }, [user, location.pathname]);
 
   return (
     <>
@@ -207,23 +187,26 @@ export default function Sidebar() {
           </div>
 
           <nav className="sidebar-nav">
-            {items.map((item) => (
-              <NavLink
-                key={item.id}
-                to={item.path}
-                end={item.path === '/'}
-                title={item.label}
-                className={({ isActive }) => `sidebar-item ${isActive ? 'active' : ''}`}
-                onClick={() => {
-                  if (isMobile) setMobileOpen(false);
-                }}
-              >
-                <span className="sidebar-icon" aria-hidden>
-                  {item.icon}
-                </span>
-                <span className="sidebar-label">{item.label}</span>
-              </NavLink>
-            ))}
+            {items.map((item) => {
+              const active = pathMatches(item.path, location.pathname, location.search);
+              return (
+                <NavLink
+                  key={item.id}
+                  to={item.path}
+                  end={item.path === '/' || !item.path.includes('/')}
+                  title={item.label}
+                  className={() => `sidebar-item ${active ? 'active' : ''}`}
+                  onClick={() => {
+                    if (isMobile) setMobileOpen(false);
+                  }}
+                >
+                  <span className="sidebar-icon" aria-hidden>
+                    {item.icon}
+                  </span>
+                  <span className="sidebar-label">{item.label}</span>
+                </NavLink>
+              );
+            })}
           </nav>
         </aside>
       </div>

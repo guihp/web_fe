@@ -284,16 +284,20 @@ export default function Relatorios() {
         </article>
         <article className="highlight-card decline">
           <h3>⚠ Top 3 Queda</h3>
-          <ul>
-            {topQueda.map((item, index) => (
-              <li key={item.industria}>
-                <span>
-                  {index + 1}. {item.industria}
-                </span>
-                <strong>{(item.variacao ?? 0).toFixed(1).replace('.', ',')}%</strong>
-              </li>
-            ))}
-          </ul>
+          {topQueda.length === 0 ? (
+            <p className="empty-highlight">Nenhuma queda registrada</p>
+          ) : (
+            <ul>
+              {topQueda.map((item, index) => (
+                <li key={item.industria}>
+                  <span>
+                    {index + 1}. {item.industria}
+                  </span>
+                  <strong>{(item.variacao ?? 0).toFixed(1).replace('.', ',')}%</strong>
+                </li>
+              ))}
+            </ul>
+          )}
         </article>
       </div>
 

@@ -35,12 +35,40 @@ export async function fetchComissaoIndustria(filters: {
 }
 
 export async function fetchPercentuais(): Promise<IndustriaPercentual[]> {
-  const { data, error } = await supabase.from('industria_percentual').select('*').order('industria');
-  if (error) throw new Error(error.message);
-  return (data ?? []).map((row) => ({
-    industria: row.industria,
-    percentual: Number(row.percentual),
-  }));
+  const [{ data: pctRows, error: pctError }, { data: indRows, error: indError }, { data: vendaRows }] =
+    await Promise.all([
+      supabase.from('industria_percentual').select('*').order('industria'),
+      supabase.from('industrias').select('"Nome"').order('Nome'),
+      supabase.from('baseVendas').select('industria').not('industria', 'is', null).limit(5000),
+    ]);
+
+  if (pctError) throw new Error(pctError.message);
+  if (indError) throw new Error(indError.message);
+
+  const pctMap = new Map<string, number>();
+  for (const row of pctRows ?? []) {
+    const nome = String(row.industria ?? '').trim();
+    if (!nome) continue;
+    pctMap.set(nome, Number(row.percentual) || 0);
+  }
+
+  const names = new Set<string>();
+  for (const row of indRows ?? []) {
+    const nome = String((row as { Nome?: string }).Nome ?? '').trim();
+    if (nome) names.add(nome);
+  }
+  for (const row of vendaRows ?? []) {
+    const nome = String((row as { industria?: string }).industria ?? '').trim();
+    if (nome) names.add(nome);
+  }
+  for (const nome of pctMap.keys()) names.add(nome);
+
+  return [...names]
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+    .map((industria) => ({
+      industria,
+      percentual: pctMap.get(industria) ?? 2,
+    }));
 }
 
 export async function updatePercentual(industria: string, percentual: number): Promise<void> {

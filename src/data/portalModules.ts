@@ -62,7 +62,6 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
     sections: [
       { id: 'vendas.relatorios', title: 'Relatórios', path: '/relatorios', icon: '📊' },
       { id: 'vendas.projecao-metas', title: 'Projeção de metas', path: '/projecao-metas', icon: '🎯' },
-      { id: 'vendas.comissao', title: 'Comissão', path: '/comissao', icon: '💵' },
       { id: 'vendas.dashboard', title: 'Vendas', path: '/vendas', icon: '🛒' },
       { id: 'vendas.lancamento', title: 'Lançamento de vendas', path: '/lancamento', icon: '💰' },
       { id: 'vendas.clientes', title: 'Cadastro de clientes', path: '/clientes', icon: '🏢' },
@@ -79,6 +78,8 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
     path: '/financeiro',
     sections: [
       { id: 'financeiro.home', title: 'Financeiro', path: '/financeiro', icon: '💵' },
+      { id: 'financeiro.composicao', title: 'Composição', path: '/financeiro?tab=composicao', icon: '🧩' },
+      { id: 'financeiro.comissao', title: 'Comissão', path: '/financeiro?tab=comissao', icon: '📈' },
     ],
   },
   {
@@ -190,7 +191,18 @@ export function defaultModulosForCargo(cargo: string): PortalModuleId[] {
 
 export function sanitizeSecoes(cargo: string, secoes: string[] | null | undefined): string[] {
   const allowed = new Set(ALL_SECTION_IDS);
-  const picked = [...new Set((secoes ?? []).map((s) => s.trim()).filter((s) => allowed.has(s)))];
+  const picked = [
+    ...new Set(
+      (secoes ?? [])
+        .map((s) => {
+          const id = s.trim();
+          // Comissão saiu de Vendas → Financeiro
+          if (id === 'vendas.comissao') return 'financeiro.comissao';
+          return id;
+        })
+        .filter((s) => allowed.has(s)),
+    ),
+  ];
 
   let next = picked;
   if (!canManageUsers(cargo)) {
@@ -411,6 +423,26 @@ export function userHasSectionAccess(
   if (sectionId === 'merchandising.hub') {
     return sectionsOfModule('merchandising').some(
       (s) => s.id !== 'merchandising.hub' && resolved.includes(s.id),
+    );
+  }
+
+  // Hub Financeiro: qualquer seção financeira (ou comissão legada de Vendas)
+  if (sectionId === 'financeiro.home') {
+    return resolved.some(
+      (s) => s.startsWith('financeiro.') || s === 'vendas.comissao',
+    );
+  }
+
+  // Composição: quem tem Financeiro enxerga a aba
+  if (sectionId === 'financeiro.composicao') {
+    return resolved.some((s) => s.startsWith('financeiro.') || s === 'vendas.comissao');
+  }
+
+  if (sectionId === 'financeiro.comissao' || sectionId === 'vendas.comissao') {
+    return (
+      resolved.includes('financeiro.comissao') ||
+      resolved.includes('vendas.comissao') ||
+      resolved.includes('financeiro.home')
     );
   }
 
