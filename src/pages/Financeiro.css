@@ -1239,6 +1239,12 @@
   font-size: 1.2rem;
 }
 
+.comissao-embedded {
+  min-width: 0;
+  width: 100%;
+  overflow-x: hidden;
+}
+
 @media (max-width: 960px) {
   .fin-composicao-layout,
   .fin-comp-industria-grid,
@@ -1248,5 +1254,9 @@
 
   .fin-composicao-toolbar {
     flex-direction: column;
+  }
+
+  .comissao-embedded .comissao-page {
+    padding-bottom: 16px;
   }
 }

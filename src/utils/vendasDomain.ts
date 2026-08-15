@@ -147,4 +147,6 @@ export type ComissaoIndustria = {
 export type IndustriaPercentual = {
   industria: string;
   percentual: number;
+  /** Se preenchida, o % só vale para vendas dessa categoria. */
+  categoria?: string | null;
 };

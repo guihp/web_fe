@@ -82,8 +82,8 @@ export default function LancamentoVendas() {
   };
 
   const handleSubmit = async () => {
-    if (!form.cdc.trim() || !form.pedido.trim() || !form.valor.trim()) {
-      setError('Preencha os campos obrigatórios: CDC, Pedido e Valor.');
+    if (!form.cdc.trim() || !form.pedido.trim() || !form.valor.trim() || !form.categoria.trim()) {
+      setError('Preencha os campos obrigatórios: CDC, Pedido, Valor e Categoria.');
       return;
     }
 
@@ -200,9 +200,13 @@ export default function LancamentoVendas() {
           </label>
 
           <label className="lancamento-field">
-            <span>Categoria</span>
+            <span>Categoria *</span>
             <div className="lancamento-select-wrap">
-              <select value={form.categoria} onChange={(e) => updateField('categoria', e.target.value)}>
+              <select
+                value={form.categoria}
+                required
+                onChange={(e) => updateField('categoria', e.target.value)}
+              >
                 <option value="">Selecione a categoria</option>
                 {CATEGORIAS_VENDAS.map((cat) => (
                   <option key={cat} value={cat}>

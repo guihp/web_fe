@@ -60,6 +60,11 @@ export async function createVenda(form: LancamentoVendaForm): Promise<BaseVenda>
     throw new Error(`Cliente com CDC ${cdc} não encontrado. Cadastre em Cadastro de Clientes.`);
   }
 
+  const categoria = form.categoria.trim();
+  if (!categoria) {
+    throw new Error('Selecione a categoria da venda.');
+  }
+
   const { mes, ano } = mesAnoFromDate(form.dataLancamento);
   const valor = parseValor(form.valor);
 
@@ -69,7 +74,7 @@ export async function createVenda(form: LancamentoVendaForm): Promise<BaseVenda>
     numero_pedido: form.pedido.trim(),
     valor,
     industria: toIndustriaPadrao(form.industria),
-    categoria: form.categoria || null,
+    categoria,
     vendedor: form.vendedor,
     cliente: cliente.nome_fantasia?.trim() || form.nomeFantasia.trim(),
     cnpj: cliente.cnpj,
