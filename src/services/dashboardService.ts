@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { MESES_PT, industriasMatch, normalizeIndustriaKey, regiaoFromEstado, type Regiao } from '../utils/vendasDomain';
+import { MESES_PT, industriasMatch, normalizeIndustriaKey, toIndustriaPadrao, regiaoFromEstado, type Regiao } from '../utils/vendasDomain';
 import { fetchMetasDashboard } from './metasService';
 
 export type DashboardFilters = {
@@ -221,7 +221,7 @@ export async function fetchComparativoIndustrias(
       const status = (row.status ?? 'Ativo').trim().toLowerCase();
       return Boolean(row.Nome) && (status === 'ativo' || status === '');
     })
-    .map((row: { Nome: string }) => row.Nome);
+    .map((row: { Nome: string }) => toIndustriaPadrao(row.Nome));
 
   const isIndustriaAtiva = (nomeVenda: string) =>
     ativas.some((nomeCadastro) => industriasMatch(nomeCadastro, nomeVenda));
@@ -231,13 +231,12 @@ export async function fetchComparativoIndustrias(
     for (const row of rows) {
       if (!matchesRegiao(row.estado, regiao)) continue;
       if (!matchesMesPeriodo(row.mes, ateMesNumero, mesNome)) continue;
-      const label = (row.industria ?? 'Outros').trim() || 'Outros';
+      const label = toIndustriaPadrao((row.industria ?? 'Outros').trim() || 'Outros') || 'OUTROS';
       if (!isIndustriaAtiva(label)) continue;
       const key = normalizeIndustriaKey(label) || 'OUTROS';
       const prev = map.get(key);
       if (prev) {
         prev.valor += Number(row.valor);
-        if (label.length > prev.label.length) prev.label = label;
       } else {
         map.set(key, { valor: Number(row.valor), label });
       }

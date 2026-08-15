@@ -1,9 +1,11 @@
 import { supabase } from '../lib/supabase';
 import type { ComissaoIndustria, IndustriaPercentual } from '../utils/vendasDomain';
+import { toIndustriaPadrao } from '../utils/vendasDomain';
 
 function mapComissao(row: Record<string, unknown>): ComissaoIndustria {
   return {
     ...(row as unknown as ComissaoIndustria),
+    industria: toIndustriaPadrao(String(row.industria ?? '')),
     valor_venda: Number(row.valor_venda),
     percentual_aplicado: Number(row.percentual_aplicado),
     valor_comissao: Number(row.valor_comissao),
@@ -47,18 +49,18 @@ export async function fetchPercentuais(): Promise<IndustriaPercentual[]> {
 
   const pctMap = new Map<string, number>();
   for (const row of pctRows ?? []) {
-    const nome = String(row.industria ?? '').trim();
+    const nome = toIndustriaPadrao(String(row.industria ?? ''));
     if (!nome) continue;
-    pctMap.set(nome, Number(row.percentual) || 0);
+    if (!pctMap.has(nome)) pctMap.set(nome, Number(row.percentual) || 0);
   }
 
   const names = new Set<string>();
   for (const row of indRows ?? []) {
-    const nome = String((row as { Nome?: string }).Nome ?? '').trim();
+    const nome = toIndustriaPadrao(String((row as { Nome?: string }).Nome ?? ''));
     if (nome) names.add(nome);
   }
   for (const row of vendaRows ?? []) {
-    const nome = String((row as { industria?: string }).industria ?? '').trim();
+    const nome = toIndustriaPadrao(String((row as { industria?: string }).industria ?? ''));
     if (nome) names.add(nome);
   }
   for (const nome of pctMap.keys()) names.add(nome);
@@ -72,9 +74,10 @@ export async function fetchPercentuais(): Promise<IndustriaPercentual[]> {
 }
 
 export async function updatePercentual(industria: string, percentual: number): Promise<void> {
+  const nome = toIndustriaPadrao(industria);
   const { error } = await supabase
     .from('industria_percentual')
-    .upsert({ industria, percentual }, { onConflict: 'industria' });
+    .upsert({ industria: nome, percentual }, { onConflict: 'industria' });
   if (error) throw new Error(error.message);
 }
 
@@ -82,10 +85,11 @@ export function aggregateComissaoPorIndustria(rows: ComissaoIndustria[]) {
   const map = new Map<string, { vendas: number; comissao: number; percentual: number }>();
 
   for (const row of rows) {
-    const current = map.get(row.industria) ?? { vendas: 0, comissao: 0, percentual: row.percentual_aplicado };
+    const key = toIndustriaPadrao(row.industria);
+    const current = map.get(key) ?? { vendas: 0, comissao: 0, percentual: row.percentual_aplicado };
     current.vendas += row.valor_venda;
     current.comissao += row.valor_comissao;
-    map.set(row.industria, current);
+    map.set(key, current);
   }
 
   return Array.from(map.entries()).map(([nome, vals]) => ({

@@ -13,6 +13,7 @@ import type {
   ReceitaMes,
 } from '../data/financeiroData';
 import { isContratoIndustria, isContratoLojas, valorTotalFilial } from '../data/financeiroData';
+import { toIndustriaPadrao } from '../utils/vendasDomain';
 
 const BUCKET = 'contrato-anexos';
 const MESES_CURTO = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -334,7 +335,7 @@ export async function createContrato(input: ContratoCreateInput): Promise<Contra
       titulo: input.titulo,
       descricao: input.descricao || null,
       tipo: input.tipo,
-      industria: input.industria,
+      industria: toIndustriaPadrao(input.industria),
       status: input.status ?? 'Rascunho',
       data_fechamento: input.dataFechamento || null,
       data_inicio: input.dataInicio || null,

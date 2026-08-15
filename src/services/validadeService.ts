@@ -1,3 +1,4 @@
+import { toIndustriaPadrao } from '../utils/vendasDomain';
 import { supabase } from '../lib/supabase';
 
 export const VALIDADE_PAGE_SIZE = 15;
@@ -41,7 +42,7 @@ function mapRow(row: Record<string, unknown>): Validade {
     promotor: (row.promotor as string | null) ?? null,
     lojas: (row.lojas as string | null) ?? null,
     uf: (row.uf as string | null) ?? null,
-    industria: (row.industria as string | null) ?? null,
+    industria: row.industria ? toIndustriaPadrao(String(row.industria)) : null,
     codigo: row.codigo != null ? String(row.codigo) : null,
     descricao: (row.descricao as string | null) ?? null,
     preco: row.preco == null ? null : Number(row.preco),
@@ -154,7 +155,10 @@ export async function fetchValidadesFilterOptions(): Promise<{
 
   for (const row of data ?? []) {
     if (row.uf) ufs.add(String(row.uf));
-    if (row.industria) industrias.add(String(row.industria));
+    if (row.industria) {
+      const nome = toIndustriaPadrao(String(row.industria));
+      if (nome) industrias.add(nome);
+    }
     if (row.data_vencimento) {
       const ym = String(row.data_vencimento).slice(0, 7);
       if (/^\d{4}-\d{2}$/.test(ym)) meses.add(ym);

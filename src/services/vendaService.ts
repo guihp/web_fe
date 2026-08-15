@@ -4,6 +4,7 @@ import {
   formatCdc,
   mesAnoFromDate,
   normalizeEstado,
+  toIndustriaPadrao,
   VENDEDORES,
   type BaseVenda,
 } from '../utils/vendasDomain';
@@ -32,6 +33,7 @@ export type VendaListResult = {
 function mapRow(row: Record<string, unknown>): BaseVenda {
   return {
     ...(row as unknown as BaseVenda),
+    industria: toIndustriaPadrao(String(row.industria ?? '')),
     valor: Number(row.valor),
   };
 }
@@ -66,7 +68,7 @@ export async function createVenda(form: LancamentoVendaForm): Promise<BaseVenda>
     cdc,
     numero_pedido: form.pedido.trim(),
     valor,
-    industria: form.industria,
+    industria: toIndustriaPadrao(form.industria),
     categoria: form.categoria || null,
     vendedor: form.vendedor,
     cliente: cliente.nome_fantasia?.trim() || form.nomeFantasia.trim(),
@@ -130,7 +132,9 @@ export async function updateVenda(id: string, patch: Partial<BaseVenda>): Promis
   if (patch.cdc !== undefined) payload.cdc = patch.cdc;
   if (patch.numero_pedido !== undefined) payload.numero_pedido = patch.numero_pedido;
   if (patch.valor !== undefined) payload.valor = Number(patch.valor);
-  if (patch.industria !== undefined) payload.industria = patch.industria;
+  if (patch.industria !== undefined) {
+    payload.industria = patch.industria ? toIndustriaPadrao(String(patch.industria)) : null;
+  }
   if (patch.categoria !== undefined) payload.categoria = patch.categoria;
   if (patch.vendedor !== undefined) payload.vendedor = normalizeVendedor(patch.vendedor);
   if (patch.cliente !== undefined) payload.cliente = patch.cliente;
@@ -221,7 +225,7 @@ export async function upsertVendasBatch(
         cdc: formatCdc(row.cdc),
         numero_pedido: row.numero_pedido.trim(),
         valor: row.valor,
-        industria: row.industria || null,
+        industria: toIndustriaPadrao(row.industria || '') || null,
         categoria: row.categoria || null,
         vendedor: normalizeVendedor(row.vendedor),
         cliente: cliente?.nome_fantasia?.trim() || row.cliente || null,

@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { toIndustriaPadrao } from '../utils/vendasDomain';
 
 export type IndustriaAdmin = {
   id: number;
@@ -22,11 +23,14 @@ export async function fetchIndustriasAdmin(): Promise<IndustriaAdmin[]> {
     .select('id, Nome, codigo, descricao, status, Criado_por, Data_Criacao')
     .order('Nome');
   if (error) throw new Error(error.message);
-  return (data ?? []) as IndustriaAdmin[];
+  return ((data ?? []) as IndustriaAdmin[]).map((row) => ({
+    ...row,
+    Nome: toIndustriaPadrao(row.Nome ?? ''),
+  }));
 }
 
 export async function createIndustria(input: IndustriaFormInput): Promise<IndustriaAdmin> {
-  const nome = input.nome.trim();
+  const nome = toIndustriaPadrao(input.nome);
   if (!nome) throw new Error('Informe o nome da indústria.');
 
   const payload = {
@@ -38,11 +42,11 @@ export async function createIndustria(input: IndustriaFormInput): Promise<Indust
 
   const { data, error } = await supabase.from('industrias').insert(payload).select().single();
   if (error) throw new Error(error.message);
-  return data as IndustriaAdmin;
+  return { ...(data as IndustriaAdmin), Nome: toIndustriaPadrao((data as IndustriaAdmin).Nome) };
 }
 
 export async function updateIndustria(id: number, input: IndustriaFormInput): Promise<IndustriaAdmin> {
-  const nome = input.nome.trim();
+  const nome = toIndustriaPadrao(input.nome);
   if (!nome) throw new Error('Informe o nome da indústria.');
 
   const payload = {
@@ -58,7 +62,7 @@ export async function updateIndustria(id: number, input: IndustriaFormInput): Pr
     .select()
     .single();
   if (error) throw new Error(error.message);
-  return data as IndustriaAdmin;
+  return { ...(data as IndustriaAdmin), Nome: toIndustriaPadrao((data as IndustriaAdmin).Nome) };
 }
 
 export async function setIndustriaStatus(

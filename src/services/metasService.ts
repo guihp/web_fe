@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 import type { MetaProjecao, Regiao } from '../utils/vendasDomain';
-import { industriasMatch, MESES_PT, regiaoFromEstado } from '../utils/vendasDomain';
+import { industriasMatch, MESES_PT, regiaoFromEstado, toIndustriaPadrao } from '../utils/vendasDomain';
 
 export type VendaRealizadoRow = {
   valor: number;
@@ -30,6 +30,7 @@ export async function upsertMeta(
 ) {
   const payload = {
     ...meta,
+    industria: toIndustriaPadrao(meta.industria),
     updated_at: new Date().toISOString(),
   };
 

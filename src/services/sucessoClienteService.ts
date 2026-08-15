@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { MESES_PT, type BaseVenda } from '../utils/vendasDomain';
+import { toIndustriaPadrao } from '../utils/vendasDomain';
 import { formatBRL } from '../utils/currency';
 
 export const KANBAN_STATUSES = [
@@ -113,7 +114,7 @@ export async function fetchKanbanPedidos(filters: KanbanFilters): Promise<Pedido
       cliente: v.cliente?.trim() || '—',
       cnpj: v.cnpj?.trim() || '—',
       valor: Number(v.valor) || 0,
-      industria: v.industria?.trim() || '—',
+      industria: toIndustriaPadrao(v.industria?.trim() || '') || '—',
       cidade: v.cidade?.trim() || '—',
       estado: v.estado?.trim() || '',
       vendedor: v.vendedor?.trim() || '—',
@@ -166,7 +167,10 @@ export async function fetchKanbanFilterOptions(ano?: string) {
   const anos = new Set<string>();
 
   for (const row of data ?? []) {
-    if (row.industria) industrias.add(String(row.industria));
+    if (row.industria) {
+      const nome = toIndustriaPadrao(String(row.industria));
+      if (nome) industrias.add(nome);
+    }
     if (row.vendedor) vendedores.add(String(row.vendedor));
     if (row.estado) estados.add(String(row.estado));
     if (row.ano) anos.add(String(row.ano));

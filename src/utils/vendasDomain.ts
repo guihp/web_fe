@@ -53,6 +53,11 @@ export function normalizeIndustriaKey(nome: string): string {
     .trim();
 }
 
+/** Nome canônico para exibir e gravar: MAIÚSCULO sem sufixos (PREDILECTA, SANTA FE, PECCIN). */
+export function toIndustriaPadrao(nome: string): string {
+  return normalizeIndustriaKey(nome);
+}
+
 export function industriasMatch(a: string, b: string): boolean {
   const na = normalizeIndustriaKey(a);
   const nb = normalizeIndustriaKey(b);
