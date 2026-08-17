@@ -1,0 +1,39 @@
+# Visão geral
+
+## O que é
+
+O **Painel Web da Fé Merchandising** é o sistema usado pela operação e gestão para acompanhar:
+
+- Merchandising em loja (treinamentos, atividades, validades, sucesso do cliente)
+- Vendas (lançamento, bases, metas, relatórios)
+- Financeiro (contratos, composição, comissões)
+- Administração (usuários, indústrias, filiais, regionais, etc.)
+
+Há também um **aplicativo mobile** separado para alguns perfis de campo; este documento trata do **painel web**.
+
+## Para quem é
+
+| Perfil | Uso típico |
+|--------|------------|
+| **Equipe interna** (Gerente, Supervisor, Financeiro, RH, Analista admin, Vendedor, etc.) | Opera o painel conforme as seções liberadas no cadastro |
+| **Gerente** | Acesso amplo; único que gerencia usuários e o hub Administrador |
+| **Indústria (externo)** | Só **vê** Validades e Sucesso do cliente **da própria indústria** |
+| **Cliente (externo)** | Só **vê** Validades e Sucesso do cliente do **seu grupo de lojas** (ex.: todas as lojas Mateus) |
+
+## Como o usuário navega
+
+1. Entra na tela de **Login** (abas Equipe / Indústria / Cliente).
+2. Cai na **Home** com os **balões** (módulos) liberados.
+3. Dentro de cada módulo, acessa as **seções** (telas) permitidas.
+
+## Princípios atuais
+
+- Dados de negócio ficam no **Supabase** (banco + arquivos).
+- Permissões de tela vêm do cadastro do usuário (`nível de acesso` / seções).
+- Nomes de **indústria** são padronizados em **MAIÚSCULAS** (ex.: `PREDILECTA`).
+- Lançamentos de venda **exigem categoria** (relevante a partir de agosto/2026 para comissão por categoria).
+
+## O que este painel não é
+
+- Não substitui o app mobile de promotores/degustação (há mensagem de login apontando o mobile para cargos não liberados no web, conforme regra vigente).
+- Usuário externo **não edita** Validades nem move cards no Sucesso do cliente — só acompanha.

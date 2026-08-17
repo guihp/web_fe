@@ -2,6 +2,11 @@
 
 Painel web (React + Vite) da Fé Merchandising.
 
+## Documentação do produto
+
+Tudo que o app faz hoje (módulos, usuários, regras, deploy) está em **[`docs/`](./docs/README.md)**.  
+Atualizações futuras devem ser registradas em [`docs/CHANGELOG.md`](./docs/CHANGELOG.md).
+
 ## Setup
 
 ```bash

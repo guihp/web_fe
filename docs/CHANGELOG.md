@@ -1,0 +1,33 @@
+# Changelog da documentação / produto
+
+Formato: mais recente no topo.
+
+## 2026-08-17
+
+### Documentação
+
+- Criada a pasta `docs/` com visão geral, acesso, módulos, domínio, regras e deploy.
+- Objetivo: base para tirar dúvidas (humanos e futura IA).
+
+### App (estado documentado nesta data)
+
+- Painel web Fé Merchandising com módulos Merchandising, Vendas, Financeiro e Administrador.
+- Login em três abas: Equipe (CPF), Indústria (nome), Cliente (CNPJ).
+- Usuários externos somente leitura em Validades e Sucesso do cliente, com filtro por indústria ou grupo de lojas.
+- Comissão unificada: % por indústria com categoria opcional; Recalcular persiste no banco; alerta de categoria até 31/12/2026.
+- Categoria obrigatória no lançamento de vendas; indústrias padronizadas em maiúsculas.
+- Deploy via Dockerfile + Coolify.
+
+---
+
+<!--
+Ao atualizar o app, acrescente um bloco acima deste comentário, por exemplo:
+
+## AAAA-MM-DD
+
+### App
+- …
+
+### Documentação
+- …
+-->
