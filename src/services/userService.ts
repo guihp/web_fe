@@ -5,6 +5,15 @@ import {
   encodeNivelAcesso,
   sanitizeSecoes,
 } from '../data/portalModules';
+import {
+  cargoForExternalTipo,
+  externalSecoesForTipo,
+  isExternalTipo,
+  isTipoUsuario,
+  normalizeClienteGrupo,
+  normalizeCnpjDigits,
+  type TipoUsuario,
+} from '../utils/externalAccess';
 
 async function hashPassword(password: string): Promise<string> {
   const saltArray = crypto.getRandomValues(new Uint8Array(16));
@@ -47,49 +56,81 @@ export type SaveUserInput = {
   nome: string;
   email?: string;
   telefone: string;
-  cpf: string;
+  cpf?: string;
   senha: string;
   cargo: string;
   endereco?: string;
   modulos?: string[];
   secoes?: string[];
+  tipo_usuario?: TipoUsuario;
+  industria_id?: number | null;
+  cliente_grupo?: string | null;
+  login_cnpj?: string | null;
 };
 
+function resolveTipo(data: { tipo_usuario?: TipoUsuario; cargo: string }): TipoUsuario {
+  if (data.tipo_usuario && isTipoUsuario(data.tipo_usuario)) return data.tipo_usuario;
+  return 'interno';
+}
+
+function buildNivelAcesso(tipo: TipoUsuario, cargo: string, secoes?: string[], modulos?: string[]) {
+  if (isExternalTipo(tipo)) {
+    return encodeNivelAcesso(cargo, externalSecoesForTipo(tipo));
+  }
+  const resolved = sanitizeSecoes(
+    cargo,
+    secoes?.length ? secoes : modulos?.length ? modulos : defaultSecoesForCargo(cargo),
+  );
+  return encodeNivelAcesso(cargo, resolved);
+}
+
 export async function saveUser(data: SaveUserInput) {
+  const tipo = resolveTipo(data);
+  const cargo = isExternalTipo(tipo) ? cargoForExternalTipo(tipo) : data.cargo;
   const { cidade, estado_id } = parseEndereco(data.endereco ?? '');
   const originalPassword = data.senha;
   const hashedPassword = await hashPassword(originalPassword);
-  const secoes = sanitizeSecoes(
-    data.cargo,
-    data.secoes?.length
-      ? data.secoes
-      : data.modulos?.length
-        ? data.modulos
-        : defaultSecoesForCargo(data.cargo),
-  );
-  const nivel_acesso = encodeNivelAcesso(data.cargo, secoes);
+  const nivel_acesso = buildNivelAcesso(tipo, cargo, data.secoes, data.modulos);
 
-  const { error } = await supabase.from('usuarios').insert([
-    {
-      nome: data.nome.trim(),
-      email: data.email?.trim() || null,
-      telefone: data.telefone.replace(/\D/g, ''),
-      cpf: normalizeCpf(data.cpf),
-      senha: hashedPassword,
-      cargo: data.cargo,
-      cidade,
-      estado_id,
-      status: true,
-      nivel_acesso,
-    },
-  ]);
+  if (tipo === 'interno' && !normalizeCpf(data.cpf ?? '')) {
+    throw new Error('CPF é obrigatório para usuários internos.');
+  }
+  if (tipo === 'industria' && !data.industria_id) {
+    throw new Error('Selecione a indústria vinculada.');
+  }
+  if (tipo === 'cliente') {
+    const cnpj = normalizeCnpjDigits(data.login_cnpj ?? '');
+    const grupo = normalizeClienteGrupo(data.cliente_grupo ?? data.nome);
+    if (cnpj.length !== 14) throw new Error('CNPJ de login inválido (14 dígitos).');
+    if (!grupo) throw new Error('Informe o grupo do cliente (ex.: MATEUS).');
+  }
+
+  const payload: Record<string, unknown> = {
+    nome: data.nome.trim(),
+    email: data.email?.trim() || null,
+    telefone: (data.telefone || '').replace(/\D/g, '') || null,
+    cpf: tipo === 'interno' ? normalizeCpf(data.cpf ?? '') : null,
+    senha: hashedPassword,
+    cargo,
+    cidade,
+    estado_id,
+    status: true,
+    nivel_acesso,
+    tipo_usuario: tipo,
+    industria_id: tipo === 'industria' ? data.industria_id : null,
+    cliente_grupo:
+      tipo === 'cliente' ? normalizeClienteGrupo(data.cliente_grupo ?? data.nome) : null,
+    login_cnpj: tipo === 'cliente' ? normalizeCnpjDigits(data.login_cnpj ?? '') : null,
+  };
+
+  const { error } = await supabase.from('usuarios').insert([payload]);
 
   if (error) {
     throw new Error(error.message);
   }
 
   const webhookUrl = import.meta.env.EXPO_PUBLIC_WEBHOOK_SENHA;
-  if (webhookUrl) {
+  if (webhookUrl && tipo === 'interno') {
     try {
       await fetch(webhookUrl, {
         method: 'POST',
@@ -99,11 +140,10 @@ export async function saveUser(data: SaveUserInput) {
           telefone: data.telefone,
           cpf: data.cpf,
           senha: originalPassword,
-          cargo: data.cargo,
+          cargo,
           cidade,
           estado: estado_id,
           nivel_acesso,
-          secoes,
         }),
       });
     } catch {
@@ -118,34 +158,51 @@ export type UpdateUserInput = {
   nome: string;
   email?: string;
   telefone: string;
-  cpf: string;
+  cpf?: string;
   cargo: string;
   endereco?: string;
   senha?: string;
   modulos?: string[];
   secoes?: string[];
+  tipo_usuario?: TipoUsuario;
+  industria_id?: number | null;
+  cliente_grupo?: string | null;
+  login_cnpj?: string | null;
 };
 
 export async function updateUser(userId: number, data: UpdateUserInput) {
+  const tipo = resolveTipo(data);
+  const cargo = isExternalTipo(tipo) ? cargoForExternalTipo(tipo) : data.cargo;
   const { cidade, estado_id } = parseEndereco(data.endereco ?? '');
-  const secoes = sanitizeSecoes(
-    data.cargo,
-    data.secoes?.length
-      ? data.secoes
-      : data.modulos?.length
-        ? data.modulos
-        : defaultSecoesForCargo(data.cargo),
-  );
+  const nivel_acesso = buildNivelAcesso(tipo, cargo, data.secoes, data.modulos);
 
-  const payload: Record<string, string | null> = {
+  if (tipo === 'interno' && !normalizeCpf(data.cpf ?? '')) {
+    throw new Error('CPF é obrigatório para usuários internos.');
+  }
+  if (tipo === 'industria' && !data.industria_id) {
+    throw new Error('Selecione a indústria vinculada.');
+  }
+  if (tipo === 'cliente') {
+    const cnpj = normalizeCnpjDigits(data.login_cnpj ?? '');
+    const grupo = normalizeClienteGrupo(data.cliente_grupo ?? data.nome);
+    if (cnpj.length !== 14) throw new Error('CNPJ de login inválido (14 dígitos).');
+    if (!grupo) throw new Error('Informe o grupo do cliente (ex.: MATEUS).');
+  }
+
+  const payload: Record<string, string | number | null> = {
     nome: data.nome.trim(),
     email: data.email?.trim() || null,
-    telefone: data.telefone.replace(/\D/g, ''),
-    cpf: normalizeCpf(data.cpf),
-    cargo: data.cargo,
+    telefone: (data.telefone || '').replace(/\D/g, '') || null,
+    cpf: tipo === 'interno' ? normalizeCpf(data.cpf ?? '') : null,
+    cargo,
     cidade,
     estado_id,
-    nivel_acesso: encodeNivelAcesso(data.cargo, secoes),
+    nivel_acesso,
+    tipo_usuario: tipo,
+    industria_id: tipo === 'industria' ? (data.industria_id ?? null) : null,
+    cliente_grupo:
+      tipo === 'cliente' ? normalizeClienteGrupo(data.cliente_grupo ?? data.nome) : null,
+    login_cnpj: tipo === 'cliente' ? normalizeCnpjDigits(data.login_cnpj ?? '') : null,
   };
 
   if (data.senha?.trim()) {

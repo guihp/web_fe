@@ -87,6 +87,9 @@ export default function AdminUsuarios() {
       return (
         item.nome.toLowerCase().includes(term) ||
         (item.cargo ?? '').toLowerCase().includes(term) ||
+        (item.tipo_usuario ?? 'interno').toLowerCase().includes(term) ||
+        (item.cliente_grupo ?? '').toLowerCase().includes(term) ||
+        (item.login_cnpj ?? '').includes(term.replace(/\D/g, '')) ||
         local.includes(term) ||
         formatCpf(item.cpf).includes(term) ||
         (item.telefone ?? '').includes(term) ||
@@ -132,7 +135,8 @@ export default function AdminUsuarios() {
         <div>
           <h1 className="page-title">Usuários</h1>
           <p className="admin-subtitle">
-            Crie, edite e defina quais balões cada usuário pode acessar.
+            Internos (CPF) e externos: indústria (login pelo nome) ou cliente (login pelo CNPJ).
+            Externos só visualizam Validades e Sucesso do cliente do próprio escopo.
           </p>
         </div>
         <button type="button" className="btn-primary" onClick={() => setShowCreate(true)}>
@@ -171,16 +175,26 @@ export default function AdminUsuarios() {
             <thead>
               <tr>
                 <th>Nome</th>
-                <th>CPF</th>
+                <th>Tipo</th>
+                <th>Login</th>
                 <th>Cargo</th>
                 <th>Telefone</th>
-                <th>Local</th>
                 <th>Balões</th>
                 <th className="admin-usuarios-th-actions">Ações</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((item) => (
+              {filtered.map((item) => {
+                const tipo = item.tipo_usuario === 'industria' || item.tipo_usuario === 'cliente'
+                  ? item.tipo_usuario
+                  : 'interno';
+                const loginLabel =
+                  tipo === 'industria'
+                    ? 'Nome da indústria'
+                    : tipo === 'cliente'
+                      ? item.login_cnpj || item.cliente_grupo || '—'
+                      : formatCpf(item.cpf);
+                return (
                 <tr key={item.id}>
                   <td>
                     <div className="admin-usuarios-name">
@@ -188,12 +202,16 @@ export default function AdminUsuarios() {
                       {item.email && <small>{item.email}</small>}
                     </div>
                   </td>
-                  <td>{formatCpf(item.cpf)}</td>
+                  <td>
+                    <span className="admin-usuarios-cargo">
+                      {tipo === 'interno' ? 'Interno' : tipo === 'industria' ? 'Indústria' : 'Cliente'}
+                    </span>
+                  </td>
+                  <td>{loginLabel}</td>
                   <td>
                     <span className="admin-usuarios-cargo">{item.cargo}</span>
                   </td>
                   <td>{formatPhone(item.telefone)}</td>
-                  <td>{formatLocal(item.cidade, item.estado_id)}</td>
                   <td>
                     <div className="admin-usuarios-modulos">
                       {parseModulosFromNivelAcesso(item.nivel_acesso, item.cargo).map((id) => {
@@ -227,7 +245,8 @@ export default function AdminUsuarios() {
                     </div>
                   </td>
                 </tr>
-              ))}
+              );
+              })}
             </tbody>
           </table>
         )}

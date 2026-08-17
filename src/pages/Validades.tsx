@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import BackToPortal from '../components/layout/BackToPortal';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import {
   VALIDADE_PAGE_SIZE,
@@ -37,7 +38,14 @@ function rowClassName(item: Validade): string | undefined {
 }
 
 export default function Validades() {
+  const { user } = useAuth();
   const { showToast } = useToast();
+  const somenteLeitura = Boolean(user?.somente_leitura);
+  const scopeIndustria =
+    user?.tipo_usuario === 'industria' ? user.industria_nome ?? undefined : undefined;
+  const scopeClienteGrupo =
+    user?.tipo_usuario === 'cliente' ? user.cliente_grupo ?? undefined : undefined;
+
   const [search, setSearch] = useState('');
   const [uf, setUf] = useState('Todos');
   const [industria, setIndustria] = useState('Todos');
@@ -51,16 +59,24 @@ export default function Validades() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    if (scopeIndustria) setIndustria(scopeIndustria);
+  }, [scopeIndustria]);
+
   const loadFilterOptions = useCallback(async () => {
     try {
       const opts = await fetchValidadesFilterOptions();
       setUfs(opts.ufs);
-      setIndustrias(opts.industrias);
+      setIndustrias(
+        scopeIndustria
+          ? opts.industrias.filter((i) => i === scopeIndustria)
+          : opts.industrias,
+      );
       setMeses(opts.meses);
     } catch {
       /* filtros opcionais */
     }
-  }, []);
+  }, [scopeIndustria]);
 
   const loadValidades = useCallback(async () => {
     setLoading(true);
@@ -68,11 +84,15 @@ export default function Validades() {
       const result = await fetchValidades({
         search,
         uf: uf === 'Todos' ? undefined : uf,
-        industria: industria === 'Todos' ? undefined : industria,
+        industria:
+          scopeIndustria ||
+          (industria === 'Todos' ? undefined : industria),
         mes: mes === 'Todos' ? undefined : mes,
         status: statusFilter,
         page,
         pageSize: VALIDADE_PAGE_SIZE,
+        scopeIndustria,
+        scopeClienteGrupo,
       });
       setItems(result.data);
       setTotal(result.total);
@@ -83,7 +103,17 @@ export default function Validades() {
     } finally {
       setLoading(false);
     }
-  }, [search, uf, industria, mes, statusFilter, page, showToast]);
+  }, [
+    search,
+    uf,
+    industria,
+    mes,
+    statusFilter,
+    page,
+    showToast,
+    scopeIndustria,
+    scopeClienteGrupo,
+  ]);
 
   useEffect(() => {
     loadFilterOptions();
@@ -103,8 +133,12 @@ export default function Validades() {
   const rangeEnd = Math.min(currentPage * VALIDADE_PAGE_SIZE, total);
 
   const handleExport = async () => {
+    if (somenteLeitura) {
+      showToast('Exportação indisponível para usuário externo.', 'info');
+      return;
+    }
     try {
-      const all = await fetchAllValidades();
+      const all = await fetchAllValidades({ scopeIndustria, scopeClienteGrupo });
       exportValidadesXlsx(all);
       showToast(
         all.length === 0
@@ -126,15 +160,24 @@ export default function Validades() {
         <p className="base-vendas-subtitle">
           Produtos próximos do vencimento — itens com menos de 1 mês ficam destacados
         </p>
+        {somenteLeitura && (
+          <p className="base-vendas-subtitle" style={{ marginTop: 8 }}>
+            Modo visualização
+            {scopeIndustria ? ` — indústria ${scopeIndustria}` : ''}
+            {scopeClienteGrupo ? ` — grupo ${scopeClienteGrupo}` : ''}.
+          </p>
+        )}
       </header>
 
       <section className="card base-vendas-card">
         <div className="base-vendas-card-top">
           <h2>Validades ({total} total)</h2>
           <div className="base-vendas-actions">
-            <button type="button" className="base-vendas-btn outline" onClick={handleExport}>
-              <span>⬇</span> Exportar Dados
-            </button>
+            {!somenteLeitura && (
+              <button type="button" className="base-vendas-btn outline" onClick={handleExport}>
+                <span>⬇</span> Exportar Dados
+              </button>
+            )}
           </div>
         </div>
 
@@ -170,6 +213,7 @@ export default function Validades() {
           </select>
           <select
             value={industria}
+            disabled={Boolean(scopeIndustria)}
             onChange={(e) => {
               setIndustria(e.target.value);
               setPage(1);

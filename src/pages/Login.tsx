@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { maskCpfInput } from '../lib/cpf';
+import type { LoginTipo } from '../services/authService';
 import { fetchRandomVerse, getFallbackVerse, type BibleVerse } from '../services/bibleService';
+import { maskCnpjInput } from '../utils/externalAccess';
 import './Login.css';
 
 function IconEye({ open }: { open: boolean }) {
@@ -27,11 +29,18 @@ function IconEye({ open }: { open: boolean }) {
   );
 }
 
+const LOGIN_TABS: { id: LoginTipo; label: string }[] = [
+  { id: 'interno', label: 'Equipe' },
+  { id: 'industria', label: 'Indústria' },
+  { id: 'cliente', label: 'Cliente' },
+];
+
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
   const { showToast } = useToast();
-  const [cpf, setCpf] = useState('');
+  const [loginTipo, setLoginTipo] = useState<LoginTipo>('interno');
+  const [identifier, setIdentifier] = useState('');
   const [senha, setSenha] = useState('');
   const [remember, setRemember] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -42,7 +51,6 @@ export default function Login() {
 
   useEffect(() => {
     let cancelled = false;
-
     setVerseLoading(true);
     fetchRandomVerse()
       .then((randomVerse) => {
@@ -54,19 +62,38 @@ export default function Login() {
       .finally(() => {
         if (!cancelled) setVerseLoading(false);
       });
-
     return () => {
       cancelled = true;
     };
   }, []);
 
+  const handleTipoChange = (tipo: LoginTipo) => {
+    setLoginTipo(tipo);
+    setIdentifier('');
+    setError(null);
+  };
+
+  const handleIdentifierChange = (value: string) => {
+    if (loginTipo === 'interno') setIdentifier(maskCpfInput(value));
+    else if (loginTipo === 'cliente') setIdentifier(maskCnpjInput(value));
+    else setIdentifier(value.toUpperCase());
+  };
+
+  const identifierLabel =
+    loginTipo === 'interno' ? 'CPF' : loginTipo === 'industria' ? 'Indústria' : 'CNPJ';
+  const identifierPlaceholder =
+    loginTipo === 'interno'
+      ? '000.000.000-00'
+      : loginTipo === 'industria'
+        ? 'PREDILECTA'
+        : '00.000.000/0000-00';
+
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
     setError(null);
     setSubmitting(true);
-
     try {
-      await login(cpf, senha, remember);
+      await login(identifier, senha, remember, loginTipo);
       navigate('/', { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível entrar.');
@@ -85,11 +112,7 @@ export default function Login() {
             <img src="/login-equipe.png" alt="" />
           </div>
           <div className="login-visual-brand">
-            <img
-              className="login-marca-f"
-              src="/feisotipo.png"
-              alt="Fé Merchandising"
-            />
+            <img className="login-marca-f" src="/feisotipo.png" alt="Fé Merchandising" />
           </div>
         </aside>
 
@@ -97,17 +120,32 @@ export default function Login() {
           <h1 className="login-heading">Login</h1>
           <p className="login-subtitle">Insira suas informações para entrar na plataforma</p>
 
+          <div className="login-tipo-tabs" role="tablist" aria-label="Tipo de acesso">
+            {LOGIN_TABS.map((tab) => (
+              <button
+                key={tab.id}
+                type="button"
+                role="tab"
+                aria-selected={loginTipo === tab.id}
+                className={`login-tipo-tab ${loginTipo === tab.id ? 'active' : ''}`}
+                onClick={() => handleTipoChange(tab.id)}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+
           <form className="login-form" onSubmit={handleSubmit}>
             <div className="login-field">
-              <label htmlFor="cpf">CPF</label>
+              <label htmlFor="login-id">{identifierLabel}</label>
               <input
-                id="cpf"
+                id="login-id"
                 type="text"
-                inputMode="numeric"
+                inputMode={loginTipo === 'industria' ? 'text' : 'numeric'}
                 autoComplete="username"
-                placeholder="000.000.000-00"
-                value={cpf}
-                onChange={(e) => setCpf(maskCpfInput(e.target.value))}
+                placeholder={identifierPlaceholder}
+                value={identifier}
+                onChange={(e) => handleIdentifierChange(e.target.value)}
                 required
               />
             </div>
@@ -147,7 +185,9 @@ export default function Login() {
               <button
                 type="button"
                 className="login-forgot"
-                onClick={() => showToast('Contacte o administrador para redefinir sua senha.', 'info')}
+                onClick={() =>
+                  showToast('Contacte o administrador para redefinir sua senha.', 'info')
+                }
               >
                 Esqueci minha senha
               </button>

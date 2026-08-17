@@ -10,6 +10,10 @@ export type Usuario = {
   nivel_acesso: string | null;
   email: string | null;
   modulos_acesso?: string[] | null;
+  tipo_usuario?: string | null;
+  industria_id?: number | null;
+  cliente_grupo?: string | null;
+  login_cnpj?: string | null;
 };
 
 const ESTADOS: Record<string, string> = {

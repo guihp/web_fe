@@ -29,6 +29,10 @@ export type ValidadeFilters = {
   status?: ValidadeStatusFilter;
   page?: number;
   pageSize?: number;
+  /** Escopo externo: só essa indústria. */
+  scopeIndustria?: string;
+  /** Escopo externo: grupo de lojas (ex. MATEUS) — ilike em lojas. */
+  scopeClienteGrupo?: string;
 };
 
 export type ValidadeListResult = {
@@ -62,6 +66,14 @@ export async function fetchValidades(filters: ValidadeFilters = {}): Promise<Val
     .from('validades')
     .select('*', { count: 'exact' })
     .order('data_vencimento', { ascending: true, nullsFirst: false });
+
+  if (filters.scopeIndustria) {
+    query = query.eq('industria', toIndustriaPadrao(filters.scopeIndustria));
+  }
+
+  if (filters.scopeClienteGrupo) {
+    query = query.ilike('lojas', `%${filters.scopeClienteGrupo}%`);
+  }
 
   if (filters.uf && filters.uf !== 'Todos') {
     query = query.eq('uf', filters.uf);
@@ -115,11 +127,23 @@ export async function fetchValidades(filters: ValidadeFilters = {}): Promise<Val
   };
 }
 
-export async function fetchAllValidades(): Promise<Validade[]> {
-  const { data, error } = await supabase
+export async function fetchAllValidades(scope?: {
+  scopeIndustria?: string;
+  scopeClienteGrupo?: string;
+}): Promise<Validade[]> {
+  let query = supabase
     .from('validades')
     .select('*')
     .order('data_vencimento', { ascending: true, nullsFirst: false });
+
+  if (scope?.scopeIndustria) {
+    query = query.eq('industria', toIndustriaPadrao(scope.scopeIndustria));
+  }
+  if (scope?.scopeClienteGrupo) {
+    query = query.ilike('lojas', `%${scope.scopeClienteGrupo}%`);
+  }
+
+  const { data, error } = await query;
   if (error) throw new Error(error.message);
   return (data ?? []).map(mapRow);
 }

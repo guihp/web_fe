@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import { MESES_PT, type BaseVenda } from '../utils/vendasDomain';
 import { toIndustriaPadrao } from '../utils/vendasDomain';
 import { formatBRL } from '../utils/currency';
+import { matchVendaByClienteGrupo } from '../utils/externalAccess';
 
 export const KANBAN_STATUSES = [
   'Enviado ou gerado',
@@ -38,6 +39,9 @@ export type KanbanFilters = {
   vendedor?: string;
   estado?: string;
   search?: string;
+  scopeIndustria?: string;
+  scopeClienteGrupo?: string;
+  scopeLoginCnpj?: string;
 };
 
 function mapVenda(row: Record<string, unknown>): BaseVenda {
@@ -74,6 +78,18 @@ export async function fetchKanbanPedidos(filters: KanbanFilters): Promise<Pedido
   }
   if (filters.industria && filters.industria !== 'Todas') {
     query = query.eq('industria', filters.industria);
+  }
+  if (filters.scopeIndustria) {
+    query = query.eq('industria', toIndustriaPadrao(filters.scopeIndustria));
+  }
+  if (filters.scopeClienteGrupo) {
+    const grupo = filters.scopeClienteGrupo.replace(/[%*,()]/g, '');
+    const root = (filters.scopeLoginCnpj ?? '').replace(/\D/g, '').slice(0, 8);
+    if (root.length === 8) {
+      query = query.or(`cliente.ilike.%${grupo}%,cnpj.ilike.%${root}%`);
+    } else {
+      query = query.ilike('cliente', `%${grupo}%`);
+    }
   }
   if (filters.vendedor && filters.vendedor !== 'Todos') {
     query = query.eq('vendedor', filters.vendedor);
@@ -124,6 +140,16 @@ export async function fetchKanbanPedidos(filters: KanbanFilters): Promise<Pedido
       status: statusByVenda.get(v.id) ?? KANBAN_STATUS_DEFAULT,
     }))
     .filter((card) => {
+      if (
+        filters.scopeClienteGrupo &&
+        !matchVendaByClienteGrupo(
+          { cnpj: card.cnpj, cliente: card.cliente },
+          filters.scopeClienteGrupo,
+          filters.scopeLoginCnpj,
+        )
+      ) {
+        return false;
+      }
       if (!term) return true;
       return (
         card.numeroPedido.toLowerCase().includes(term) ||
@@ -139,7 +165,12 @@ export async function fetchKanbanPedidos(filters: KanbanFilters): Promise<Pedido
 export async function setPedidoKanbanStatus(
   vendaId: string,
   status: KanbanStatus,
+  opts?: { allowWrite?: boolean },
 ): Promise<void> {
+  if (opts?.allowWrite === false) {
+    throw new Error('Usuário externo não pode alterar status do pedido.');
+  }
+
   const { error } = await supabase.from('pedido_kanban').upsert(
     {
       venda_id: vendaId,

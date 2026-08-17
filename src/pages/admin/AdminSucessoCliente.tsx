@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import BackToPortal from '../../components/layout/BackToPortal';
+import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../context/ToastContext';
 import { MESES_PT } from '../../utils/vendasDomain';
 import {
@@ -46,7 +47,16 @@ function formatData(iso: string) {
 }
 
 export default function AdminSucessoCliente() {
+  const { user } = useAuth();
   const { showToast } = useToast();
+  const somenteLeitura = Boolean(user?.somente_leitura);
+  const scopeIndustria =
+    user?.tipo_usuario === 'industria' ? user.industria_nome ?? undefined : undefined;
+  const scopeClienteGrupo =
+    user?.tipo_usuario === 'cliente' ? user.cliente_grupo ?? undefined : undefined;
+  const scopeLoginCnpj =
+    user?.tipo_usuario === 'cliente' ? user.login_cnpj ?? undefined : undefined;
+
   const current = currentMesAnoLabel();
   const [mes, setMes] = useState<string>(current.mes);
   const [ano, setAno] = useState<string>(current.ano);
@@ -80,10 +90,13 @@ export default function AdminSucessoCliente() {
       const data = await fetchKanbanPedidos({
         mes: mes === 'Todos' ? undefined : mes,
         ano: ano === 'Todos' ? undefined : ano,
-        industria,
+        industria: scopeIndustria || industria,
         vendedor,
         estado,
         search,
+        scopeIndustria,
+        scopeClienteGrupo,
+        scopeLoginCnpj,
       });
       setCards(data);
     } catch (err) {
@@ -92,7 +105,22 @@ export default function AdminSucessoCliente() {
     } finally {
       setLoading(false);
     }
-  }, [mes, ano, industria, vendedor, estado, search, showToast]);
+  }, [
+    mes,
+    ano,
+    industria,
+    vendedor,
+    estado,
+    search,
+    showToast,
+    scopeIndustria,
+    scopeClienteGrupo,
+    scopeLoginCnpj,
+  ]);
+
+  useEffect(() => {
+    if (scopeIndustria) setIndustria(scopeIndustria);
+  }, [scopeIndustria]);
 
   useEffect(() => {
     loadOptions();
@@ -120,6 +148,10 @@ export default function AdminSucessoCliente() {
   const totalValor = useMemo(() => cards.reduce((a, c) => a + c.valor, 0), [cards]);
 
   const moveCard = async (vendaId: string, nextStatus: KanbanStatus) => {
+    if (somenteLeitura) {
+      showToast('Modo visualização: não é possível alterar o status.', 'info');
+      return;
+    }
     const currentCard = cards.find((c) => c.vendaId === vendaId);
     if (!currentCard || currentCard.status === nextStatus) return;
 
@@ -128,7 +160,7 @@ export default function AdminSucessoCliente() {
     );
 
     try {
-      await setPedidoKanbanStatus(vendaId, nextStatus);
+      await setPedidoKanbanStatus(vendaId, nextStatus, { allowWrite: !somenteLeitura });
     } catch (err) {
       setCards((prev) =>
         prev.map((c) => (c.vendaId === vendaId ? { ...c, status: currentCard.status } : c)),
@@ -152,7 +184,9 @@ export default function AdminSucessoCliente() {
         <div>
           <h1 className="page-title">Sucesso do cliente</h1>
           <p className="admin-subtitle">
-            Kanban de pedidos com base nas vendas lançadas. Arraste os cards entre as colunas.
+            {somenteLeitura
+              ? `Visualização${scopeIndustria ? ` — ${scopeIndustria}` : ''}${scopeClienteGrupo ? ` — grupo ${scopeClienteGrupo}` : ''}. Sem alteração de status.`
+              : 'Kanban de pedidos com base nas vendas lançadas. Arraste os cards entre as colunas.'}
           </p>
         </div>
         <div className="sucesso-summary">
@@ -253,13 +287,16 @@ export default function AdminSucessoCliente() {
                 key={status}
                 className={`sucesso-column ${statusClass} ${isOver ? 'is-over' : ''}`}
                 onDragOver={(e) => {
+                  if (somenteLeitura) return;
                   e.preventDefault();
                   setDropTarget(status);
                 }}
                 onDragLeave={() => {
+                  if (somenteLeitura) return;
                   setDropTarget((prev) => (prev === status ? null : prev));
                 }}
                 onDrop={(e) => {
+                  if (somenteLeitura) return;
                   e.preventDefault();
                   const vendaId = e.dataTransfer.getData('text/venda-id') || draggingId;
                   setDropTarget(null);
@@ -295,8 +332,12 @@ export default function AdminSucessoCliente() {
                       <article
                         key={card.vendaId}
                         className={`sucesso-card ${statusClass} ${draggingId === card.vendaId ? 'is-dragging' : ''}`}
-                        draggable
+                        draggable={!somenteLeitura}
                         onDragStart={(e) => {
+                          if (somenteLeitura) {
+                            e.preventDefault();
+                            return;
+                          }
                           setDraggingId(card.vendaId);
                           e.dataTransfer.setData('text/venda-id', card.vendaId);
                           e.dataTransfer.effectAllowed = 'move';
