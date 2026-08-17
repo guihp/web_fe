@@ -2,6 +2,14 @@
 
 Formato: mais recente no topo.
 
+## 2026-08-17 (notificações externos)
+
+### App
+- Notificações para usuários **indústria/cliente**: só eventos do **Sucesso do cliente** no escopo deles (indústria ou grupo/CNPJ). Sem lançamentos gerais nem kanban financeiro.
+
+### Documentação
+- (esta entrada)
+
 ## 2026-08-17
 
 ### Documentação

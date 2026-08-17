@@ -62,7 +62,12 @@ export default function TopBar() {
   const loadNotifications = async () => {
     setNotifLoading(true);
     try {
-      const items = await fetchAppNotifications(24);
+      const items = await fetchAppNotifications(24, {
+        tipo_usuario: user?.tipo_usuario,
+        industria_nome: user?.industria_nome,
+        cliente_grupo: user?.cliente_grupo,
+        login_cnpj: user?.login_cnpj,
+      });
       setNotifications(items);
       setUnread(countUnread(items, getNotificationsSeenAt()));
     } catch {
@@ -79,7 +84,9 @@ export default function TopBar() {
       void loadNotifications();
     }, 60_000);
     return () => window.clearInterval(timer);
-  }, []);
+    // Escopo do usuário externo (indústria/cliente) altera o filtro
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id, user?.tipo_usuario, user?.industria_nome, user?.cliente_grupo, user?.login_cnpj]);
 
   useEffect(() => {
     if (!notifOpen && !menuOpen) return;

@@ -111,4 +111,7 @@ Hub: `/administrador` — **só Gerente** (e seções admin liberadas).
 
 ## Notificações (topo)
 
-O sino no topo pode listar eventos recentes (lançamentos de vendas, movimentações de Sucesso do cliente / kanban financeiro), conforme serviço de notificações ativo.
+O sino no topo lista eventos recentes conforme o tipo de usuário:
+
+- **Internos:** lançamentos de vendas, Sucesso do cliente e kanban financeiro.
+- **Externos (indústria/cliente):** apenas movimentações do **Sucesso do cliente** do próprio escopo (mesma indústria ou mesmo grupo/CNPJ). Se não houver nada no escopo, a lista fica vazia.

@@ -1,5 +1,12 @@
 import { supabase } from '../lib/supabase';
 import { formatBRL } from '../utils/currency';
+import {
+  isExternalTipo,
+  matchIndustriaScope,
+  matchVendaByClienteGrupo,
+  type TipoUsuario,
+} from '../utils/externalAccess';
+import { toIndustriaPadrao } from '../utils/vendasDomain';
 
 export type NotificationKind = 'venda' | 'kanban_pedido' | 'kanban_financeiro';
 
@@ -10,6 +17,13 @@ export type AppNotification = {
   detail: string;
   at: string;
   href: string;
+};
+
+export type NotificationViewerScope = {
+  tipo_usuario?: TipoUsuario | string | null;
+  industria_nome?: string | null;
+  cliente_grupo?: string | null;
+  login_cnpj?: string | null;
 };
 
 const FIN_COLUNA_LABEL: Record<string, string> = {
@@ -23,7 +37,21 @@ function toIso(value: string | null | undefined) {
   return new Date(value).toISOString();
 }
 
-export async function fetchAppNotifications(limit = 20): Promise<AppNotification[]> {
+function isExternalViewer(scope?: NotificationViewerScope | null) {
+  return isExternalTipo(scope?.tipo_usuario ?? '');
+}
+
+export async function fetchAppNotifications(
+  limit = 20,
+  scope?: NotificationViewerScope | null,
+): Promise<AppNotification[]> {
+  const externo = isExternalViewer(scope);
+
+  // Externos só acompanham Sucesso do cliente do próprio escopo (sem vendas gerais / financeiro).
+  if (externo) {
+    return fetchExternalPedidoNotifications(limit, scope);
+  }
+
   const [vendasRes, pedidosRes, fatRes] = await Promise.all([
     supabase
       .from('baseVendas')
@@ -109,6 +137,84 @@ export async function fetchAppNotifications(limit = 20): Promise<AppNotification
       detail: `${titulo}${industria ? ` · ${industria}` : ''} → ${coluna} · ${valor}`,
       at: toIso(row.updated_at as string),
       href: '/financeiro?tab=kanban',
+    });
+  }
+
+  return items
+    .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+    .slice(0, limit);
+}
+
+async function fetchExternalPedidoNotifications(
+  limit: number,
+  scope?: NotificationViewerScope | null,
+): Promise<AppNotification[]> {
+  const industriaNome = scope?.industria_nome ? toIndustriaPadrao(scope.industria_nome) : '';
+  const clienteGrupo = (scope?.cliente_grupo ?? '').trim().toUpperCase();
+  const loginCnpj = scope?.login_cnpj ?? null;
+
+  if (!industriaNome && !clienteGrupo) {
+    return [];
+  }
+
+  // Busca mais linhas e filtra no escopo (evita vazar notificações de terceiros).
+  const { data: pedidoRows, error } = await supabase
+    .from('pedido_kanban')
+    .select('id, status, updated_at, venda_id')
+    .order('updated_at', { ascending: false })
+    .limit(80);
+
+  if (error) throw new Error(error.message);
+
+  const rows = pedidoRows ?? [];
+  const vendaIds = [...new Set(rows.map((row) => String(row.venda_id)).filter(Boolean))];
+  if (vendaIds.length === 0) return [];
+
+  const { data: vendasKanban, error: vendasKanbanError } = await supabase
+    .from('baseVendas')
+    .select('id, numero_pedido, cliente, industria, cnpj')
+    .in('id', vendaIds);
+
+  if (vendasKanbanError) throw new Error(vendasKanbanError.message);
+
+  const vendaById = new Map<
+    string,
+    { numero_pedido?: string; cliente?: string; industria?: string; cnpj?: string }
+  >();
+  for (const row of vendasKanban ?? []) {
+    vendaById.set(String(row.id), row);
+  }
+
+  const items: AppNotification[] = [];
+
+  for (const row of rows) {
+    const venda = vendaById.get(String(row.venda_id));
+    if (!venda) continue;
+
+    if (industriaNome && !matchIndustriaScope(venda.industria, industriaNome)) {
+      continue;
+    }
+    if (
+      clienteGrupo &&
+      !matchVendaByClienteGrupo(
+        { cnpj: venda.cnpj, cliente: venda.cliente },
+        clienteGrupo,
+        loginCnpj,
+      )
+    ) {
+      continue;
+    }
+
+    const pedido = String(venda.numero_pedido ?? '—');
+    const cliente = String(venda.cliente ?? 'Cliente');
+    const status = String(row.status ?? 'Atualizado');
+    items.push({
+      id: `pedido-${row.id}-${row.updated_at}`,
+      kind: 'kanban_pedido',
+      title: 'Kanban Sucesso do Cliente',
+      detail: `Pedido ${pedido} · ${cliente} → ${status}`,
+      at: toIso(row.updated_at as string),
+      href: '/merchandising/sucesso-cliente',
     });
   }
 

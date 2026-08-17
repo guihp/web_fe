@@ -7,6 +7,7 @@
 3. Usuário **externo** só vê Validades e Sucesso do cliente, em leitura.
 4. Indústria externa: dados filtrados pela indústria vinculada.
 5. Cliente externo: dados filtrados pelo **grupo de nome de loja** (ex.: MATEUS) e afinidade de CNPJ (raiz do CNPJ de login).
+6. Notificações de externos: só Sucesso do cliente do próprio escopo (sem vendas gerais nem financeiro).
 
 ## Vendas
 

@@ -69,3 +69,12 @@ Regras importantes:
 ## Sessão
 
 A sessão fica guardada no navegador (não usa login JWT do Supabase Auth neste momento). Ao sair, os dados da sessão são limpos.
+
+## Notificações (sino)
+
+| Tipo de usuário | O que aparece no sino |
+|-----------------|------------------------|
+| Interno | Lançamentos de venda, Sucesso do cliente e kanban financeiro |
+| Indústria / Cliente | **Somente** Sucesso do cliente do próprio escopo; se não houver, a lista fica vazia |
+
+Externos **não** veem notificações de vendas gerais nem do financeiro.
