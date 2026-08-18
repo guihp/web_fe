@@ -38,6 +38,7 @@ export default function VendasDashboard() {
   const [mapiMensal, setMapiMensal] = useState<{ mes: string; valor: number }[]>([]);
   const [paMensal, setPaMensal] = useState<{ mes: string; valor: number }[]>([]);
   const [mapiMesIndustria, setMapiMesIndustria] = useState<{ nome: string; valor: number }[]>([]);
+  const [paMesIndustria, setPaMesIndustria] = useState<{ nome: string; valor: number }[]>([]);
   const [mapiAnualIndustria, setMapiAnualIndustria] = useState<{ nome: string; valor: number }[]>([]);
   const [paAnualIndustria, setPaAnualIndustria] = useState<{ nome: string; valor: number }[]>([]);
   const [metaMapiMensal, setMetaMapiMensal] = useState(0);
@@ -63,6 +64,7 @@ export default function VendasDashboard() {
           mapiM,
           paM,
           mapiIndMes,
+          paIndMes,
           mapiIndAno,
           paIndAno,
           vsMeta,
@@ -71,6 +73,7 @@ export default function VendasDashboard() {
           fetchVendasMensais(ano, 'MA/PI'),
           fetchVendasMensais(ano, 'PA'),
           fetchVendasPorIndustria(ano, mesDb, 'MA/PI'),
+          fetchVendasPorIndustria(ano, mesDb, 'PA'),
           fetchVendasPorIndustria(ano, undefined, 'MA/PI'),
           fetchVendasPorIndustria(ano, undefined, 'PA'),
           fetchRealizadoVsMeta(ano, mesDb),
@@ -87,6 +90,7 @@ export default function VendasDashboard() {
         setMapiMensal(mapiM.map((d) => ({ mes: d.label, valor: d.value })));
         setPaMensal(paM.map((d) => ({ mes: d.label, valor: d.value })));
         setMapiMesIndustria(mapiIndMes.map((d) => ({ nome: d.label, valor: d.value })));
+        setPaMesIndustria(paIndMes.map((d) => ({ nome: d.label, valor: d.value })));
         setMapiAnualIndustria(mapiIndAno.map((d) => ({ nome: d.label, valor: d.value })));
         setPaAnualIndustria(paIndAno.map((d) => ({ nome: d.label, valor: d.value })));
         // Metas reais de metas_projecao por região (não divide o total por 2)
@@ -378,15 +382,31 @@ export default function VendasDashboard() {
             <div className="vendas-charts-grid">
               <div className="vendas-chart-card">
                 <h3>Venda do Mês por Indústria — MA/PI</h3>
-                <HorizontalBarChart data={mapiMesIndustria.length ? mapiMesIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={CORAL} />
+                <HorizontalBarChart
+                  data={mapiMesIndustria.length ? mapiMesIndustria : [{ nome: 'Sem dados', valor: 0 }]}
+                  color={CORAL}
+                />
+              </div>
+              <div className="vendas-chart-card">
+                <h3>Venda do Mês por Indústria — Pará</h3>
+                <HorizontalBarChart
+                  data={paMesIndustria.length ? paMesIndustria : [{ nome: 'Sem dados', valor: 0 }]}
+                  color={BLUE}
+                />
+              </div>
+              <div className="vendas-chart-card">
+                <h3>Venda Anual por Indústria — MA/PI</h3>
+                <HorizontalBarChart
+                  data={mapiAnualIndustria.length ? mapiAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]}
+                  color={CORAL_DARK}
+                />
               </div>
               <div className="vendas-chart-card">
                 <h3>Venda Anual por Indústria — Pará</h3>
-                <HorizontalBarChart data={paAnualIndustria.length ? paAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={BLUE} />
-              </div>
-              <div className="vendas-chart-card full">
-                <h3>Venda Anual por Indústria — MA/PI</h3>
-                <HorizontalBarChart data={mapiAnualIndustria.length ? mapiAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]} color={CORAL_DARK} />
+                <HorizontalBarChart
+                  data={paAnualIndustria.length ? paAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]}
+                  color={BLUE}
+                />
               </div>
             </div>
           </section>

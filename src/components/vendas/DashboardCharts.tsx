@@ -69,8 +69,8 @@ export function HorizontalBarChart({ data, color, maxValue }: HorizontalBarChart
             <span className="h-bar-label">{item.nome}</span>
             <div className="h-bar-track">
               <div className="h-bar-fill" style={{ width: `${width}%`, background: color }} />
-              <span className="h-bar-value">{formatBRL(item.valor)}</span>
             </div>
+            <span className="h-bar-value">{formatBRL(item.valor)}</span>
           </div>
         );
       })}

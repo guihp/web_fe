@@ -48,11 +48,13 @@ Filtros: mês, ano, indústria, vendedor, estado, busca. Externos não alteram s
 |-------|------|-----------|
 | Relatórios | `/relatorios` | Relatórios comerciais |
 | Projeção de metas | `/projecao-metas` | Metas vs realizado |
-| Vendas (dashboard) | `/vendas` | Visão geral de vendas |
+| Vendas (dashboard) | `/vendas` | Visão geral: KPIs, realizado x meta, barras mensais/anuais por indústria (MA/PI e Pará) |
 | Lançamento de vendas | `/lancamento` | Incluir/editar/cancelar vendas |
 | Cadastro de clientes | `/clientes` | Cadastro operacional de clientes |
 | Base de clientes | `/base-clientes` | Base tabular de clientes |
 | Base de dados | `/base-vendas` | Base tabular de vendas |
+
+No dashboard, os valores das barras por indústria ficam **ao lado** da barra (não sobre o laranja/azul).
 
 Rota legada `/vendas/lancamento` → `/lancamento`.  
 Rota `/comissao` → Financeiro na aba Comissão.
