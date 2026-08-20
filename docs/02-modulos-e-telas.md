@@ -17,7 +17,7 @@ Hub: `/merchandising`
 | Treinamentos | `/treinamento` | Materiais e PDFs de capacitação |
 | Atividades | `/atividades` | Visitas / ações de merchandising em PDV |
 | Validades | `/validades` | Produtos próximos do vencimento ou vencidos; filtros UF, indústria, mês, status; exportação (internos) |
-| Price | `/merchandising/price` | Internas/externas; export/import de custos; edição de `preco_custo`; multiplicador + markup/margem; views Lista/Gráfico; externos em leitura com escopo (indústria ou loja) |
+| Price | `/merchandising/price` | Internas/externas por **mês**; export/import de custos; markup/margem + gráfico; externos em leitura com escopo |
 | Sucesso do cliente | `/merchandising/sucesso-cliente` | Kanban de pedidos a partir das vendas lançadas; status arrastável (internos) |
 
 Rotas antigas `/administrador/sucesso-cliente` e `/administrador/perfis` redirecionam para Sucesso do cliente.

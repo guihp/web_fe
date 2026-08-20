@@ -13,6 +13,7 @@ Formato: mais recente no topo.
 - Passo 5: **Multiplicador** (padrão 100%) + colunas **Markup %** e **Margem %** nas internas.
 - Internas: toggle **Lista / Gráfico** — gráfico por produto com lojas no eixo X (Preço Varejo, Custo, Markup, Margem).
 - Externos (indústria/cliente) também acessam **Price** em leitura: indústria só vê a própria marca; cliente só lojas do grupo (ex. MATEUS).
+- Coluna **`mes`** em `pesquisa` + filtro por mês (1 mês → seleciona esse; vários → mês vigente, com troca manual).
 - Admin `/administrador/price` redireciona para Merchandising.
 - Fórmulas (referência): Markup% `((PV−PC)/PC)×100`; Markup exibido `× multiplicador%/100` (padrão 100%); Margem% `markup/(100+markup)×100`.
 

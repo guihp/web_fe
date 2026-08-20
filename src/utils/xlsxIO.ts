@@ -472,6 +472,7 @@ const PRICE_EXTERN_HEADERS = [
   'promotor',
   'preco_varejo',
   'preco_atacado',
+  'mes',
   'tipo_pesquisa',
 ] as const;
 
@@ -485,6 +486,7 @@ const PRICE_INTERN_HEADERS = [
   'preco_varejo',
   'preco_atacado',
   'preco_custo',
+  'mes',
   'tipo_pesquisa',
 ] as const;
 
@@ -511,6 +513,7 @@ export function exportPesquisasXlsx(items: PesquisaItem[], tipo: 'interna' | 'ex
       promotor: p.promotor ?? '',
       preco_varejo: p.preco_varejo ?? '',
       preco_atacado: p.preco_atacado ?? '',
+      mes: p.mes ?? '',
       tipo_pesquisa: p.tipo_pesquisa,
     }));
     const ws = XLSX.utils.json_to_sheet(rows, { header: headers });
@@ -542,6 +545,7 @@ export function exportPesquisasXlsx(items: PesquisaItem[], tipo: 'interna' | 'ex
     preco_varejo: p.preco_varejo ?? '',
     preco_atacado: p.preco_atacado ?? '',
     preco_custo: '',
+    mes: p.mes ?? '',
     tipo_pesquisa: p.tipo_pesquisa,
   }));
   const ws = XLSX.utils.json_to_sheet(rows, { header: headers });

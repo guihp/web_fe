@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import { toIndustriaPadrao } from '../utils/vendasDomain';
+import { MESES_PT, toIndustriaPadrao } from '../utils/vendasDomain';
 
 export type TipoPesquisa = 'interna' | 'externa';
 
@@ -14,10 +14,38 @@ export type PesquisaItem = {
   preco_atacado: number | null;
   preco_custo: number | null;
   tipo_pesquisa: TipoPesquisa;
+  mes: string | null;
   created_at: string | null;
 };
 
 export const PRICE_PAGE_SIZE = 25;
+
+export function mesVigente(): string {
+  return MESES_PT[new Date().getMonth()] ?? 'JANEIRO';
+}
+
+export function normalizeMesPesquisa(value: unknown): string | null {
+  if (value == null || value === '') return null;
+  const raw = String(value)
+    .trim()
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '');
+  if (!raw) return null;
+
+  const hit = MESES_PT.find((m) => m.normalize('NFD').replace(/\p{M}/gu, '') === raw);
+  return hit ?? String(value).trim().toUpperCase();
+}
+
+/** 1 mês disponível → esse; vários → mês vigente se existir, senão o mais recente na lista. */
+export function pickDefaultMes(available: string[]): string {
+  if (available.length === 0) return mesVigente();
+  if (available.length === 1) return available[0];
+  const vigente = mesVigente();
+  if (available.includes(vigente)) return vigente;
+  const ordered = MESES_PT.filter((m) => available.includes(m));
+  return ordered[ordered.length - 1] ?? available[0];
+}
 
 /** Aceita "12,50" / "1.234,56" / "12.50" / número. */
 export function parseMoney(value: unknown): number | null {
@@ -51,6 +79,7 @@ function mapRow(row: Record<string, unknown>): PesquisaItem {
     preco_atacado: parseMoney(row.preco_atacado),
     preco_custo: parseMoney(row.preco_custo),
     tipo_pesquisa: tipo,
+    mes: normalizeMesPesquisa(row.mes),
     created_at: row.created_at != null ? String(row.created_at) : null,
   };
 }
@@ -59,6 +88,8 @@ export type FetchPesquisaFilters = {
   tipo: TipoPesquisa;
   search?: string;
   industria?: string;
+  /** Mês da pesquisa (ex.: AGOSTO). */
+  mes?: string;
   page?: number;
   pageSize?: number;
   /** Escopo externo indústria: só essa indústria (interna e externa). */
@@ -105,6 +136,11 @@ export async function fetchPesquisas(filters: FetchPesquisaFilters): Promise<Fet
 
   query = applyPesquisaScope(query, filters);
 
+  const mes = normalizeMesPesquisa(filters.mes);
+  if (mes) {
+    query = query.eq('mes', mes);
+  }
+
   if (filters.search?.trim()) {
     const term = `%${filters.search.trim()}%`;
     query = query.or(
@@ -142,7 +178,7 @@ export async function fetchAllPesquisas(
 
 export async function fetchPesquisaIndustrias(
   tipo: TipoPesquisa,
-  scope?: { scopeIndustria?: string; scopeClienteGrupo?: string },
+  scope?: { scopeIndustria?: string; scopeClienteGrupo?: string; mes?: string },
 ): Promise<string[]> {
   let query = supabase
     .from('pesquisa')
@@ -155,6 +191,9 @@ export async function fetchPesquisaIndustrias(
     scopeClienteGrupo: scope?.scopeClienteGrupo,
   });
 
+  const mes = normalizeMesPesquisa(scope?.mes);
+  if (mes) query = query.eq('mes', mes);
+
   const { data, error } = await query;
 
   if (error) throw new Error(error.message);
@@ -165,6 +204,37 @@ export async function fetchPesquisaIndustrias(
     if (nome) set.add(nome);
   }
   return [...set].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+}
+
+export async function fetchPesquisaMeses(
+  tipo: TipoPesquisa,
+  scope?: { scopeIndustria?: string; scopeClienteGrupo?: string },
+): Promise<string[]> {
+  let query = supabase
+    .from('pesquisa')
+    .select('mes')
+    .eq('tipo_pesquisa', tipo)
+    .not('mes', 'is', null);
+
+  query = applyPesquisaScope(query, {
+    scopeIndustria: scope?.scopeIndustria,
+    scopeClienteGrupo: scope?.scopeClienteGrupo,
+  });
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+
+  const set = new Set<string>();
+  for (const row of data ?? []) {
+    const mes = normalizeMesPesquisa((row as { mes?: string }).mes);
+    if (mes) set.add(mes);
+  }
+
+  const known = MESES_PT.filter((m) => set.has(m));
+  const extras = [...set]
+    .filter((m) => !(MESES_PT as readonly string[]).includes(m))
+    .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  return [...known, ...extras];
 }
 
 /** Atualiza custo de uma pesquisa interna. */

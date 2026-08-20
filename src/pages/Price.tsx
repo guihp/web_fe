@@ -10,10 +10,12 @@ import {
   calcMarkupPercent,
   fetchAllPesquisas,
   fetchPesquisaIndustrias,
+  fetchPesquisaMeses,
   fetchPesquisas,
   formatMoneyInput,
   formatPct,
   parseMoney,
+  pickDefaultMes,
   updatePesquisaCusto,
   updatePesquisasCustoBatch,
   type PesquisaItem,
@@ -117,6 +119,8 @@ export default function Price() {
   const [search, setSearch] = useState('');
   const [industria, setIndustria] = useState('Todas');
   const [industrias, setIndustrias] = useState<string[]>([]);
+  const [meses, setMeses] = useState<string[]>([]);
+  const [mes, setMes] = useState('');
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<PesquisaItem[]>([]);
   const [total, setTotal] = useState(0);
@@ -140,16 +144,32 @@ export default function Price() {
 
   const loadIndustrias = useCallback(async () => {
     try {
-      const list = await fetchPesquisaIndustrias(tipo, scopeFilters);
+      const list = await fetchPesquisaIndustrias(tipo, { ...scopeFilters, mes: mes || undefined });
       setIndustrias(
         scopeIndustria ? list.filter((i) => i === scopeIndustria) : list,
       );
     } catch {
       setIndustrias([]);
     }
+  }, [tipo, scopeIndustria, scopeClienteGrupo, mes]);
+
+  const loadMeses = useCallback(async () => {
+    try {
+      const list = await fetchPesquisaMeses(tipo, scopeFilters);
+      setMeses(list);
+      setMes((prev) => {
+        if (list.length === 0) return '';
+        if (prev && list.includes(prev)) return prev;
+        return pickDefaultMes(list);
+      });
+    } catch {
+      setMeses([]);
+      setMes('');
+    }
   }, [tipo, scopeIndustria, scopeClienteGrupo]);
 
   const load = useCallback(async () => {
+    if (!mes && meses.length > 0) return;
     setLoading(true);
     try {
       const result = await fetchPesquisas({
@@ -160,6 +180,7 @@ export default function Price() {
           : industria === 'Todas'
             ? undefined
             : industria,
+        mes: mes || undefined,
         page,
         pageSize: PRICE_PAGE_SIZE,
         ...scopeFilters,
@@ -173,13 +194,17 @@ export default function Price() {
     } finally {
       setLoading(false);
     }
-  }, [tipo, search, industria, page, showToast, scopeIndustria, scopeClienteGrupo]);
+  }, [tipo, search, industria, mes, meses.length, page, showToast, scopeIndustria, scopeClienteGrupo]);
 
   useEffect(() => {
     if (!scopeIndustria) setIndustria('Todas');
     setPage(1);
+    void loadMeses();
+  }, [tipo, loadMeses, scopeIndustria]);
+
+  useEffect(() => {
     void loadIndustrias();
-  }, [tipo, loadIndustrias, scopeIndustria]);
+  }, [loadIndustrias]);
 
   useEffect(() => {
     void load();
@@ -193,6 +218,7 @@ export default function Price() {
 
   useEffect(() => {
     if (tipo !== 'interna' || viewMode !== 'grafico') return;
+    if (!mes && meses.length > 0) return;
 
     let cancelled = false;
     setChartLoading(true);
@@ -204,6 +230,7 @@ export default function Price() {
         : industria === 'Todas'
           ? undefined
           : industria,
+      mes: mes || undefined,
       ...scopeFilters,
     })
       .then((rows) => {
@@ -222,7 +249,7 @@ export default function Price() {
     return () => {
       cancelled = true;
     };
-  }, [tipo, viewMode, search, industria, showToast, items, scopeIndustria, scopeClienteGrupo]);
+  }, [tipo, viewMode, search, industria, mes, meses.length, showToast, items, scopeIndustria, scopeClienteGrupo]);
 
   const totalPages = Math.max(1, Math.ceil(total / PRICE_PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -244,6 +271,7 @@ export default function Price() {
           : industria === 'Todas'
             ? undefined
             : industria,
+        mes: mes || undefined,
         ...scopeFilters,
       });
       exportPesquisasXlsx(all, tipo);
@@ -414,6 +442,25 @@ export default function Price() {
 
         <div className="base-vendas-filters">
           <select
+            value={mes}
+            disabled={meses.length === 0}
+            onChange={(e) => {
+              setMes(e.target.value);
+              setPage(1);
+            }}
+            aria-label="Mês da pesquisa"
+          >
+            {meses.length === 0 ? (
+              <option value="">Sem mês</option>
+            ) : (
+              meses.map((opt) => (
+                <option key={opt} value={opt}>
+                  {opt.charAt(0) + opt.slice(1).toLowerCase()}
+                </option>
+              ))
+            )}
+          </select>
+          <select
             value={scopeIndustria ?? industria}
             disabled={Boolean(scopeIndustria)}
             onChange={(e) => {
@@ -486,6 +533,7 @@ export default function Price() {
                       <th>Indústria</th>
                       <th>Loja</th>
                       <th>UF</th>
+                      <th>Mês</th>
                       <th>Varejo (PV)</th>
                       <th>Atacado</th>
                       {tipo === 'interna' && (
@@ -509,6 +557,7 @@ export default function Price() {
                           <td>{row.industria}</td>
                           <td>{row.loja ?? '—'}</td>
                           <td>{row.uf ?? '—'}</td>
+                          <td>{row.mes ?? '—'}</td>
                           <td className="col-num">{money(row.preco_varejo)}</td>
                           <td className="col-num">{money(row.preco_atacado)}</td>
                           {tipo === 'interna' && (
