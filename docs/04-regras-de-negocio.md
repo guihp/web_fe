@@ -5,8 +5,8 @@
 1. Só **Gerente** cria/edita usuários e acessa o hub Administrador completo.
 2. Usuário **interno** inativo (`status = false`) não entra.
 3. Usuário **externo** só vê Validades e Sucesso do cliente, em leitura.
-4. Indústria externa: dados filtrados pela indústria vinculada.
-5. Cliente externo: dados filtrados pelo **grupo de nome de loja** (ex.: MATEUS) e afinidade de CNPJ (raiz do CNPJ de login).
+4. Indústria externa: dados filtrados pela indústria vinculada (Validades, Sucesso do cliente e Price).
+5. Cliente externo: dados filtrados pelo **grupo de nome de loja** (ex.: MATEUS) e afinidade de CNPJ (raiz do CNPJ de login); no Price, filtro pela loja.
 6. Notificações de externos: só Sucesso do cliente do próprio escopo (sem vendas gerais nem financeiro).
 
 ## Vendas

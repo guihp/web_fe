@@ -2,7 +2,11 @@ import { toIndustriaPadrao } from '../utils/vendasDomain';
 
 export type TipoUsuario = 'interno' | 'industria' | 'cliente';
 
-export const EXTERNAL_SECTION_IDS = ['validades.home', 'merchandising.sucesso'] as const;
+export const EXTERNAL_SECTION_IDS = [
+  'validades.home',
+  'merchandising.sucesso',
+  'merchandising.price',
+] as const;
 
 export const EXTERNAL_CARGO_INDUSTRIA = 'Indústria (externo)';
 export const EXTERNAL_CARGO_CLIENTE = 'Cliente (externo)';

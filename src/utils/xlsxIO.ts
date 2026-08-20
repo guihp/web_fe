@@ -1,5 +1,6 @@
 import * as XLSX from 'xlsx';
 import type { ClienteForm } from '../data/clientesData';
+import type { PesquisaItem } from '../services/priceService';
 import type { Validade } from '../services/validadeService';
 import type { BaseCliente, BaseVenda } from '../utils/vendasDomain';
 import { formatCdc, mesAnoFromDate, MESES_PT, VENDEDORES } from '../utils/vendasDomain';
@@ -460,4 +461,174 @@ export function exportValidadesXlsx(validades: Validade[]) {
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Validades');
   XLSX.writeFile(wb, `validades-${new Date().toISOString().slice(0, 10)}.xlsx`);
+}
+
+const PRICE_EXTERN_HEADERS = [
+  'id',
+  'descricao',
+  'industria',
+  'loja',
+  'uf',
+  'promotor',
+  'preco_varejo',
+  'preco_atacado',
+  'tipo_pesquisa',
+] as const;
+
+const PRICE_INTERN_HEADERS = [
+  'id',
+  'descricao',
+  'industria',
+  'loja',
+  'uf',
+  'promotor',
+  'preco_varejo',
+  'preco_atacado',
+  'preco_custo',
+  'tipo_pesquisa',
+] as const;
+
+/** Exporta pesquisas. Internas: coluna preco_custo vazia para o usuário preencher e reimportar. */
+export function exportPesquisasXlsx(items: PesquisaItem[], tipo: 'interna' | 'externa') {
+  const date = new Date().toISOString().slice(0, 10);
+
+  if (tipo === 'externa') {
+    const headers = [...PRICE_EXTERN_HEADERS];
+    if (items.length === 0) {
+      const ws = XLSX.utils.aoa_to_sheet([headers]);
+      ws['!cols'] = headers.map((h) => ({ wch: Math.max(14, h.length + 2) }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Pesquisas');
+      XLSX.writeFile(wb, `price-externas-${date}.xlsx`);
+      return;
+    }
+    const rows = items.map((p) => ({
+      id: p.id,
+      descricao: p.descricao,
+      industria: p.industria,
+      loja: p.loja ?? '',
+      uf: p.uf ?? '',
+      promotor: p.promotor ?? '',
+      preco_varejo: p.preco_varejo ?? '',
+      preco_atacado: p.preco_atacado ?? '',
+      tipo_pesquisa: p.tipo_pesquisa,
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows, { header: headers });
+    ws['!cols'] = headers.map((h) => ({ wch: Math.max(14, h.length + 2) }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Pesquisas');
+    XLSX.writeFile(wb, `price-externas-${date}.xlsx`);
+    return;
+  }
+
+  const headers = [...PRICE_INTERN_HEADERS];
+  if (items.length === 0) {
+    const ws = XLSX.utils.aoa_to_sheet([headers]);
+    ws['!cols'] = headers.map((h) => ({ wch: Math.max(14, h.length + 2) }));
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Pesquisas');
+    XLSX.writeFile(wb, `price-internas-custos-${date}.xlsx`);
+    return;
+  }
+
+  // preco_custo sempre vazio no export (usuário preenche e reimporta)
+  const rows = items.map((p) => ({
+    id: p.id,
+    descricao: p.descricao,
+    industria: p.industria,
+    loja: p.loja ?? '',
+    uf: p.uf ?? '',
+    promotor: p.promotor ?? '',
+    preco_varejo: p.preco_varejo ?? '',
+    preco_atacado: p.preco_atacado ?? '',
+    preco_custo: '',
+    tipo_pesquisa: p.tipo_pesquisa,
+  }));
+  const ws = XLSX.utils.json_to_sheet(rows, { header: headers });
+  ws['!cols'] = headers.map((h) => ({ wch: Math.max(14, h.length + 2) }));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Pesquisas');
+  XLSX.writeFile(wb, `price-internas-custos-${date}.xlsx`);
+}
+
+export type PesquisaCustoImportRow = {
+  id: number;
+  preco_custo: number;
+};
+
+/**
+ * Lê planilha de custos (export internas).
+ * Exige colunas id + preco_custo preenchido; linhas sem custo são ignoradas.
+ */
+export function parsePesquisasCustoXlsx(file: File): Promise<PesquisaCustoImportRow[]> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = new Uint8Array(e.target?.result as ArrayBuffer);
+        const wb = XLSX.read(data, { type: 'array', cellDates: true });
+        const sheetName =
+          wb.SheetNames.find((name) => name.toLowerCase() !== 'instrucoes') ?? wb.SheetNames[0];
+        if (!sheetName) {
+          reject(new Error('Planilha sem abas.'));
+          return;
+        }
+        const sheet = wb.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json<Record<string, unknown>>(sheet, { defval: '' });
+
+        const out: PesquisaCustoImportRow[] = [];
+        const seen = new Set<number>();
+
+        for (const row of rows) {
+          const idRaw = row.id ?? row.Id ?? row.ID ?? cell(row, 'id');
+          const idNum =
+            typeof idRaw === 'number' ? idRaw : Number(String(idRaw ?? '').trim().replace(/\D/g, ''));
+          if (!Number.isFinite(idNum) || idNum <= 0) continue;
+
+          const custoRaw =
+            row.preco_custo ??
+            row['preco_custo'] ??
+            row['Preco Custo'] ??
+            row['preço_custo'] ??
+            row['Preço Custo'] ??
+            cell(row, 'preco_custo', 'preço_custo', 'custo', 'pc');
+
+          if (custoRaw === '' || custoRaw == null) continue;
+
+          let custo: number | null = null;
+          if (typeof custoRaw === 'number' && Number.isFinite(custoRaw)) {
+            custo = custoRaw;
+          } else {
+            const raw = String(custoRaw).trim();
+            if (!raw) continue;
+            const normalized = raw.includes(',')
+              ? raw.replace(/\./g, '').replace(',', '.')
+              : raw.replace(/[^\d.-]/g, '');
+            const n = Number(normalized);
+            custo = Number.isFinite(n) ? n : null;
+          }
+          if (custo == null || custo < 0) continue;
+
+          if (seen.has(idNum)) continue;
+          seen.add(idNum);
+          out.push({ id: idNum, preco_custo: custo });
+        }
+
+        if (out.length === 0) {
+          reject(
+            new Error(
+              'Nenhuma linha com id e preco_custo válida. Preencha a coluna preco_custo e tente de novo.',
+            ),
+          );
+          return;
+        }
+
+        resolve(out);
+      } catch (err) {
+        reject(err instanceof Error ? err : new Error('Falha ao ler a planilha.'));
+      }
+    };
+    reader.onerror = () => reject(new Error('Não foi possível ler o arquivo.'));
+    reader.readAsArrayBuffer(file);
+  });
 }

@@ -2,6 +2,23 @@
 
 Formato: mais recente no topo.
 
+## 2026-08-20
+
+### App
+- **Price** permanece em **Merchandising** (`/merchandising/price`).
+- Passo 1 (banco): `pesquisa.tipo_pesquisa` (`interna`|`externa`) + `pesquisa.preco_custo`.
+- Passo 2: tela Price com abas Internas/Externas, busca, filtro por indústria e listagem (varejo, atacado; custo nas internas).
+- Passo 3: **Exportar Excel** — externas completo; internas com coluna `preco_custo` **vazia** (para preencher e reimportar). Inclui `id` para casar na importação.
+- Passo 4: **Importar custos** (Excel por `id`) + **edição manual** de `preco_custo` na tabela (só internas).
+- Passo 5: **Multiplicador** (padrão 100%) + colunas **Markup %** e **Margem %** nas internas.
+- Internas: toggle **Lista / Gráfico** — gráfico por produto com lojas no eixo X (Preço Varejo, Custo, Markup, Margem).
+- Externos (indústria/cliente) também acessam **Price** em leitura: indústria só vê a própria marca; cliente só lojas do grupo (ex. MATEUS).
+- Admin `/administrador/price` redireciona para Merchandising.
+- Fórmulas (referência): Markup% `((PV−PC)/PC)×100`; Markup exibido `× multiplicador%/100` (padrão 100%); Margem% `markup/(100+markup)×100`.
+
+### Documentação
+- Atualização da seção Price em `02-modulos-e-telas.md`.
+
 ## 2026-08-18
 
 ### App

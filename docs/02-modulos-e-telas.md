@@ -17,7 +17,7 @@ Hub: `/merchandising`
 | Treinamentos | `/treinamento` | Materiais e PDFs de capacitação |
 | Atividades | `/atividades` | Visitas / ações de merchandising em PDV |
 | Validades | `/validades` | Produtos próximos do vencimento ou vencidos; filtros UF, indústria, mês, status; exportação (internos) |
-| Price | `/merchandising/price` | Placeholder (conteúdo a definir) |
+| Price | `/merchandising/price` | Internas/externas; export/import de custos; edição de `preco_custo`; multiplicador + markup/margem; views Lista/Gráfico; externos em leitura com escopo (indústria ou loja) |
 | Sucesso do cliente | `/merchandising/sucesso-cliente` | Kanban de pedidos a partir das vendas lançadas; status arrastável (internos) |
 
 Rotas antigas `/administrador/sucesso-cliente` e `/administrador/perfis` redirecionam para Sucesso do cliente.
@@ -93,7 +93,7 @@ Hub: `/administrador` — **só Gerente** (e seções admin liberadas).
 | Seção | Rota | O que faz |
 |-------|------|-----------|
 | Usuários | `/administrador/usuarios` | Criar/editar/inativar; internos e externos |
-| Price | `/administrador/price` | Placeholder |
+| Price | `/administrador/price` | Redireciona para `/merchandising/price` |
 | Empresa | `/administrador/empresa` | Empresa e filiais da FE |
 | Regionais | `/administrador/regionais` | Cadastro de regionais |
 | Filiais | `/administrador/filiais` | Lojas/PDVs (`lojas`) |

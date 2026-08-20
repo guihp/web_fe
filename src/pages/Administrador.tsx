@@ -108,8 +108,8 @@ const ADMIN_MODULES: AdminModule[] = [
   {
     id: 'price',
     title: 'Price',
-    description: 'Módulo Price — conteúdo a definir',
-    path: '/administrador/price',
+    description: 'Pesquisas de preço — abre em Merchandising',
+    path: '/merchandising/price',
     tone: 'sky',
     icon: <IconBriefcase />,
     // Aceita permissão do Admin ou do Merchandising

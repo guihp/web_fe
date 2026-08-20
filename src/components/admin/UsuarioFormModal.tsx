@@ -238,7 +238,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
         <h2>{isEdit ? 'Editar Usuário' : 'Novo Usuário'}</h2>
         <p>
           Internos usam CPF. Externos: indústria (login pelo nome) ou cliente (login pelo CNPJ) —
-          só Validades e Sucesso do cliente, em modo visualização.
+          Validades, Sucesso do cliente e Price, em modo visualização.
         </p>
       </div>
 
@@ -398,7 +398,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
           <fieldset className="colab-field full usuario-modulos-field">
             <legend>Balões / seções de acesso</legend>
             <p className="usuario-modulos-hint">
-              Externos recebem automaticamente só Validades e Sucesso do cliente (somente leitura).
+              Externos recebem automaticamente Validades, Sucesso do cliente e Price (somente leitura).
             </p>
             <div className="usuario-modulos-grid">
               {moduleOptions.map((mod) => {
@@ -482,8 +482,8 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
 
         {externo && (
           <p className="usuario-modulos-hint">
-            Acesso fixo: <strong>Validades</strong> + <strong>Sucesso do cliente</strong> (somente
-            visualização do que for desta indústria/cliente).
+            Acesso fixo: <strong>Validades</strong> + <strong>Sucesso do cliente</strong> +{' '}
+            <strong>Price</strong> (somente visualização do que for desta indústria/cliente).
           </p>
         )}
       </div>

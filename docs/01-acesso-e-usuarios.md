@@ -17,8 +17,8 @@ Esqueci a senha: o usuário deve **contactar o administrador** (não há reset s
 | Tipo | Quem cria | Vínculo | Telas |
 |------|-----------|---------|-------|
 | `interno` | Gerente | CPF + cargo + seções | Conforme `nível de acesso` |
-| `industria` | Gerente | Indústria cadastrada (`industrias`) | Só Validades + Sucesso do cliente (leitura) |
-| `cliente` | Gerente | **Grupo** (ex.: MATEUS) + **CNPJ de login** | Só Validades + Sucesso do cliente (leitura) |
+| `industria` | Gerente | Indústria cadastrada (`industrias`) | Validades + Sucesso do cliente + **Price** (leitura) |
+| `cliente` | Gerente | **Grupo** (ex.: MATEUS) + **CNPJ de login** | Validades + Sucesso do cliente + **Price** (leitura) |
 
 Somente o cargo **Gerente** pode criar/editar usuários em **Administrador → Usuários**.
 
@@ -47,7 +47,7 @@ Cada usuário interno tem um JSON de acesso (`nivel_acesso`) com:
 Regras importantes:
 
 - **Validades** fica liberada para usuários internos autenticados (seção sempre disponível).
-- Externos **não** escolhem seções: recebem fixo Validades + Sucesso do cliente.
+- Externos **não** escolhem seções: recebem fixo Validades + Sucesso do cliente + **Price**.
 - Externos entram em **modo somente leitura** (`somente_leitura`).
 
 ## Escopo dos externos
@@ -56,15 +56,17 @@ Regras importantes:
 
 - Vê validades cuja indústria é a dela.
 - Vê pedidos do Sucesso do cliente dessa indústria.
-- Não exporta planilha de validades.
+- Vê **Price** (internas e externas) só com produtos da **própria indústria** (campo `industria`).
+- Não exporta planilha de validades/price; não edita custos.
 - Não arrasta status no kanban.
 
 ### Cliente
 
 - **Grupo** (ex.: `MATEUS`): filtra validades pelo **nome da loja** contendo o grupo.
 - No Sucesso do cliente: pedidos cujo **cliente** contém o grupo e/ou **CNPJ** com a mesma raiz do CNPJ de login.
+- No **Price**: só linhas cuja **loja** contém o grupo (ex.: Mateus não vê Mix se o nome da loja não tiver “MATEUS”).
 - Ideia: um usuário “Mateus” acompanha **todas as lojas Mateus**, não só um CNPJ isolado.
-- Mesmas restrições de leitura (sem export / sem mover kanban).
+- Mesmas restrições de leitura (sem export / sem editar / sem mover kanban).
 
 ## Sessão
 

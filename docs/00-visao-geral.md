@@ -17,8 +17,8 @@ Há também um **aplicativo mobile** separado para alguns perfis de campo; este 
 |--------|------------|
 | **Equipe interna** (Gerente, Supervisor, Financeiro, RH, Analista admin, Vendedor, etc.) | Opera o painel conforme as seções liberadas no cadastro |
 | **Gerente** | Acesso amplo; único que gerencia usuários e o hub Administrador |
-| **Indústria (externo)** | Só **vê** Validades e Sucesso do cliente **da própria indústria** |
-| **Cliente (externo)** | Só **vê** Validades e Sucesso do cliente do **seu grupo de lojas** (ex.: todas as lojas Mateus) |
+| **Indústria (externo)** | Só **vê** Validades, Sucesso do cliente e **Price** **da própria indústria** |
+| **Cliente (externo)** | Só **vê** Validades, Sucesso do cliente e **Price** do **seu grupo de lojas** (ex.: todas as lojas Mateus) |
 
 ## Como o usuário navega
 

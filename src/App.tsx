@@ -27,6 +27,7 @@ import AdminSucessoCliente from './pages/admin/AdminSucessoCliente';
 import AdminSectionPlaceholder from './pages/AdminSectionPlaceholder';
 import Validades from './pages/Validades';
 import Merchandising from './pages/Merchandising';
+import Price from './pages/Price';
 
 export default function App() {
   return (
@@ -39,7 +40,11 @@ export default function App() {
         <Route element={<ManagerLayout />}>
           <Route path="/" element={<PortalHome />} />
           <Route path="/merchandising" element={<Merchandising />} />
-          <Route path="/merchandising/price" element={<AdminSectionPlaceholder />} />
+          <Route path="/merchandising/price" element={<Price />} />
+          <Route
+            path="/administrador/price"
+            element={<Navigate to="/merchandising/price" replace />}
+          />
           <Route path="/merchandising/sucesso-cliente" element={<AdminSucessoCliente />} />
           <Route path="/atividades" element={<Atividades />} />
           <Route path="/colaboradores" element={<Colaboradores />} />

@@ -54,6 +54,10 @@ export default function AdminSectionPlaceholder() {
     return <AdminClientes />;
   }
 
+  if (section === 'price') {
+    return <Navigate to="/merchandising/price" replace />;
+  }
+
   if (section === 'metas') {
     return <AdminMetas />;
   }

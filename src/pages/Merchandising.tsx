@@ -44,7 +44,7 @@ const MERCH_CARDS: {
   {
     id: 'price',
     title: 'Price',
-    description: 'Módulo Price — conteúdo a definir.',
+    description: 'Pesquisas de preço internas e externas, markup e margem.',
     path: '/merchandising/price',
     tone: 'orange',
     icon: 'tag',
