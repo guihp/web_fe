@@ -47,8 +47,11 @@ Região nas comissões costuma aparecer como `MA/PI` ou `PA` (a partir do estado
 | Conceito | Tabela | Uso |
 |----------|--------|-----|
 | Validade | `validades` | lojas (texto), industria, produto, lote, data_vencimento, UF, promotor… |
+| Pesquisa de preço (Price) | `pesquisa` | `tipo_pesquisa` (`interna`\|`externa`), produto (`descricao`), industria, loja, UF, `preco_varejo`, `preco_atacado`, `preco_custo` (internas), **`mes`** (ex.: AGOSTO) |
 | Atividade | `atividades` / `atividade_dia` | Ações em loja / dia |
 | Treinamento | `treinamento` | Catálogo; PDF em storage |
+
+No Price, o filtro de mês usa os valores existentes em `pesquisa.mes`: se houver só um, seleciona esse; se houver vários, inicia no **mês vigente** (e o usuário pode trocar).
 
 ## Sucesso do cliente
 

@@ -19,6 +19,8 @@ Formato: mais recente no topo.
 
 ### Documentação
 - Atualização da seção Price em `02-modulos-e-telas.md`.
+- Tabela `pesquisa` (Price + `mes`) documentada em `03-dominio-e-dados.md`.
+- Acesso externo ao Price em `00-visao-geral.md`, `01-acesso-e-usuarios.md` e `04-regras-de-negocio.md`.
 
 ## 2026-08-18
 
