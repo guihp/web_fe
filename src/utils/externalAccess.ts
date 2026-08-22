@@ -77,17 +77,48 @@ export type ExternalScope = {
   loginCnpj: string | null;
 };
 
+/**
+ * Em Price/pesquisas as lojas às vezes vêm no nome curto da bandeira
+ * (ex.: "Mix Belém", "Super Castanhal") sem a palavra MATEUS.
+ */
+const CLIENTE_GRUPO_LOJA_ALIASES: Record<string, string[]> = {
+  MATEUS: ['MATEUS', 'MIX', 'SUPER CASTANHAL', 'SUPER MATEUS'],
+};
+
+function normalizeGrupoKey(grupo: string): string {
+  return grupo
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toUpperCase()
+    .trim();
+}
+
+/** Tokens usados para casar nome de loja com o grupo do cliente. */
+export function lojaTokensForClienteGrupo(grupo: string): string[] {
+  const needle = normalizeGrupoKey(grupo);
+  if (!needle) return [];
+  return CLIENTE_GRUPO_LOJA_ALIASES[needle] ?? [needle];
+}
+
+/**
+ * Cláusula `or` do PostgREST para filtrar coluna de loja pelo grupo
+ * (inclui aliases de bandeira).
+ */
+export function lojaOrFilterForClienteGrupo(grupo: string, column = 'loja'): string | null {
+  const tokens = lojaTokensForClienteGrupo(grupo)
+    .map((t) => t.replace(/[%*,()]/g, '').trim())
+    .filter(Boolean);
+  if (tokens.length === 0) return null;
+  return tokens.map((t) => `${column}.ilike.%${t}%`).join(',');
+}
+
 export function matchLojaByClienteGrupo(lojaNome: string | null | undefined, grupo: string): boolean {
   if (!grupo) return false;
   const hay = (lojaNome ?? '')
     .normalize('NFD')
     .replace(/\p{M}/gu, '')
     .toUpperCase();
-  const needle = grupo
-    .normalize('NFD')
-    .replace(/\p{M}/gu, '')
-    .toUpperCase();
-  return hay.includes(needle);
+  return lojaTokensForClienteGrupo(grupo).some((token) => hay.includes(token));
 }
 
 export function matchIndustriaScope(

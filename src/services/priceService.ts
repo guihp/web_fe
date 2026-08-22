@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import { lojaOrFilterForClienteGrupo } from '../utils/externalAccess';
 import { MESES_PT, toIndustriaPadrao } from '../utils/vendasDomain';
 
 export type TipoPesquisa = 'interna' | 'externa';
@@ -103,7 +104,7 @@ export type FetchPesquisaResult = {
   total: number;
 };
 
-function applyPesquisaScope<T extends { eq: Function; ilike: Function }>(
+function applyPesquisaScope<T extends { eq: Function; ilike: Function; or: Function }>(
   query: T,
   filters: Pick<FetchPesquisaFilters, 'scopeIndustria' | 'scopeClienteGrupo' | 'industria'>,
 ): T {
@@ -116,7 +117,8 @@ function applyPesquisaScope<T extends { eq: Function; ilike: Function }>(
   }
 
   if (filters.scopeClienteGrupo) {
-    q = q.ilike('loja', `%${filters.scopeClienteGrupo}%`) as T;
+    const orFilter = lojaOrFilterForClienteGrupo(filters.scopeClienteGrupo, 'loja');
+    if (orFilter) q = q.or(orFilter) as T;
   }
 
   return q;

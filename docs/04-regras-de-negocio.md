@@ -6,7 +6,7 @@
 2. Usuário **interno** inativo (`status = false`) não entra.
 3. Usuário **externo** só vê Validades, Sucesso do cliente e **Price**, em leitura.
 4. Indústria externa: dados filtrados pela indústria vinculada (Validades, Sucesso do cliente e Price).
-5. Cliente externo: dados filtrados pelo **grupo de nome de loja** (ex.: MATEUS) e afinidade de CNPJ (raiz do CNPJ de login); no Price, filtro pela loja.
+5. Cliente externo: dados filtrados pelo **grupo de nome de loja** (ex.: MATEUS) e afinidade de CNPJ (raiz do CNPJ de login); no Price, o grupo MATEUS também casa bandeiras curtas (`Mix`, `Super Castanhal`).
 6. Notificações de externos: só Sucesso do cliente do próprio escopo (sem vendas gerais nem financeiro).
 
 ## Price

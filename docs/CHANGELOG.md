@@ -2,6 +2,14 @@
 
 Formato: mais recente no topo.
 
+## 2026-08-22
+
+### App
+- Price (cliente **MATEUS**): filtro de loja passa a reconhecer nomes curtos das bandeiras (`Mix …`, `Super Castanhal`), além de “MATEUS”.
+
+### Documentação
+- Ajuste do escopo cliente no Price em `01-acesso-e-usuarios.md` e `04-regras-de-negocio.md`.
+
 ## 2026-08-20
 
 ### App

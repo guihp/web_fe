@@ -64,7 +64,7 @@ Regras importantes:
 
 - **Grupo** (ex.: `MATEUS`): filtra validades pelo **nome da loja** contendo o grupo.
 - No Sucesso do cliente: pedidos cujo **cliente** contém o grupo e/ou **CNPJ** com a mesma raiz do CNPJ de login.
-- No **Price**: só linhas cuja **loja** contém o grupo (ex.: Mateus não vê Mix se o nome da loja não tiver “MATEUS”).
+- No **Price**: lojas do grupo — para **MATEUS**, inclui nomes curtos das bandeiras (`Mix …`, `Super Castanhal`, etc.), não só o texto “MATEUS”.
 - Ideia: um usuário “Mateus” acompanha **todas as lojas Mateus**, não só um CNPJ isolado.
 - Mesmas restrições de leitura (sem export / sem editar / sem mover kanban).
 
