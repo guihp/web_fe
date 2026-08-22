@@ -61,12 +61,13 @@ export async function fetchVendasPorIndustria(ano: string, mes?: string, regiao?
 
   for (const row of rows) {
     if (regiao && regiaoFromEstado(row.estado ?? '') !== regiao) continue;
-    const key = row.industria ?? 'Outros';
-    map.set(key, (map.get(key) ?? 0) + Number(row.valor));
+    const key = toIndustriaPadrao(String(row.industria ?? '').trim()) || 'OUTROS';
+    map.set(key, (map.get(key) ?? 0) + Number(row.valor || 0));
   }
 
   return Array.from(map.entries())
     .map(([label, value]) => ({ label, value }))
+    .filter((d) => d.value > 0)
     .sort((a, b) => b.value - a.value);
 }
 

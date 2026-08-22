@@ -5,9 +5,14 @@ Formato: mais recente no topo.
 ## 2026-08-22
 
 ### App
+- Dashboard de Vendas: KPIs gerais mostram participação **MA/PI** e **PA** no total.
+- Barras por indústria: **%** de cada indústria + linha **Total**; nomes normalizados; scroll se houver muitas indústrias.
+- Comparativo mensal por região: toggle **Rosca (Meta)** / **Pizza (Indústria)** — pizza com participação de cada indústria no mês (MA/PI e Pará).
 - Price (cliente **MATEUS**): filtro de loja passa a reconhecer nomes curtos das bandeiras (`Mix …`, `Super Castanhal`), além de “MATEUS”.
 
 ### Documentação
+- Créditos: app criado pela **IAFE TECH**; autores e colaborador (Assistente IA) em `docs/README.md` (somente documentação; **não** aparece na UI).
+- Dashboard (toggle pizza/rosca, % nas barras) atualizado em `02-modulos-e-telas.md`.
 - Ajuste do escopo cliente no Price em `01-acesso-e-usuarios.md` e `04-regras-de-negocio.md`.
 
 ## 2026-08-20

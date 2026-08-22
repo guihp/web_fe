@@ -145,6 +145,29 @@
   font-size: 0.78rem;
   font-weight: 600;
   color: var(--coral);
+  margin: 0;
+}
+
+.vendas-kpi-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px 12px;
+}
+
+.vendas-kpi-regions {
+  margin: 0;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.vendas-kpi-regions strong {
+  color: var(--text);
+  font-weight: 700;
 }
 
 .vendas-kpi.alcançada {
@@ -171,10 +194,47 @@
   padding: 22px 24px;
 }
 
+.vendas-section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
 .vendas-section-title {
   font-size: 1.05rem;
   font-weight: 700;
-  margin-bottom: 20px;
+  margin: 0;
+}
+
+.vendas-view-toggle {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.vendas-view-toggle button {
+  border: none;
+  border-radius: 8px;
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.vendas-view-toggle button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
 }
 
 .vendas-compare-grid {
@@ -217,6 +277,33 @@
   height: 10px;
   border-radius: 2px;
   display: inline-block;
+  flex-shrink: 0;
+}
+
+.pie-wrap {
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.pie-legend {
+  max-height: 140px;
+  overflow-y: auto;
+  min-width: 0;
+  flex: 1;
+}
+
+.pie-legend-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.pie-legend-text strong {
+  font-weight: 700;
+  color: var(--text);
+  overflow-wrap: anywhere;
 }
 
 .vendas-charts-grid {
@@ -232,14 +319,31 @@
 .h-bar-chart {
   display: flex;
   flex-direction: column;
+  gap: 0;
+  min-width: 0;
+}
+
+.h-bar-chart-scroll {
+  display: flex;
+  flex-direction: column;
   gap: 12px;
+  max-height: min(420px, 55vh);
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 2px;
+  min-width: 0;
 }
 
 .h-bar-row {
   display: grid;
-  grid-template-columns: minmax(88px, 110px) 1fr minmax(108px, auto);
+  grid-template-columns: minmax(88px, 120px) minmax(0, 1fr) minmax(108px, auto);
   gap: 10px 12px;
   align-items: center;
+  min-width: 0;
+}
+
+.h-bar-chart--share .h-bar-row {
+  grid-template-columns: minmax(96px, 140px) minmax(0, 1fr) minmax(132px, auto);
 }
 
 .h-bar-label {
@@ -247,6 +351,9 @@
   font-weight: 700;
   color: var(--text);
   line-height: 1.2;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
 }
 
 .h-bar-track {
@@ -264,6 +371,14 @@
   min-width: 2px;
 }
 
+.h-bar-metrics {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 0;
+}
+
 .h-bar-value {
   font-size: 0.78rem;
   font-weight: 800;
@@ -272,6 +387,39 @@
   text-align: right;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.01em;
+}
+
+.h-bar-pct {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.h-bar-row--total {
+  margin-top: 8px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  flex-shrink: 0;
+  background: var(--surface);
+}
+
+.h-bar-row--total .h-bar-label,
+.h-bar-row--total .h-bar-value,
+.h-bar-row--total .h-bar-pct {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.h-bar-track--total {
+  opacity: 0.55;
+}
+
+.h-bar-empty {
+  margin: 0;
+  padding: 8px 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
 }
 
 .vendas-monthly-grid {
@@ -398,6 +546,23 @@
     flex-direction: column;
   }
 
+  .vendas-section-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .vendas-view-toggle {
+    width: 100%;
+  }
+
+  .vendas-view-toggle button {
+    flex: 1;
+  }
+
+  .pie-wrap {
+    flex-direction: column;
+  }
+
   .h-bar-row {
     grid-template-columns: 1fr auto;
     gap: 6px 10px;
@@ -411,9 +576,14 @@
     grid-column: 1;
   }
 
+  .h-bar-metrics,
   .h-bar-value {
     grid-column: 2;
     font-size: 0.74rem;
+  }
+
+  .h-bar-chart--share .h-bar-row {
+    grid-template-columns: 1fr auto;
   }
 
   .donut-wrap {
@@ -662,6 +832,7 @@
   .vendas-total-box,
   .h-bar-label,
   .h-bar-value,
+  .h-bar-pct,
   .donut-legend {
     color: #111 !important;
   }

@@ -5,6 +5,7 @@ import {
   DonutChart,
   HorizontalBarChart,
   KpiCardView,
+  PieChart,
   VerticalBarChart,
 } from '../components/vendas/DashboardCharts';
 import AppIcon from '../components/icons/AppIcon';
@@ -35,6 +36,7 @@ export default function VendasDashboard() {
   const [mes, setMes] = useState(MESES_LABEL[currentMonthIdx] ?? 'Junho');
   const [ano, setAno] = useState(currentYear);
   const [loading, setLoading] = useState(true);
+  const [compareView, setCompareView] = useState<'meta' | 'industria'>('meta');
   const [mapiMensal, setMapiMensal] = useState<{ mes: string; valor: number }[]>([]);
   const [paMensal, setPaMensal] = useState<{ mes: string; valor: number }[]>([]);
   const [mapiMesIndustria, setMapiMesIndustria] = useState<{ nome: string; valor: number }[]>([]);
@@ -123,15 +125,22 @@ export default function VendasDashboard() {
   const pct = (realizado: number, meta: number) =>
     `${meta > 0 ? ((realizado / meta) * 100).toFixed(1) : '0'}% da meta`;
 
-  const kpiCardsMensal = useMemo(
-    () => [
+  const shareOf = (part: number, total: number) => (total > 0 ? (part / total) * 100 : 0);
+
+  const kpiCardsMensal = useMemo(() => {
+    const totalMes = realizadoMapiMes + realizadoPaMes;
+    return [
       {
         id: 'total-mes',
         title: `Total ${mes}`,
-        realizado: realizadoMapiMes + realizadoPaMes,
+        realizado: totalMes,
         meta: metaMapi + metaPa,
-        percentLabel: pct(realizadoMapiMes + realizadoPaMes, metaMapi + metaPa),
+        percentLabel: pct(totalMes, metaMapi + metaPa),
         icon: 'target' as const,
+        regionShare: {
+          mapiPct: shareOf(realizadoMapiMes, totalMes),
+          paPct: shareOf(realizadoPaMes, totalMes),
+        },
       },
       {
         id: 'mapi-mes',
@@ -149,19 +158,23 @@ export default function VendasDashboard() {
         percentLabel: pct(realizadoPaMes, metaPa),
         icon: 'trend' as const,
       },
-    ],
-    [mes, realizadoMapiMes, realizadoPaMes, metaMapi, metaPa],
-  );
+    ];
+  }, [mes, realizadoMapiMes, realizadoPaMes, metaMapi, metaPa]);
 
-  const kpiCardsAnual = useMemo(
-    () => [
+  const kpiCardsAnual = useMemo(() => {
+    const totalAno = totalMapi + totalPa;
+    return [
       {
         id: 'total-ano',
         title: `Total Anual ${ano}`,
-        realizado: totalMapi + totalPa,
+        realizado: totalAno,
         meta: metaMapiAnual + metaPaAnual,
-        percentLabel: pct(totalMapi + totalPa, metaMapiAnual + metaPaAnual),
+        percentLabel: pct(totalAno, metaMapiAnual + metaPaAnual),
         icon: 'target' as const,
+        regionShare: {
+          mapiPct: shareOf(totalMapi, totalAno),
+          paPct: shareOf(totalPa, totalAno),
+        },
       },
       {
         id: 'mapi-ano',
@@ -179,9 +192,8 @@ export default function VendasDashboard() {
         percentLabel: pct(totalPa, metaPaAnual),
         icon: 'trend' as const,
       },
-    ],
-    [ano, totalMapi, totalPa, metaMapiAnual, metaPaAnual],
-  );
+    ];
+  }, [ano, totalMapi, totalPa, metaMapiAnual, metaPaAnual]);
 
   const [printPreview, setPrintPreview] = useState(false);
   const [savingPdf, setSavingPdf] = useState(false);
@@ -343,6 +355,7 @@ export default function VendasDashboard() {
                 meta={card.meta}
                 percentLabel={card.percentLabel}
                 icon={card.icon}
+                regionShare={'regionShare' in card ? card.regionShare : undefined}
               />
             ))}
           </div>
@@ -359,6 +372,7 @@ export default function VendasDashboard() {
                 meta={card.meta}
                 percentLabel={card.percentLabel}
                 icon={card.icon}
+                regionShare={'regionShare' in card ? card.regionShare : undefined}
               />
             ))}
           </div>
@@ -366,17 +380,50 @@ export default function VendasDashboard() {
 
         <div className="vendas-dashboard-charts" id="vendas-dashboard-charts">
           <section className="card vendas-section">
-            <h2 className="vendas-section-title">Comparativo Mensal por Região — {mes}</h2>
+            <div className="vendas-section-head">
+              <h2 className="vendas-section-title">Comparativo Mensal por Região — {mes}</h2>
+              <div className="vendas-view-toggle" role="group" aria-label="Tipo de gráfico">
+                <button
+                  type="button"
+                  className={compareView === 'meta' ? 'active' : ''}
+                  onClick={() => setCompareView('meta')}
+                >
+                  Rosca (Meta)
+                </button>
+                <button
+                  type="button"
+                  className={compareView === 'industria' ? 'active' : ''}
+                  onClick={() => setCompareView('industria')}
+                >
+                  Pizza (Indústria)
+                </button>
+              </div>
+            </div>
 
             <div className="vendas-compare-grid">
-              <div className="vendas-compare-block">
-                <h3>Realizado x Meta Mensal ({mes}) — MA/PI</h3>
-                <DonutChart realizado={realizadoMapiMes} meta={metaMapi} color={CORAL} />
-              </div>
-              <div className="vendas-compare-block">
-                <h3>Realizado x Meta Mensal ({mes}) — Pará</h3>
-                <DonutChart realizado={realizadoPaMes} meta={metaPa} color={BLUE} />
-              </div>
+              {compareView === 'meta' ? (
+                <>
+                  <div className="vendas-compare-block">
+                    <h3>Realizado x Meta Mensal ({mes}) — MA/PI</h3>
+                    <DonutChart realizado={realizadoMapiMes} meta={metaMapi} color={CORAL} />
+                  </div>
+                  <div className="vendas-compare-block">
+                    <h3>Realizado x Meta Mensal ({mes}) — Pará</h3>
+                    <DonutChart realizado={realizadoPaMes} meta={metaPa} color={BLUE} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="vendas-compare-block">
+                    <h3>Participação por Indústria ({mes}) — MA/PI</h3>
+                    <PieChart data={mapiMesIndustria} />
+                  </div>
+                  <div className="vendas-compare-block">
+                    <h3>Participação por Indústria ({mes}) — Pará</h3>
+                    <PieChart data={paMesIndustria} />
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="vendas-charts-grid">
@@ -385,6 +432,7 @@ export default function VendasDashboard() {
                 <HorizontalBarChart
                   data={mapiMesIndustria.length ? mapiMesIndustria : [{ nome: 'Sem dados', valor: 0 }]}
                   color={CORAL}
+                  showShareAndTotal
                 />
               </div>
               <div className="vendas-chart-card">
@@ -392,6 +440,7 @@ export default function VendasDashboard() {
                 <HorizontalBarChart
                   data={paMesIndustria.length ? paMesIndustria : [{ nome: 'Sem dados', valor: 0 }]}
                   color={BLUE}
+                  showShareAndTotal
                 />
               </div>
               <div className="vendas-chart-card">
@@ -399,6 +448,7 @@ export default function VendasDashboard() {
                 <HorizontalBarChart
                   data={mapiAnualIndustria.length ? mapiAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]}
                   color={CORAL_DARK}
+                  showShareAndTotal
                 />
               </div>
               <div className="vendas-chart-card">
@@ -406,6 +456,7 @@ export default function VendasDashboard() {
                 <HorizontalBarChart
                   data={paAnualIndustria.length ? paAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]}
                   color={BLUE}
+                  showShareAndTotal
                 />
               </div>
             </div>

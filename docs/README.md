@@ -2,6 +2,19 @@
 
 Esta pasta descreve **o que o aplicativo faz hoje**, para pessoas e, no futuro, para uma IA tirar dúvidas dos usuários.
 
+> **Importante:** estes arquivos existem só no repositório. **Não são exibidos** nas telas do painel para o usuário final.
+
+## Autores e colaboração
+
+Este aplicativo foi criado pela **IAFE TECH**.
+
+Todos abaixo são colaboradores da **IAFE TECH**.
+
+| Papel | Nome |
+|-------|------|
+| Autores do projeto | **Helry Araujo Rodrigues**, **Guilherme Barros** |
+| Colaborador (Assistente IA) | **Cursor** |
+
 ## Como usar
 
 | Arquivo | Conteúdo |
@@ -24,6 +37,7 @@ Quando o app mudar de forma relevante:
 
 ## Marca e produto
 
+- **Criado por:** **IAFE TECH**
 - **Produto:** Painel web da **Fé Merchandising**
 - **Público:** equipe interna (gerente e cargos liberados) + usuários externos (indústria e cliente) em modo visualização
 - **Repositório / app:** `app-fe-web-gerente` (Web FE — Painel do Gerente)

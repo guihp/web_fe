@@ -37,3 +37,7 @@ Há também um **aplicativo mobile** separado para alguns perfis de campo; este 
 
 - Não substitui o app mobile de promotores/degustação (há mensagem de login apontando o mobile para cargos não liberados no web, conforme regra vigente).
 - Usuário externo **não edita** Validades nem move cards no Sucesso do cliente — só acompanha.
+
+## Créditos (só documentação)
+
+O painel foi criado pela **IAFE TECH**. Autores e colaboração (todos colaboradores da IAFE TECH) estão listados em [`docs/README.md`](./README.md). Essa informação **não é exibida** nas telas do aplicativo.

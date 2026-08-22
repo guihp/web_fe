@@ -48,13 +48,17 @@ Filtros: mês, ano, indústria, vendedor, estado, busca. Externos não alteram s
 |-------|------|-----------|
 | Relatórios | `/relatorios` | Relatórios comerciais |
 | Projeção de metas | `/projecao-metas` | Metas vs realizado |
-| Vendas (dashboard) | `/vendas` | Visão geral: KPIs, realizado x meta, barras mensais/anuais por indústria (MA/PI e Pará) |
+| Vendas (dashboard) | `/vendas` | Visão geral: KPIs (com % MA/PI e PA no total), realizado x meta, barras mensais/anuais por indústria (MA/PI e Pará) |
 | Lançamento de vendas | `/lancamento` | Incluir/editar/cancelar vendas |
 | Cadastro de clientes | `/clientes` | Cadastro operacional de clientes |
 | Base de clientes | `/base-clientes` | Base tabular de clientes |
 | Base de dados | `/base-vendas` | Base tabular de vendas |
 
-No dashboard, os valores das barras por indústria ficam **ao lado** da barra (não sobre o laranja/azul).
+No dashboard:
+
+- Valores das barras por indústria ficam **ao lado** da barra (não sobre o laranja/azul), com **%** da participação no total daquele gráfico e linha de **Total**.
+- No comparativo mensal por região, o usuário escolhe entre gráfico de **rosca (Realizado x Meta)** e **pizza (participação por indústria no mês)**.
+- Indústrias novas no mês aparecem automaticamente nos gráficos (agregação dinâmica).
 
 Rota legada `/vendas/lancamento` → `/lancamento`.  
 Rota `/comissao` → Financeiro na aba Comissão.
