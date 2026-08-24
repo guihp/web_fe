@@ -4,8 +4,9 @@ export type TipoUsuario = 'interno' | 'industria' | 'cliente';
 
 export const EXTERNAL_SECTION_IDS = [
   'validades.home',
-  'merchandising.sucesso',
-  'merchandising.price',
+  'atividades.home',
+  'fe-representacoes.sucesso',
+  'fe-representacoes.price',
 ] as const;
 
 export const EXTERNAL_CARGO_INDUSTRIA = 'Indústria (externo)';

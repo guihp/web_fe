@@ -178,7 +178,7 @@ export default function AdminSucessoCliente() {
 
   return (
     <div className="sucesso-page">
-      <BackToPortal to="/merchandising" label="Voltar ao Merchandising" />
+      <BackToPortal to="/fe-representacoes" label="Voltar a Fé Representações" />
 
       <header className="sucesso-header">
         <div>

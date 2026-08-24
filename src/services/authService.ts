@@ -96,7 +96,7 @@ function toAuthUser(user: UsuarioRow, industriaNome: string | null): AuthUser {
   const acesso = isExternalTipo(tipo)
     ? {
         secoes: externalSecoesForTipo(tipo),
-        modulos: ['merchandising'] as PortalModuleId[],
+        modulos: ['merchandising', 'fe-representacoes'] as PortalModuleId[],
       }
     : parseAcessoFromNivelAcesso(user.nivel_acesso, user.cargo);
 

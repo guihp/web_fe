@@ -41,24 +41,6 @@ const MERCH_CARDS: {
     icon: 'calendar',
     section: 'validades.home',
   },
-  {
-    id: 'price',
-    title: 'Price',
-    description: 'Pesquisas de preço internas e externas, markup e margem.',
-    path: '/merchandising/price',
-    tone: 'orange',
-    icon: 'tag',
-    section: 'merchandising.price',
-  },
-  {
-    id: 'sucesso',
-    title: 'Sucesso do cliente',
-    description: 'Kanban de pedidos e acompanhamento do cliente.',
-    path: '/merchandising/sucesso-cliente',
-    tone: 'orange',
-    icon: 'check',
-    section: 'merchandising.sucesso',
-  },
 ];
 
 export default function Merchandising() {
@@ -73,9 +55,7 @@ export default function Merchandising() {
 
       <header className="admin-header">
         <h1 className="page-title">Merchandising</h1>
-        <p className="admin-subtitle">
-          Treinamentos, atividades em loja, validades, Price e Sucesso do cliente.
-        </p>
+        <p className="admin-subtitle">Treinamentos, atividades em loja e controle de validades.</p>
       </header>
 
       <div className="admin-grid admin-grid--compact">

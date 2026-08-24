@@ -4,10 +4,11 @@
 
 1. Só **Gerente** cria/edita usuários e acessa o hub Administrador completo.
 2. Usuário **interno** inativo (`status = false`) não entra.
-3. Usuário **externo** só vê Validades, Sucesso do cliente e **Price**, em leitura.
-4. Indústria externa: dados filtrados pela indústria vinculada (Validades, Sucesso do cliente e Price).
-5. Cliente externo: dados filtrados pelo **grupo de nome de loja** (ex.: MATEUS) e afinidade de CNPJ (raiz do CNPJ de login); no Price, o grupo MATEUS também casa bandeiras curtas (`Mix`, `Super Castanhal`).
+3. Usuário **externo** só vê Validades, Atividades, Sucesso do cliente e **Price**, em leitura (sem Vendas).
+4. Indústria externa: dados filtrados pela indústria vinculada (Validades, Atividades, Sucesso do cliente e Price).
+5. Cliente externo: dados filtrados pelo **grupo de nome de loja** (ex.: MATEUS) e afinidade de CNPJ (raiz do CNPJ de login); no Price/Atividades, o grupo MATEUS também casa bandeiras curtas (`Mix`, `Super Castanhal`).
 6. Notificações de externos: só Sucesso do cliente do próprio escopo (sem vendas gerais nem financeiro).
+7. Balão **Fé Representações** concentra Price, Sucesso e Vendas; no cadastro interno, Vendas pode ser liberada ou não por seção.
 
 ## Price
 

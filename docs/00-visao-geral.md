@@ -4,8 +4,8 @@
 
 O **Painel Web da Fé Merchandising** é o sistema usado pela operação e gestão para acompanhar:
 
-- Merchandising em loja (treinamentos, atividades, validades, sucesso do cliente)
-- Vendas (lançamento, bases, metas, relatórios)
+- Merchandising em loja (treinamentos, atividades, validades)
+- Representações / comercial (Price, Sucesso do cliente, vendas)
 - Financeiro (contratos, composição, comissões)
 - Administração (usuários, indústrias, filiais, regionais, etc.)
 
@@ -17,8 +17,8 @@ Há também um **aplicativo mobile** separado para alguns perfis de campo; este 
 |--------|------------|
 | **Equipe interna** (Gerente, Supervisor, Financeiro, RH, Analista admin, Vendedor, etc.) | Opera o painel conforme as seções liberadas no cadastro |
 | **Gerente** | Acesso amplo; único que gerencia usuários e o hub Administrador |
-| **Indústria (externo)** | Só **vê** Validades, Sucesso do cliente e **Price** **da própria indústria** |
-| **Cliente (externo)** | Só **vê** Validades, Sucesso do cliente e **Price** do **seu grupo de lojas** (ex.: todas as lojas Mateus) |
+| **Indústria (externo)** | Só **vê** Validades, Atividades, Sucesso do cliente e **Price** **da própria indústria** |
+| **Cliente (externo)** | Só **vê** Validades, Atividades, Sucesso do cliente e **Price** do **seu grupo de lojas** (ex.: todas as lojas Mateus) |
 
 ## Como o usuário navega
 
@@ -36,7 +36,7 @@ Há também um **aplicativo mobile** separado para alguns perfis de campo; este 
 ## O que este painel não é
 
 - Não substitui o app mobile de promotores/degustação (há mensagem de login apontando o mobile para cargos não liberados no web, conforme regra vigente).
-- Usuário externo **não edita** Validades nem move cards no Sucesso do cliente — só acompanha.
+- Usuário externo **não edita** Validades, Atividades nem move cards no Sucesso do cliente — só acompanha.
 
 ## Créditos (só documentação)
 

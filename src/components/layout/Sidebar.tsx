@@ -55,7 +55,7 @@ function pathMatches(itemPath: string, pathname: string, search: string) {
   }
 
   // Hubs: só path exato
-  if (path === '/administrador' || path === '/merchandising') {
+  if (path === '/administrador' || path === '/merchandising' || path === '/fe-representacoes') {
     return pathname === path;
   }
 

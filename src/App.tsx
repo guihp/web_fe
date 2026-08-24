@@ -27,6 +27,7 @@ import AdminSucessoCliente from './pages/admin/AdminSucessoCliente';
 import AdminSectionPlaceholder from './pages/AdminSectionPlaceholder';
 import Validades from './pages/Validades';
 import Merchandising from './pages/Merchandising';
+import FeRepresentacoes from './pages/FeRepresentacoes';
 import Price from './pages/Price';
 
 export default function App() {
@@ -40,12 +41,32 @@ export default function App() {
         <Route element={<ManagerLayout />}>
           <Route path="/" element={<PortalHome />} />
           <Route path="/merchandising" element={<Merchandising />} />
-          <Route path="/merchandising/price" element={<Price />} />
+          <Route path="/fe-representacoes" element={<FeRepresentacoes />} />
+          <Route path="/fe-representacoes/price" element={<Price />} />
+          <Route path="/fe-representacoes/sucesso-cliente" element={<AdminSucessoCliente />} />
+
+          {/* Legado → Fé Representações */}
+          <Route
+            path="/merchandising/price"
+            element={<Navigate to="/fe-representacoes/price" replace />}
+          />
           <Route
             path="/administrador/price"
-            element={<Navigate to="/merchandising/price" replace />}
+            element={<Navigate to="/fe-representacoes/price" replace />}
           />
-          <Route path="/merchandising/sucesso-cliente" element={<AdminSucessoCliente />} />
+          <Route
+            path="/merchandising/sucesso-cliente"
+            element={<Navigate to="/fe-representacoes/sucesso-cliente" replace />}
+          />
+          <Route
+            path="/administrador/sucesso-cliente"
+            element={<Navigate to="/fe-representacoes/sucesso-cliente" replace />}
+          />
+          <Route
+            path="/administrador/perfis"
+            element={<Navigate to="/fe-representacoes/sucesso-cliente" replace />}
+          />
+
           <Route path="/atividades" element={<Atividades />} />
           <Route path="/colaboradores" element={<Colaboradores />} />
           <Route path="/treinamento" element={<Treinamentos />} />
@@ -54,14 +75,6 @@ export default function App() {
           <Route path="/administrador" element={<Administrador />} />
           <Route path="/administrador/usuarios" element={<AdminUsuarios />} />
           <Route path="/administrador/empresa" element={<AdminEmpresa />} />
-          <Route
-            path="/administrador/perfis"
-            element={<Navigate to="/merchandising/sucesso-cliente" replace />}
-          />
-          <Route
-            path="/administrador/sucesso-cliente"
-            element={<Navigate to="/merchandising/sucesso-cliente" replace />}
-          />
           <Route path="/administrador/filiais" element={<AdminFiliais />} />
           <Route path="/administrador/regionais" element={<AdminRegionais />} />
           <Route path="/administrador/industrias" element={<AdminIndustrias />} />
@@ -70,17 +83,41 @@ export default function App() {
           <Route path="/administrador/:section" element={<AdminSectionPlaceholder />} />
 
           <Route element={<VendasModuleLayout />}>
-            <Route path="/relatorios" element={<Relatorios />} />
-            <Route path="/projecao-metas" element={<ProjecaoMetas />} />
-            <Route path="/comissao" element={<Navigate to="/financeiro?tab=comissao" replace />} />
-            <Route path="/vendas" element={<VendasDashboard />} />
-            <Route path="/lancamento" element={<LancamentoVendas />} />
-            <Route path="/clientes" element={<CadastroClientes />} />
-            <Route path="/base-clientes" element={<BaseDadosClientes />} />
-            <Route path="/base-vendas" element={<BaseDadosVendas />} />
+            <Route path="/fe-representacoes/relatorios" element={<Relatorios />} />
+            <Route path="/fe-representacoes/projecao-metas" element={<ProjecaoMetas />} />
+            <Route path="/fe-representacoes/vendas" element={<VendasDashboard />} />
+            <Route path="/fe-representacoes/lancamento" element={<LancamentoVendas />} />
+            <Route path="/fe-representacoes/clientes" element={<CadastroClientes />} />
+            <Route path="/fe-representacoes/base-clientes" element={<BaseDadosClientes />} />
+            <Route path="/fe-representacoes/base-vendas" element={<BaseDadosVendas />} />
+
+            {/* Legado Vendas (paths curtos) */}
+            <Route path="/relatorios" element={<Navigate to="/fe-representacoes/relatorios" replace />} />
+            <Route
+              path="/projecao-metas"
+              element={<Navigate to="/fe-representacoes/projecao-metas" replace />}
+            />
+            <Route path="/vendas" element={<Navigate to="/fe-representacoes/vendas" replace />} />
+            <Route
+              path="/lancamento"
+              element={<Navigate to="/fe-representacoes/lancamento" replace />}
+            />
+            <Route path="/clientes" element={<Navigate to="/fe-representacoes/clientes" replace />} />
+            <Route
+              path="/base-clientes"
+              element={<Navigate to="/fe-representacoes/base-clientes" replace />}
+            />
+            <Route
+              path="/base-vendas"
+              element={<Navigate to="/fe-representacoes/base-vendas" replace />}
+            />
           </Route>
 
-          <Route path="/vendas/lancamento" element={<Navigate to="/lancamento" replace />} />
+          <Route path="/comissao" element={<Navigate to="/financeiro?tab=comissao" replace />} />
+          <Route
+            path="/vendas/lancamento"
+            element={<Navigate to="/fe-representacoes/lancamento" replace />}
+          />
         </Route>
       </Route>
 

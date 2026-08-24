@@ -120,7 +120,7 @@ export async function fetchAppNotifications(
       title: 'Kanban Sucesso do Cliente',
       detail: `Pedido ${pedido} · ${cliente} → ${status}`,
       at: toIso(row.updated_at as string),
-      href: '/merchandising/sucesso-cliente',
+      href: '/fe-representacoes/sucesso-cliente',
     });
   }
 
@@ -214,7 +214,7 @@ async function fetchExternalPedidoNotifications(
       title: 'Kanban Sucesso do Cliente',
       detail: `Pedido ${pedido} · ${cliente} → ${status}`,
       at: toIso(row.updated_at as string),
-      href: '/merchandising/sucesso-cliente',
+      href: '/fe-representacoes/sucesso-cliente',
     });
   }
 

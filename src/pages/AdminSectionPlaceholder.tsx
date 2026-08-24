@@ -35,7 +35,7 @@ export default function AdminSectionPlaceholder() {
   }
 
   if (section === 'perfis' || section === 'sucesso-cliente') {
-    return <Navigate to="/merchandising/sucesso-cliente" replace />;
+    return <Navigate to="/fe-representacoes/sucesso-cliente" replace />;
   }
 
   if (section === 'filiais') {
@@ -55,7 +55,7 @@ export default function AdminSectionPlaceholder() {
   }
 
   if (section === 'price') {
-    return <Navigate to="/merchandising/price" replace />;
+    return <Navigate to="/fe-representacoes/price" replace />;
   }
 
   if (section === 'metas') {

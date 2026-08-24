@@ -2,7 +2,7 @@ import type { AppIconName } from '../components/icons/AppIcon';
 
 export const PORTAL_MODULE_IDS = [
   'merchandising',
-  'vendas',
+  'fe-representacoes',
   'financeiro',
   'administrador',
 ] as const;
@@ -14,11 +14,24 @@ export const ALWAYS_AVAILABLE_MODULE_IDS: readonly PortalModuleId[] = [];
 
 export const ALWAYS_AVAILABLE_SECTION_IDS = ['validades.home'] as const;
 
+/** Seções comerciais (antes no balão Vendas; agora em Fé Representações). */
+const VENDAS_SECTION_IDS = [
+  'vendas.relatorios',
+  'vendas.projecao-metas',
+  'vendas.dashboard',
+  'vendas.lancamento',
+  'vendas.clientes',
+  'vendas.base-clientes',
+  'vendas.base-vendas',
+] as const;
+
 /** IDs antigos de módulo → seções (compatível com nivel_acesso legado). */
 const LEGACY_MODULE_SECTIONS: Record<string, string[]> = {
   treinamentos: ['treinamentos.home'],
   atividades: ['atividades.home'],
   validades: ['validades.home'],
+  /** Balão Vendas foi absorvido por Fé Representações — mantém seções `vendas.*`. */
+  vendas: [...VENDAS_SECTION_IDS],
 };
 
 export type PortalSectionDef = {
@@ -42,7 +55,7 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
   {
     id: 'merchandising',
     title: 'Merchandising',
-    description: 'Treinamentos, atividades, validades, Price e Sucesso do cliente.',
+    description: 'Treinamentos, atividades em loja e controle de validades.',
     badge: 'Operação',
     icon: 'merchandising',
     path: '/merchandising',
@@ -51,30 +64,71 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
       { id: 'treinamentos.home', title: 'Treinamentos', path: '/treinamento', icon: 'briefcase' },
       { id: 'atividades.home', title: 'Atividades', path: '/atividades', icon: 'clipboard' },
       { id: 'validades.home', title: 'Validades', path: '/validades', icon: 'calendar' },
-      { id: 'merchandising.price', title: 'Price', path: '/merchandising/price', icon: 'tag' },
-      {
-        id: 'merchandising.sucesso',
-        title: 'Sucesso do cliente',
-        path: '/merchandising/sucesso-cliente',
-        icon: 'check',
-      },
     ],
   },
   {
-    id: 'vendas',
-    title: 'Vendas',
-    description: 'Gestão completa de vendas, clientes e metas comerciais.',
+    id: 'fe-representacoes',
+    title: 'Fé Representações',
+    description: 'Price, Sucesso do cliente e gestão comercial de vendas.',
     badge: 'Comercial',
     icon: 'cart',
-    path: '/vendas',
+    path: '/fe-representacoes',
     sections: [
-      { id: 'vendas.relatorios', title: 'Relatórios', path: '/relatorios', icon: 'chart' },
-      { id: 'vendas.projecao-metas', title: 'Projeção de metas', path: '/projecao-metas', icon: 'target' },
-      { id: 'vendas.dashboard', title: 'Vendas', path: '/vendas', icon: 'cart' },
-      { id: 'vendas.lancamento', title: 'Lançamento de vendas', path: '/lancamento', icon: 'money' },
-      { id: 'vendas.clientes', title: 'Cadastro de clientes', path: '/clientes', icon: 'building' },
-      { id: 'vendas.base-clientes', title: 'Base de clientes', path: '/base-clientes', icon: 'clipboard' },
-      { id: 'vendas.base-vendas', title: 'Base de dados', path: '/base-vendas', icon: 'archive' },
+      {
+        id: 'fe-representacoes.hub',
+        title: 'Hub Fé Representações',
+        path: '/fe-representacoes',
+        icon: 'cart',
+      },
+      {
+        id: 'fe-representacoes.price',
+        title: 'Price',
+        path: '/fe-representacoes/price',
+        icon: 'tag',
+      },
+      {
+        id: 'fe-representacoes.sucesso',
+        title: 'Sucesso do cliente',
+        path: '/fe-representacoes/sucesso-cliente',
+        icon: 'check',
+      },
+      {
+        id: 'vendas.relatorios',
+        title: 'Relatórios',
+        path: '/fe-representacoes/relatorios',
+        icon: 'chart',
+      },
+      {
+        id: 'vendas.projecao-metas',
+        title: 'Projeção de metas',
+        path: '/fe-representacoes/projecao-metas',
+        icon: 'target',
+      },
+      { id: 'vendas.dashboard', title: 'Vendas', path: '/fe-representacoes/vendas', icon: 'cart' },
+      {
+        id: 'vendas.lancamento',
+        title: 'Lançamento de vendas',
+        path: '/fe-representacoes/lancamento',
+        icon: 'money',
+      },
+      {
+        id: 'vendas.clientes',
+        title: 'Cadastro de clientes',
+        path: '/fe-representacoes/clientes',
+        icon: 'building',
+      },
+      {
+        id: 'vendas.base-clientes',
+        title: 'Base de clientes',
+        path: '/fe-representacoes/base-clientes',
+        icon: 'clipboard',
+      },
+      {
+        id: 'vendas.base-vendas',
+        title: 'Base de dados',
+        path: '/fe-representacoes/base-vendas',
+        icon: 'archive',
+      },
     ],
   },
   {
@@ -100,12 +154,6 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
     sections: [
       { id: 'administrador.hub', title: 'Hub Administrador', path: '/administrador', icon: 'shield' },
       { id: 'administrador.usuarios', title: 'Usuários', path: '/administrador/usuarios', icon: 'user' },
-      {
-        id: 'administrador.price',
-        title: 'Price',
-        path: '/administrador/price',
-        icon: 'briefcase',
-      },
       { id: 'administrador.empresa', title: 'Empresa', path: '/administrador/empresa', icon: 'building' },
       {
         id: 'administrador.regionais',
@@ -191,19 +239,25 @@ export function defaultModulosForCargo(cargo: string): PortalModuleId[] {
   return PORTAL_MODULE_IDS.filter((id) => id !== 'administrador');
 }
 
+function remapLegacySectionId(id: string): string {
+  // Comissão saiu de Vendas → Financeiro
+  if (id === 'vendas.comissao') return 'financeiro.comissao';
+  // Price / Sucesso → Fé Representações
+  if (id === 'merchandising.price' || id === 'administrador.price') {
+    return 'fe-representacoes.price';
+  }
+  if (id === 'merchandising.sucesso' || id === 'administrador.sucesso') {
+    return 'fe-representacoes.sucesso';
+  }
+  return id;
+}
+
 export function sanitizeSecoes(cargo: string, secoes: string[] | null | undefined): string[] {
   const allowed = new Set(ALL_SECTION_IDS);
   const picked = [
     ...new Set(
       (secoes ?? [])
-        .map((s) => {
-          const id = s.trim();
-          // Comissão saiu de Vendas → Financeiro
-          if (id === 'vendas.comissao') return 'financeiro.comissao';
-          // Sucesso do cliente saiu de Administrador → Merchandising
-          if (id === 'administrador.sucesso') return 'merchandising.sucesso';
-          return id;
-        })
+        .map((s) => remapLegacySectionId(s.trim()))
         .filter((s) => allowed.has(s)),
     ),
   ];
@@ -245,6 +299,11 @@ export function expandModulosToSecoes(modulos: string[]): string[] {
     }
     if ((PORTAL_MODULE_IDS as readonly string[]).includes(id)) {
       for (const section of sectionsOfModule(id as PortalModuleId)) set.add(section.id);
+      // Legado: Price/Sucesso viviam no balão Merchandising
+      if (id === 'merchandising') {
+        set.add('fe-representacoes.price');
+        set.add('fe-representacoes.sucesso');
+      }
     } else if (ALL_SECTION_IDS.includes(raw.trim())) {
       set.add(raw.trim());
     }
@@ -343,7 +402,11 @@ export function firstPathForModule(
   const mod = PORTAL_MODULES.find((m) => m.id === moduleId);
   if (!mod) return '/';
   // Hubs abrem a página central do módulo
-  if (moduleId === 'merchandising' || moduleId === 'administrador') {
+  if (
+    moduleId === 'merchandising' ||
+    moduleId === 'fe-representacoes' ||
+    moduleId === 'administrador'
+  ) {
     return mod.path;
   }
   if (ALWAYS_AVAILABLE_MODULE_IDS.includes(moduleId)) {
@@ -354,33 +417,52 @@ export function firstPathForModule(
   return hit?.path ?? mod.path;
 }
 
-/** Mapeia rota atual para o id da seção. */
-/** Price existe nos hubs Merchandising e Administrador — qualquer uma das seções libera. */
-const PRICE_SECTION_IDS = ['merchandising.price', 'administrador.price'] as const;
+/** Price: IDs atuais + aliases legados (Merchandising / Admin). */
+const PRICE_SECTION_IDS = [
+  'fe-representacoes.price',
+  'merchandising.price',
+  'administrador.price',
+] as const;
 
+const SUCESSO_SECTION_IDS = [
+  'fe-representacoes.sucesso',
+  'merchandising.sucesso',
+  'administrador.sucesso',
+] as const;
+
+/** Mapeia rota atual para o id da seção. */
 export function sectionIdForPath(pathname: string): string | 'home' | null {
   if (pathname === '/' || pathname === '') return 'home';
 
   const normalized = pathname.replace(/\/$/, '') || '/';
 
-  if (normalized === '/merchandising/price') {
-    return 'merchandising.price';
+  // Rotas atuais Fé Representações
+  if (normalized === '/fe-representacoes/price') return 'fe-representacoes.price';
+  if (normalized === '/fe-representacoes/sucesso-cliente') return 'fe-representacoes.sucesso';
+
+  // Legado Price / Sucesso (Merchandising e Admin)
+  if (normalized === '/merchandising/price' || normalized === '/administrador/price') {
+    return 'fe-representacoes.price';
   }
-  if (normalized === '/merchandising/sucesso-cliente') {
-    return 'merchandising.sucesso';
-  }
-  // Rota do hub Admin — acesso equivalente via alias em userHasSectionAccess
-  if (normalized === '/administrador/price') {
-    return 'administrador.price';
+  if (
+    normalized === '/merchandising/sucesso-cliente' ||
+    normalized === '/administrador/sucesso-cliente' ||
+    normalized === '/administrador/perfis'
+  ) {
+    return 'fe-representacoes.sucesso';
   }
 
-  // Rotas legadas de Sucesso do cliente (agora em Merchandising)
-  if (
-    normalized === '/administrador/perfis' ||
-    normalized === '/administrador/sucesso-cliente'
-  ) {
-    return 'merchandising.sucesso';
-  }
+  // Legado Vendas (paths curtos)
+  const vendasLegacy: Record<string, string> = {
+    '/vendas': 'vendas.dashboard',
+    '/lancamento': 'vendas.lancamento',
+    '/relatorios': 'vendas.relatorios',
+    '/projecao-metas': 'vendas.projecao-metas',
+    '/clientes': 'vendas.clientes',
+    '/base-clientes': 'vendas.base-clientes',
+    '/base-vendas': 'vendas.base-vendas',
+  };
+  if (vendasLegacy[normalized]) return vendasLegacy[normalized]!;
 
   // Mais específico primeiro
   const allSections = PORTAL_MODULES.flatMap((m) => m.sections).sort(
@@ -388,12 +470,14 @@ export function sectionIdForPath(pathname: string): string | 'home' | null {
   );
 
   for (const section of allSections) {
-    if (normalized === section.path || normalized.startsWith(`${section.path}/`)) {
+    const base = section.path.split('?')[0] ?? section.path;
+    if (normalized === base || normalized.startsWith(`${base}/`)) {
       return section.id;
     }
   }
 
   if (normalized.startsWith('/administrador')) return 'administrador.hub';
+  if (normalized.startsWith('/fe-representacoes')) return 'fe-representacoes.hub';
   return null;
 }
 
@@ -418,9 +502,14 @@ export function userHasSectionAccess(
     secoes?.length ? secoes : defaultSecoesForCargo(cargo),
   );
 
-  // Price: liberado se marcado em Merchandising ou em Administrador (antes do gate de Admin)
+  // Price: liberado se marcado no ID atual ou aliases legados
   if ((PRICE_SECTION_IDS as readonly string[]).includes(sectionId)) {
-    return PRICE_SECTION_IDS.some((id) => resolved.includes(id));
+    return PRICE_SECTION_IDS.some((id) => resolved.includes(remapLegacySectionId(id)));
+  }
+
+  // Sucesso: idem
+  if ((SUCESSO_SECTION_IDS as readonly string[]).includes(sectionId)) {
+    return SUCESSO_SECTION_IDS.some((id) => resolved.includes(remapLegacySectionId(id)));
   }
 
   if (sectionId.startsWith('administrador.') && !canManageUsers(cargo)) {
@@ -431,6 +520,13 @@ export function userHasSectionAccess(
   if (sectionId === 'merchandising.hub') {
     return sectionsOfModule('merchandising').some(
       (s) => s.id !== 'merchandising.hub' && resolved.includes(s.id),
+    );
+  }
+
+  // Hub Fé Representações
+  if (sectionId === 'fe-representacoes.hub') {
+    return sectionsOfModule('fe-representacoes').some(
+      (s) => s.id !== 'fe-representacoes.hub' && resolved.includes(s.id),
     );
   }
 

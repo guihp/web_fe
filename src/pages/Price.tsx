@@ -332,7 +332,7 @@ export default function Price() {
 
   return (
     <div className="base-vendas-page price-page">
-      <BackToPortal to="/merchandising" label="Voltar ao Merchandising" />
+      <BackToPortal to="/fe-representacoes" label="Voltar a Fé Representações" />
 
       <header className="base-vendas-header">
         <h1 className="page-title">Price</h1>

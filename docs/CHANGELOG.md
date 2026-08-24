@@ -2,6 +2,20 @@
 
 Formato: mais recente no topo.
 
+## 2026-08-24
+
+### App
+- Novo balão **Fé Representações** (`fe-representacoes`): Price, Sucesso do cliente e todas as telas de Vendas.
+- Merchandising fica com Treinamentos, Atividades e Validades.
+- Removido o balão separado **Vendas** e o atalho Price do Administrador.
+- URLs novas sob `/fe-representacoes/...`; paths antigos redirecionam.
+- Externos: Merchandising (Validades + Atividades no escopo) + Fé Representações (Price + Sucesso); sem Vendas; somente leitura.
+- Cadastro interno: card Fé Representações com escolha de liberar ou não as seções de Vendas.
+
+### Documentação
+- Módulos, acesso e regras atualizados (`00`, `01`, `02`, `04`).
+- Créditos IAFE TECH mantidos em `docs/README.md` (não aparecem na UI).
+
 ## 2026-08-22
 
 ### App

@@ -25,16 +25,6 @@ function IconUser() {
   );
 }
 
-function IconBriefcase() {
-  return (
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <rect x="3" y="7" width="18" height="13" rx="2" />
-      <path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-      <path d="M3 13h18" />
-    </svg>
-  );
-}
-
 function IconBuilding() {
   return (
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
@@ -104,17 +94,6 @@ const ADMIN_MODULES: AdminModule[] = [
     tone: 'blue',
     icon: <IconUser />,
     section: 'administrador.usuarios',
-  },
-  {
-    id: 'price',
-    title: 'Price',
-    description: 'Pesquisas de preço — abre em Merchandising',
-    path: '/merchandising/price',
-    tone: 'sky',
-    icon: <IconBriefcase />,
-    // Aceita permissão do Admin ou do Merchandising
-    section: 'administrador.price',
-    altSections: ['merchandising.price'],
   },
   {
     id: 'empresa',

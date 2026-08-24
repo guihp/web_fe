@@ -6,6 +6,7 @@ import ViewAtividadeModal from '../components/atividades/ViewAtividadeModal';
 import BackToPortal from '../components/layout/BackToPortal';
 import AppIcon from '../components/icons/AppIcon';
 import { useAtividadeModal } from '../context/AtividadeModalContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import {
   fetchAtividadeStats,
@@ -30,8 +31,15 @@ const STATUS_OPTIONS = ['Todos', 'Em andamento', 'Completo', 'Justificada', 'Can
 type Tab = 'acompanhamento' | 'historico';
 
 export default function Atividades() {
+  const { user } = useAuth();
   const { openAddAtividade, registerOnCreated } = useAtividadeModal();
   const { showToast } = useToast();
+
+  const somenteLeitura = Boolean(user?.somente_leitura);
+  const scopeIndustria =
+    user?.tipo_usuario === 'industria' ? user.industria_nome ?? undefined : undefined;
+  const scopeClienteGrupo =
+    user?.tipo_usuario === 'cliente' ? user.cliente_grupo ?? undefined : undefined;
 
   const [tab, setTab] = useState<Tab>('acompanhamento');
   const [search, setSearch] = useState('');
@@ -61,6 +69,8 @@ export default function Atividades() {
         promotorId: promotorId ? Number(promotorId) : undefined,
         dataInicio: dataInicio || undefined,
         dataFim: dataFim || undefined,
+        scopeIndustria,
+        scopeClienteGrupo,
       };
       const data = await fetchAtividades(filters);
       setRows(data);
@@ -70,7 +80,18 @@ export default function Atividades() {
     } finally {
       setLoading(false);
     }
-  }, [tab, search, status, tipo, promotorId, dataInicio, dataFim, showToast]);
+  }, [
+    tab,
+    search,
+    status,
+    tipo,
+    promotorId,
+    dataInicio,
+    dataFim,
+    showToast,
+    scopeIndustria,
+    scopeClienteGrupo,
+  ]);
 
   useEffect(() => {
     fetchPromotores()
@@ -109,16 +130,24 @@ export default function Atividades() {
         <div className="atividades-header-text">
           <h1 className="page-title">Atividades</h1>
           <p className="atividades-subtitle">
-            Acompanhe o progresso e gerencie as atividades enviadas aos promotores
+            {somenteLeitura
+              ? scopeIndustria
+                ? `Visualização da indústria ${scopeIndustria}: atividades dos promotores desta marca.`
+                : scopeClienteGrupo
+                  ? `Visualização do grupo ${scopeClienteGrupo}: atividades nas lojas do grupo.`
+                  : 'Visualização das atividades no seu escopo.'
+              : 'Acompanhe o progresso e gerencie as atividades enviadas aos promotores'}
           </p>
         </div>
         <div className="base-vendas-actions">
           <button type="button" className="base-vendas-btn outline" onClick={loadData}>
             Atualizar
           </button>
-          <button type="button" className="base-vendas-btn primary" onClick={openAddAtividade}>
-            + Nova atividade
-          </button>
+          {!somenteLeitura && (
+            <button type="button" className="base-vendas-btn primary" onClick={openAddAtividade}>
+              + Nova atividade
+            </button>
+          )}
         </div>
       </header>
 
@@ -305,7 +334,7 @@ export default function Atividades() {
                           >
                             Ver
                           </button>
-                          {canEditAtividade(row.status) && (
+                          {canEditAtividade(row.status) && !somenteLeitura && (
                             <button
                               type="button"
                               className="atividades-action-btn"
@@ -314,7 +343,7 @@ export default function Atividades() {
                               Editar
                             </button>
                           )}
-                          {canCancelAtividade(row.status) && (
+                          {canCancelAtividade(row.status) && !somenteLeitura && (
                             <button
                               type="button"
                               className="atividades-action-btn"
@@ -323,13 +352,15 @@ export default function Atividades() {
                               Cancelar
                             </button>
                           )}
-                          <button
-                            type="button"
-                            className="atividades-action-btn danger"
-                            onClick={() => setDeleteRow(row)}
-                          >
-                            Excluir
-                          </button>
+                          {!somenteLeitura && (
+                            <button
+                              type="button"
+                              className="atividades-action-btn danger"
+                              onClick={() => setDeleteRow(row)}
+                            >
+                              Excluir
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>
@@ -345,8 +376,8 @@ export default function Atividades() {
         <ViewAtividadeModal
           atividade={viewRow}
           onClose={() => setViewRow(null)}
-          canEdit={canEditAtividade(viewRow.status)}
-          canCancel={canCancelAtividade(viewRow.status)}
+          canEdit={!somenteLeitura && canEditAtividade(viewRow.status)}
+          canCancel={!somenteLeitura && canCancelAtividade(viewRow.status)}
           onEdit={() => {
             setEditRow(viewRow);
             setViewRow(null);
@@ -355,10 +386,14 @@ export default function Atividades() {
             setCancelRow(viewRow);
             setViewRow(null);
           }}
-          onDelete={() => {
-            setDeleteRow(viewRow);
-            setViewRow(null);
-          }}
+          onDelete={
+            somenteLeitura
+              ? undefined
+              : () => {
+                  setDeleteRow(viewRow);
+                  setViewRow(null);
+                }
+          }
         />
       )}
 

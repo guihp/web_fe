@@ -238,7 +238,8 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
         <h2>{isEdit ? 'Editar Usuário' : 'Novo Usuário'}</h2>
         <p>
           Internos usam CPF. Externos: indústria (login pelo nome) ou cliente (login pelo CNPJ) —
-          Validades, Sucesso do cliente e Price, em modo visualização.
+          Merchandising (Validades + Atividades) e Fé Representações (Price + Sucesso), em modo
+          visualização, só da própria empresa.
         </p>
       </div>
 
@@ -398,7 +399,10 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
           <fieldset className="colab-field full usuario-modulos-field">
             <legend>Balões / seções de acesso</legend>
             <p className="usuario-modulos-hint">
-              Externos recebem automaticamente Validades, Sucesso do cliente e Price (somente leitura).
+              Em <strong>Fé Representações</strong>, abra <em>Seções</em> para liberar só Price e
+              Sucesso, ou marcar telas de Vendas uma a uma. Externos (ao salvar como indústria/cliente)
+              recebem automaticamente Merchandising (Validades + Atividades) e Fé Representações (Price
+              + Sucesso), somente leitura — sem Vendas.
             </p>
             <div className="usuario-modulos-grid">
               {moduleOptions.map((mod) => {
@@ -482,8 +486,9 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
 
         {externo && (
           <p className="usuario-modulos-hint">
-            Acesso fixo: <strong>Validades</strong> + <strong>Sucesso do cliente</strong> +{' '}
-            <strong>Price</strong> (somente visualização do que for desta indústria/cliente).
+            Acesso fixo: <strong>Validades</strong> + <strong>Atividades</strong> (Merchandising) e{' '}
+            <strong>Price</strong> + <strong>Sucesso do cliente</strong> (Fé Representações) — somente
+            visualização do que for desta indústria/cliente.
           </p>
         )}
       </div>

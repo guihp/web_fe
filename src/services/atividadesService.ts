@@ -6,6 +6,10 @@ import {
   overlapsPeriod,
   todayISO,
 } from '../utils/atividadesDomain';
+import {
+  matchLojaByClienteGrupo,
+} from '../utils/externalAccess';
+import { industriasMatch } from '../utils/vendasDomain';
 import type { Usuario } from '../utils/format';
 
 export type Atividade = {
@@ -42,6 +46,10 @@ export type AtividadeFilters = {
   promotorId?: number;
   dataInicio?: string;
   dataFim?: string;
+  /** Externo indústria: só atividades dessa marca. */
+  scopeIndustria?: string;
+  /** Externo cliente: só atividades em lojas do grupo. */
+  scopeClienteGrupo?: string;
 };
 
 export type AtividadeUpdateData = {
@@ -139,6 +147,16 @@ function applyClientFilters(rows: AtividadeRow[], filters: AtividadeFilters): At
 
   if (filters.promotorId) {
     result = result.filter((r) => r.usuario_responsavel === filters.promotorId);
+  }
+
+  if (filters.scopeIndustria?.trim()) {
+    const ind = filters.scopeIndustria.trim();
+    result = result.filter((r) => industriasMatch(r.industria ?? '', ind));
+  }
+
+  if (filters.scopeClienteGrupo?.trim()) {
+    const grupo = filters.scopeClienteGrupo.trim();
+    result = result.filter((r) => matchLojaByClienteGrupo(r.loja, grupo));
   }
 
   if (filters.dataInicio || filters.dataFim) {

@@ -17,8 +17,8 @@ Esqueci a senha: o usuário deve **contactar o administrador** (não há reset s
 | Tipo | Quem cria | Vínculo | Telas |
 |------|-----------|---------|-------|
 | `interno` | Gerente | CPF + cargo + seções | Conforme `nível de acesso` |
-| `industria` | Gerente | Indústria cadastrada (`industrias`) | Validades + Sucesso do cliente + **Price** (leitura) |
-| `cliente` | Gerente | **Grupo** (ex.: MATEUS) + **CNPJ de login** | Validades + Sucesso do cliente + **Price** (leitura) |
+| `industria` | Gerente | Indústria cadastrada (`industrias`) | Merchandising (Validades + Atividades) + Fé Representações (Price + Sucesso), leitura |
+| `cliente` | Gerente | **Grupo** (ex.: MATEUS) + **CNPJ de login** | Merchandising (Validades + Atividades) + Fé Representações (Price + Sucesso), leitura |
 
 Somente o cargo **Gerente** pode criar/editar usuários em **Administrador → Usuários**.
 
@@ -41,32 +41,35 @@ Cargos usados no formulário / login web:
 
 Cada usuário interno tem um JSON de acesso (`nivel_acesso`) com:
 
-- **módulos** (balões da home): Merchandising, Vendas, Financeiro, Administrador
+- **módulos** (balões da home): Merchandising, **Fé Representações**, Financeiro, Administrador
 - **seções** (telas dentro dos balões)
 
 Regras importantes:
 
 - **Validades** fica liberada para usuários internos autenticados (seção sempre disponível).
-- Externos **não** escolhem seções: recebem fixo Validades + Sucesso do cliente + **Price**.
+- Externos **não** escolhem seções: recebem fixo Validades + Atividades + Sucesso do cliente + **Price** (sem Vendas).
 - Externos entram em **modo somente leitura** (`somente_leitura`).
+- No card **Fé Representações**, o Gerente libera Price/Sucesso e pode **marcar ou não** as telas de Vendas por usuário.
 
 ## Escopo dos externos
 
 ### Indústria
 
 - Vê validades cuja indústria é a dela.
+- Vê **atividades** dos promotores dessa indústria (somente leitura).
 - Vê pedidos do Sucesso do cliente dessa indústria.
 - Vê **Price** (internas e externas) só com produtos da **própria indústria** (campo `industria`).
 - Não exporta planilha de validades/price; não edita custos.
-- Não arrasta status no kanban.
+- Não arrasta status no kanban; não cria/edita atividades.
 
 ### Cliente
 
 - **Grupo** (ex.: `MATEUS`): filtra validades pelo **nome da loja** contendo o grupo.
 - No Sucesso do cliente: pedidos cujo **cliente** contém o grupo e/ou **CNPJ** com a mesma raiz do CNPJ de login.
 - No **Price**: lojas do grupo — para **MATEUS**, inclui nomes curtos das bandeiras (`Mix …`, `Super Castanhal`, etc.), não só o texto “MATEUS”.
+- Nas **Atividades**: só lojas do grupo (mesmos tokens de bandeira quando aplicável).
 - Ideia: um usuário “Mateus” acompanha **todas as lojas Mateus**, não só um CNPJ isolado.
-- Mesmas restrições de leitura (sem export / sem editar / sem mover kanban).
+- Mesmas restrições de leitura (sem export / sem editar / sem mover kanban / sem criar atividades).
 
 ## Sessão
 
