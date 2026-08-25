@@ -18,11 +18,14 @@ Hub: `/merchandising`
 |-------|------|-----------|
 | Treinamentos | `/treinamento` | Materiais e PDFs de capacitação |
 | Atividades | `/atividades` | Visitas / ações de merchandising em PDV |
-| Validades | `/validades` | Produtos próximos do vencimento ou vencidos; filtros UF, indústria, mês, status; exportação (internos) |
+| Validades | `/validades` | Lista + gráfico dos produtos que mais venceram no mês; filtros UF, indústria, mês, status e ordenação; exportação (internos); externos só o próprio escopo |
 
 ### Validades — detalhes
 
 - Destaca itens a vencer em menos de 30 dias e itens já vencidos.
+- Ordenação: **vencimento** (padrão), **últimas lançadas → primeiras** ou **primeiras → últimas** (campo `created_at`).
+- Toggle **Lista / Gráfico**: ranking dos produtos que **mais venceram** no mês (soma de `qtde_unit`), top 12; filtros UF/indústria/mês; externos só veem o próprio escopo.
+- **Registrar venda** (só **Gerente**, **Supervisor**, **Analista admin**): venda parcial reduz `qtde_unit`; **tudo vendido** marca `todos_vendidos` e some da lista **daquela loja**. No gráfico, a quantidade do produto cai; o produto só some do gráfico do mês se zerar em **todas** as lojas.
 - Exportar dados: disponível para internos; bloqueado para externos.
 - Externos só veem o recorte da indústria ou do grupo de lojas.
 

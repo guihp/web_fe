@@ -108,6 +108,23 @@
   max-width: 280px;
 }
 
+.validades-venda-btn {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.validades-venda-btn:hover {
+  border-color: var(--coral);
+  color: var(--coral);
+}
+
 @media (max-width: 900px) {
   .validades-filters {
     align-items: stretch;
@@ -123,8 +140,15 @@
     width: 100%;
   }
 
+  .validades-page .base-vendas-card-top {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
   .validades-page .base-vendas-actions {
     width: 100%;
+    flex-wrap: wrap;
   }
 
   .validades-page .base-vendas-btn {

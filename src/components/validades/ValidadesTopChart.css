@@ -1,0 +1,157 @@
+.validades-chart {
+  padding: 4px 22px 20px;
+  min-width: 0;
+}
+
+.validades-chart-head {
+  margin-bottom: 16px;
+}
+
+.validades-chart-head h3 {
+  margin: 0 0 4px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.validades-chart-head p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.validades-chart-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: min(520px, 60vh);
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.validades-chart-row {
+  display: grid;
+  grid-template-columns: 28px minmax(100px, 1.2fr) minmax(0, 1.4fr) minmax(88px, auto);
+  gap: 8px 10px;
+  align-items: center;
+  min-width: 0;
+}
+
+.validades-chart-rank {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.validades-chart-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  min-width: 0;
+}
+
+.validades-chart-track {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  overflow: hidden;
+  min-width: 0;
+}
+
+.validades-chart-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--coral, #ea6624);
+  min-width: 2px;
+  transition: width 0.25s ease;
+}
+
+.validades-chart-metrics {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.validades-chart-metrics strong {
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.validades-chart-loading,
+.validades-chart-empty {
+  padding: 28px 22px;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.validades-view-toggle {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.validades-view-toggle button {
+  border: none;
+  border-radius: 8px;
+  padding: 7px 12px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.validades-view-toggle button.active {
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+@media (max-width: 768px) {
+  .validades-chart {
+    padding: 4px 14px 16px;
+  }
+
+  .validades-chart-row {
+    grid-template-columns: 24px 1fr auto;
+    gap: 6px 8px;
+  }
+
+  .validades-chart-label {
+    grid-column: 2 / -1;
+  }
+
+  .validades-chart-track {
+    grid-column: 2;
+  }
+
+  .validades-chart-metrics {
+    grid-column: 3;
+    grid-row: 2;
+  }
+
+  .validades-view-toggle {
+    width: 100%;
+  }
+
+  .validades-view-toggle button {
+    flex: 1;
+  }
+}

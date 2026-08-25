@@ -3,6 +3,9 @@ import { supabase } from '../lib/supabase';
 
 export const VALIDADE_PAGE_SIZE = 15;
 
+/** Cargos que podem registrar venda / reduzir quantidade em Validades. */
+export const VALIDADE_VENDA_CARGOS = ['Gerente', 'Supervisor', 'Analista admin'] as const;
+
 export type Validade = {
   id: number;
   promotor: string | null;
@@ -15,9 +18,17 @@ export type Validade = {
   qtde_unit: number | null;
   lote: string | null;
   data_vencimento: string | null;
+  /** true = tudo vendido naquela loja — some da listagem. */
+  todos_vendidos: boolean;
 };
 
 export type ValidadeStatusFilter = 'all' | 'soon' | 'expired';
+
+/** Ordenação da listagem. */
+export type ValidadeSort =
+  | 'vencimento_asc'
+  | 'lancamento_desc'
+  | 'lancamento_asc';
 
 export type ValidadeFilters = {
   search?: string;
@@ -27,6 +38,8 @@ export type ValidadeFilters = {
   mes?: string;
   /** Filtro da legenda: próximos 30 dias ou já vencidos. */
   status?: ValidadeStatusFilter;
+  /** Ordenação: vencimento ou data de lançamento (created_at). */
+  sort?: ValidadeSort;
   page?: number;
   pageSize?: number;
   /** Escopo externo: só essa indústria. */
@@ -39,6 +52,20 @@ export type ValidadeListResult = {
   data: Validade[];
   total: number;
 };
+
+function normalizeCargoKey(cargo: string) {
+  return cargo
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '');
+}
+
+export function canRegistrarVendaValidade(cargo: string | null | undefined): boolean {
+  if (!cargo) return false;
+  const key = normalizeCargoKey(cargo);
+  return VALIDADE_VENDA_CARGOS.some((c) => normalizeCargoKey(c) === key);
+}
 
 function mapRow(row: Record<string, unknown>): Validade {
   return {
@@ -53,7 +80,16 @@ function mapRow(row: Record<string, unknown>): Validade {
     qtde_unit: row.qtde_unit == null ? null : Number(row.qtde_unit),
     lote: row.lote != null ? String(row.lote) : null,
     data_vencimento: row.data_vencimento != null ? String(row.data_vencimento) : null,
+    todos_vendidos: Boolean(row.todos_vendidos),
   };
+}
+
+/** Só registros ainda “ativos” (não tudo vendido / com quantidade restante). */
+function applyActiveOnlyFilter(
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  query: any,
+) {
+  return query.eq('todos_vendidos', false).or('qtde_unit.is.null,qtde_unit.gt.0');
 }
 
 export async function fetchValidades(filters: ValidadeFilters = {}): Promise<ValidadeListResult> {
@@ -61,11 +97,18 @@ export async function fetchValidades(filters: ValidadeFilters = {}): Promise<Val
   const pageSize = filters.pageSize ?? VALIDADE_PAGE_SIZE;
   const from = (page - 1) * pageSize;
   const to = from + pageSize - 1;
+  const sort = filters.sort ?? 'vencimento_asc';
 
-  let query = supabase
-    .from('validades')
-    .select('*', { count: 'exact' })
-    .order('data_vencimento', { ascending: true, nullsFirst: false });
+  let query = supabase.from('validades').select('*', { count: 'exact' });
+  query = applyActiveOnlyFilter(query);
+
+  if (sort === 'lancamento_desc') {
+    query = query.order('created_at', { ascending: false, nullsFirst: false });
+  } else if (sort === 'lancamento_asc') {
+    query = query.order('created_at', { ascending: true, nullsFirst: false });
+  } else {
+    query = query.order('data_vencimento', { ascending: true, nullsFirst: false });
+  }
 
   if (filters.scopeIndustria) {
     query = query.eq('industria', toIndustriaPadrao(filters.scopeIndustria));
@@ -135,6 +178,7 @@ export async function fetchAllValidades(scope?: {
     .from('validades')
     .select('*')
     .order('data_vencimento', { ascending: true, nullsFirst: false });
+  query = applyActiveOnlyFilter(query);
 
   if (scope?.scopeIndustria) {
     query = query.eq('industria', toIndustriaPadrao(scope.scopeIndustria));
@@ -203,6 +247,165 @@ export async function fetchValidadesFilterOptions(): Promise<{
     industrias: Array.from(industrias).sort((a, b) => a.localeCompare(b, 'pt-BR')),
     meses: mesesOptions,
   };
+}
+
+export type ValidadeTopProduto = {
+  /** Código + descrição (ou só um deles). */
+  nome: string;
+  codigo: string | null;
+  descricao: string | null;
+  /** Soma de qtde_unit no período. */
+  qtde: number;
+  /** Quantidade de registros (lotes/linhas). */
+  registros: number;
+};
+
+const TOP_VENCIDOS_LIMIT = 12;
+
+/**
+ * Ranking dos produtos que mais venceram (já vencidos) no período/filtros.
+ * Métrica principal: soma de `qtde_unit`. Externos: aplicar scopeIndustria / scopeClienteGrupo.
+ */
+export async function fetchValidadesTopVencidos(
+  filters: Omit<ValidadeFilters, 'page' | 'pageSize' | 'status' | 'sort' | 'search'> = {},
+): Promise<ValidadeTopProduto[]> {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayIso = today.toISOString().slice(0, 10);
+
+  let query = supabase
+    .from('validades')
+    .select('codigo, descricao, qtde_unit, data_vencimento, industria, lojas, uf')
+    .lt('data_vencimento', todayIso);
+  query = applyActiveOnlyFilter(query);
+
+  if (filters.scopeIndustria) {
+    query = query.eq('industria', toIndustriaPadrao(filters.scopeIndustria));
+  }
+
+  if (filters.scopeClienteGrupo) {
+    query = query.ilike('lojas', `%${filters.scopeClienteGrupo}%`);
+  }
+
+  if (filters.uf && filters.uf !== 'Todos') {
+    query = query.eq('uf', filters.uf);
+  }
+
+  if (filters.industria && filters.industria !== 'Todos') {
+    query = query.eq('industria', toIndustriaPadrao(filters.industria));
+  }
+
+  if (filters.mes && filters.mes !== 'Todos') {
+    const [yearStr, monthStr] = filters.mes.split('-');
+    const year = Number(yearStr);
+    const month = Number(monthStr);
+    if (year && month >= 1 && month <= 12) {
+      const start = `${year}-${String(month).padStart(2, '0')}-01`;
+      const nextMonth = month === 12 ? 1 : month + 1;
+      const nextYear = month === 12 ? year + 1 : year;
+      const end = `${nextYear}-${String(nextMonth).padStart(2, '0')}-01`;
+      query = query.gte('data_vencimento', start).lt('data_vencimento', end);
+    }
+  }
+
+  const { data, error } = await query;
+  if (error) throw new Error(error.message);
+
+  const map = new Map<
+    string,
+    { codigo: string | null; descricao: string | null; qtde: number; registros: number }
+  >();
+
+  for (const row of data ?? []) {
+    const codigo = row.codigo != null ? String(row.codigo).trim() : '';
+    const descricao = row.descricao != null ? String(row.descricao).trim() : '';
+    const key = codigo || descricao || '—';
+    if (!key || key === '—') continue;
+
+    const qtde = Number(row.qtde_unit);
+    const add = Number.isFinite(qtde) && qtde > 0 ? qtde : 1;
+    const prev = map.get(key);
+    if (prev) {
+      prev.qtde += add;
+      prev.registros += 1;
+      if (!prev.descricao && descricao) prev.descricao = descricao;
+      if (!prev.codigo && codigo) prev.codigo = codigo;
+    } else {
+      map.set(key, {
+        codigo: codigo || null,
+        descricao: descricao || null,
+        qtde: add,
+        registros: 1,
+      });
+    }
+  }
+
+  return Array.from(map.values())
+    .map((item) => ({
+      ...item,
+      nome: [item.codigo, item.descricao].filter(Boolean).join(' — ') || '—',
+    }))
+    .sort((a, b) => b.qtde - a.qtde || b.registros - a.registros)
+    .filter((item) => item.qtde > 0)
+    .slice(0, TOP_VENCIDOS_LIMIT);
+}
+
+/**
+ * Registra venda de unidades nesta validade (produto + loja).
+ * - Parcial: reduz `qtde_unit`.
+ * - Total (tudo vendido ou qtde restante ≤ 0): marca `todos_vendidos` e some da listagem.
+ */
+export async function registrarVendaValidade(
+  id: number,
+  opts: { qtdeVendida?: number; tudoVendido?: boolean },
+): Promise<Validade> {
+  const { data: current, error: fetchError } = await supabase
+    .from('validades')
+    .select('*')
+    .eq('id', id)
+    .maybeSingle();
+
+  if (fetchError) throw new Error(fetchError.message);
+  if (!current) throw new Error('Validade não encontrada.');
+  if (current.todos_vendidos) throw new Error('Este registro já está marcado como tudo vendido.');
+
+  const atual = current.qtde_unit == null ? null : Number(current.qtde_unit);
+
+  let patch: { qtde_unit: number | null; todos_vendidos: boolean };
+
+  if (opts.tudoVendido) {
+    patch = { todos_vendidos: true, qtde_unit: 0 };
+  } else {
+    const vendida = Number(opts.qtdeVendida);
+    if (!Number.isFinite(vendida) || vendida <= 0) {
+      throw new Error('Informe uma quantidade vendida maior que zero.');
+    }
+    if (atual != null && vendida > atual) {
+      throw new Error(`Quantidade vendida (${vendida}) maior que o disponível (${atual}).`);
+    }
+
+    const restante = atual == null ? null : Math.max(0, atual - vendida);
+    const tudo = restante != null && restante <= 0;
+    patch = {
+      qtde_unit: tudo ? 0 : restante,
+      todos_vendidos: tudo,
+    };
+  }
+
+  const { data, error } = await supabase
+    .from('validades')
+    .update(patch)
+    .eq('id', id)
+    .select('*')
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+  if (!data) {
+    throw new Error(
+      'Não foi possível salvar a venda (nenhuma linha atualizada). Verifique permissões no banco.',
+    );
+  }
+  return mapRow(data as Record<string, unknown>);
 }
 
 /** Dias até o vencimento (negativo = já vencido). */

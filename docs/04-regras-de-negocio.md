@@ -23,11 +23,12 @@
 
 ## Validades
 
-1. Listagem paginada com filtros (UF, indústria, mês de vencimento, status).
+1. Listagem paginada com filtros (UF, indústria, mês de vencimento, status, ordenação).
 2. Status “menos de 1 mês” = vence nos próximos 30 dias; “já vencido” = data anterior a hoje.
 3. Exportação XLSX: só usuários internos (não externos).
 4. Para cliente externo, o vínculo é pelo **texto do campo loja** contendo o grupo (não há CNPJ na tabela de validades).
-
+5. **Registrar venda** só **Gerente**, **Supervisor** e **Analista admin**: parcial reduz `qtde_unit`; total marca `todos_vendidos` (some da lista daquela loja). Gráfico agrega por produto no mês — some do gráfico só se zerar em todas as lojas.
+6. Registros com `todos_vendidos = true` (ou qtde 0) não aparecem na lista/gráfico/exportação ativa.
 ## Sucesso do cliente
 
 1. Cards nascem das vendas (`baseVendas`).

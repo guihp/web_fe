@@ -2,6 +2,18 @@
 
 Formato: mais recente no topo.
 
+## 2026-08-25
+
+### App
+- Validades: filtro de **ordenação** — vencimento (padrão), últimas lançadas → primeiras, ou primeiras → últimas (`created_at`).
+- Validades: toggle **Lista / Gráfico** — top produtos que mais venceram no mês (qtde), com escopo para externos.
+- Validades: **Registrar venda** (Gerente / Supervisor / Analista admin) — parcial reduz qtde; total marca `todos_vendidos` e some da loja; gráfico só some o produto se zerar em todas as lojas do mês.
+- Banco: coluna `validades.todos_vendidos` (boolean, default false).
+- Banco: policy RLS de **UPDATE** em `validades` (necessário para registrar venda via app).
+
+### Documentação
+- Validades atualizadas em `02-modulos-e-telas.md`, `03-dominio-e-dados.md` e `04-regras-de-negocio.md`.
+
 ## 2026-08-24
 
 ### App
