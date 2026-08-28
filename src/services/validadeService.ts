@@ -1,4 +1,5 @@
 import { toIndustriaPadrao } from '../utils/vendasDomain';
+import { keepIndustriaNomesAtivos } from './industriaService';
 import { supabase } from '../lib/supabase';
 
 export const VALIDADE_PAGE_SIZE = 15;
@@ -244,7 +245,7 @@ export async function fetchValidadesFilterOptions(): Promise<{
 
   return {
     ufs: Array.from(ufs).sort((a, b) => a.localeCompare(b, 'pt-BR')),
-    industrias: Array.from(industrias).sort((a, b) => a.localeCompare(b, 'pt-BR')),
+    industrias: await keepIndustriaNomesAtivos(industrias),
     meses: mesesOptions,
   };
 }

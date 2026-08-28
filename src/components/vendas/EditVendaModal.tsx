@@ -10,6 +10,7 @@ import {
   VENDEDORES,
   mesAnoFromDate,
   normalizeEstado,
+  toIndustriaPadrao,
   type BaseVenda,
 } from '../../utils/vendasDomain';
 import ModalShell from '../colaboradores/ModalShell';
@@ -72,17 +73,22 @@ export default function EditVendaModal({ venda, onClose, onSuccess }: EditVendaM
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const atual = toIndustriaPadrao(venda.industria ?? '');
     fetchIndustriaNomes()
       .then((nomes) => {
-        setIndustrias(nomes);
+        const list =
+          atual && !nomes.includes(atual)
+            ? [...nomes, atual].sort((a, b) => a.localeCompare(b, 'pt-BR'))
+            : nomes;
+        setIndustrias(list);
         setForm((prev) => {
-          if (prev.industria && nomes.includes(prev.industria)) return prev;
+          if (prev.industria && list.includes(prev.industria)) return prev;
           if (prev.industria) return prev;
-          return { ...prev, industria: nomes[0] ?? '' };
+          return { ...prev, industria: list[0] ?? '' };
         });
       })
-      .catch(() => setIndustrias([]));
-  }, []);
+      .catch(() => setIndustrias(atual ? [atual] : []));
+  }, [venda.industria]);
 
   const updateField = (field: keyof EditForm, value: string) => {
     setForm((prev) => {

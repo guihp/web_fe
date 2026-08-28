@@ -82,12 +82,10 @@ export async function fetchComissaoIndustria(filters: {
 }
 
 export async function fetchPercentuais(): Promise<IndustriaPercentual[]> {
-  const [{ data: pctRows, error: pctError }, { data: indRows, error: indError }, { data: vendaRows }] =
-    await Promise.all([
-      supabase.from('industria_percentual').select('*').order('industria'),
-      supabase.from('industrias').select('"Nome"').order('Nome'),
-      supabase.from('baseVendas').select('industria').not('industria', 'is', null).limit(5000),
-    ]);
+  const [{ data: pctRows, error: pctError }, { data: indRows, error: indError }] = await Promise.all([
+    supabase.from('industria_percentual').select('*').order('industria'),
+    supabase.from('industrias').select('"Nome", status').order('Nome'),
+  ]);
 
   if (pctError) throw new Error(pctError.message);
   if (indError) throw new Error(indError.message);
@@ -108,14 +106,12 @@ export async function fetchPercentuais(): Promise<IndustriaPercentual[]> {
 
   const names = new Set<string>();
   for (const row of indRows ?? []) {
+    const status = (row as { status?: string | null }).status;
+    const s = (status ?? 'Ativo').trim().toLowerCase();
+    if (s && s !== 'ativo') continue;
     const nome = toIndustriaPadrao(String((row as { Nome?: string }).Nome ?? ''));
     if (nome) names.add(nome);
   }
-  for (const row of vendaRows ?? []) {
-    const nome = toIndustriaPadrao(String((row as { industria?: string }).industria ?? ''));
-    if (nome) names.add(nome);
-  }
-  for (const nome of pctMap.keys()) names.add(nome);
 
   return [...names]
     .sort((a, b) => a.localeCompare(b, 'pt-BR'))

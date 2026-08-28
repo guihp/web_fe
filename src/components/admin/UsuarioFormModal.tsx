@@ -11,7 +11,7 @@ import {
   type PortalModuleId,
 } from '../../data/portalModules';
 import { saveUser, updateUser } from '../../services/userService';
-import { supabase } from '../../lib/supabase';
+import { fetchIndustrias, fetchIndustriasAtivas } from '../../services/industriaService';
 import type { Usuario } from '../../utils/format';
 import { formatCpf } from '../../utils/format';
 import {
@@ -71,21 +71,33 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
   const managerCargo = canManageUsers(form.cargo);
 
   useEffect(() => {
-    void supabase
-      .from('industrias')
-      .select('id, "Nome"')
-      .order('Nome')
-      .then(({ data }) => {
-        setIndustrias(
-          (data ?? [])
-            .map((row) => ({
-              id: Number(row.id),
-              nome: toIndustriaPadrao(String((row as { Nome?: string }).Nome ?? '')),
-            }))
-            .filter((r) => r.nome),
-        );
-      });
-  }, []);
+    void (async () => {
+      try {
+        const data = await fetchIndustriasAtivas();
+        const list = data
+          .map((row) => ({
+            id: row.id,
+            nome: toIndustriaPadrao(row.Nome ?? ''),
+          }))
+          .filter((r) => r.nome);
+
+        // Se editar usuário ligado a indústria inativa, mantém a opção atual no select
+        const currentId = user?.industria_id;
+        if (currentId && !list.some((r) => r.id === currentId)) {
+          const all = await fetchIndustrias();
+          const current = all.find((r) => r.id === currentId);
+          if (current?.Nome) {
+            list.push({ id: current.id, nome: toIndustriaPadrao(current.Nome) });
+            list.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
+          }
+        }
+
+        setIndustrias(list);
+      } catch {
+        setIndustrias([]);
+      }
+    })();
+  }, [user?.industria_id]);
 
   const moduleOptions = useMemo(
     () => PORTAL_MODULES.filter((mod) => mod.id !== 'administrador' || managerCargo),

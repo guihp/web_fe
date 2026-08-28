@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { lojaOrFilterForClienteGrupo } from '../utils/externalAccess';
 import { MESES_PT, toIndustriaPadrao } from '../utils/vendasDomain';
+import { keepIndustriaNomesAtivos } from './industriaService';
 
 export type TipoPesquisa = 'interna' | 'externa';
 
@@ -205,7 +206,7 @@ export async function fetchPesquisaIndustrias(
     const nome = toIndustriaPadrao(String((row as { industria?: string }).industria ?? ''));
     if (nome) set.add(nome);
   }
-  return [...set].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  return keepIndustriaNomesAtivos(set);
 }
 
 export async function fetchPesquisaMeses(

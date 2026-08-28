@@ -184,16 +184,21 @@ export async function loginAs(
 
     const { data: industrias, error: indError } = await supabase
       .from('industrias')
-      .select('id, "Nome"');
+      .select('id, "Nome", status');
 
     if (indError) throw new Error(indError.message);
 
     const industria = (industrias ?? []).find(
       (row) => toIndustriaPadrao(String((row as { Nome?: string }).Nome ?? '')) === nome,
-    ) as { id: number; Nome?: string } | undefined;
+    ) as { id: number; Nome?: string; status?: string | null } | undefined;
 
     if (!industria) {
       throw new Error('Indústria não encontrada. Verifique o nome.');
+    }
+
+    const status = (industria.status ?? 'Ativo').trim().toLowerCase();
+    if (status && status !== 'ativo') {
+      throw new Error('Esta indústria está inativa. Contacte o administrador.');
     }
 
     const { data, error } = await supabase

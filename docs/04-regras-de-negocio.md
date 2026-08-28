@@ -46,9 +46,12 @@
 
 ## Indústrias e lojas
 
-1. Cadastro de indústrias alimenta filtros de vendas, validades e comissão.
-2. Filiais/lojas têm CNPJ e podem ligar a regionais.
-3. Grupo Mateus (exemplo real de uso): várias lojas com a mesma raiz de CNPJ; o usuário cliente usa grupo `MATEUS`.
+1. Cadastro de indústrias alimenta filtros de vendas, validades e comissão. A tela admin lista Ativo e Inativo.
+2. Em **qualquer dropdown/select operacional** (lançamento e edição de vendas, atividades, projeção de metas, financeiro, relatórios, filtros de Validades/Price/Sucesso, usuário externo indústria, comissão), só entram indústrias com status **Ativo** (ou status vazio legado). Inativas não aparecem para novos lançamentos.
+3. Ao **editar** registro já ligado a indústria inativa (venda ou usuário), a opção atual permanece no select só para não quebrar o formulário; não deve ser escolhida em cadastros novos.
+4. Login tipo Indústria rejeita cadastro com status Inativo.
+5. Filiais/lojas têm CNPJ e podem ligar a regionais.
+6. Grupo Mateus (exemplo real de uso): várias lojas com a mesma raiz de CNPJ; o usuário cliente usa grupo `MATEUS`.
 
 ## Financeiro / contratos
 

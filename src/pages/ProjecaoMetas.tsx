@@ -13,7 +13,7 @@ import {
   sumTotals,
   type MetaIndustria,
 } from '../data/projecaoMetasData';
-import { fetchIndustrias } from '../services/industriaService';
+import { fetchIndustriasAtivas } from '../services/industriaService';
 import {
   deleteMeta,
   fetchMetas,
@@ -85,7 +85,7 @@ export default function ProjecaoMetas({ adminMode = false }: ProjecaoMetasProps)
     setLoading(true);
     try {
       const [industrias, metas, vendasAno] = await Promise.all([
-        fetchIndustrias(),
+        fetchIndustriasAtivas(),
         fetchMetas(Number(anoProjecao)),
         fetchVendasRealizadoAno(Number(anoBase)),
       ]);

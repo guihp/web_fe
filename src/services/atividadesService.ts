@@ -64,7 +64,7 @@ export type Loja = {
 };
 
 export type { Industria } from './industriaService';
-export { fetchIndustrias } from './industriaService';
+export { fetchIndustrias, fetchIndustriasAtivas } from './industriaService';
 
 export type AtividadeFormData = {
   tipo: string;

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppIcon from '../components/icons/AppIcon';
 import { useToast } from '../context/ToastContext';
-import { fetchIndustrias } from '../services/industriaService';
+import { fetchIndustriaNomes } from '../services/industriaService';
 import { fetchClienteByCdc } from '../services/clienteService';
 import { createVenda, parseValor } from '../services/vendaService';
 import {
@@ -34,12 +34,11 @@ export default function LancamentoVendas() {
   const [lookupLoading, setLookupLoading] = useState(false);
 
   useEffect(() => {
-    fetchIndustrias()
-      .then((data) => {
-        const nomes = data.map((item) => item.Nome);
+    fetchIndustriaNomes()
+      .then((nomes) => {
         if (nomes.length > 0) {
           setIndustrias(nomes);
-          setForm((prev) => ({ ...prev, industria: prev.industria || nomes[0] }));
+          setForm((prev) => ({ ...prev, industria: prev.industria || nomes[0]! }));
         }
       })
       .catch(() => {

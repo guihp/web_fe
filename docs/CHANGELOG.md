@@ -2,6 +2,16 @@
 
 Formato: mais recente no topo.
 
+## 2026-08-28
+
+### App
+- Qualquer dropdown/select operacional de indústria lista só status **Ativo** (lançamento/edição de vendas, atividades, metas, financeiro, relatórios, Validades/Price/Sucesso, usuário externo, comissão).
+- Edição de venda/usuário mantém a indústria atual se ela estiver inativa (não some do formulário).
+- Login tipo Indústria bloqueia cadastro inativo.
+
+### Documentação
+- Regra de indústrias ativas em selects operacionais em `04-regras-de-negocio.md`.
+
 ## 2026-08-25
 
 ### App

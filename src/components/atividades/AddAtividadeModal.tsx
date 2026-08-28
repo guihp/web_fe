@@ -6,7 +6,7 @@ import {
   type AtividadeFormData,
   type Loja,
 } from '../../services/atividadesService';
-import { fetchIndustrias, type Industria } from '../../services/industriaService';
+import { fetchIndustriasAtivas, type Industria } from '../../services/industriaService';
 import type { Usuario } from '../../utils/format';
 import './AtividadeModals.css';
 
@@ -36,7 +36,7 @@ export default function AddAtividadeModal({ onClose, onSubmit, error }: AddAtivi
   const [formError, setFormError] = useState<string | null>(null);
 
   useEffect(() => {
-    Promise.all([fetchLojas(), fetchIndustrias(), fetchPromotores()])
+    Promise.all([fetchLojas(), fetchIndustriasAtivas(), fetchPromotores()])
       .then(([lojasData, industriasData, usuariosData]) => {
         setLojas(lojasData);
         setIndustrias(industriasData);

@@ -3,6 +3,7 @@ import { MESES_PT, type BaseVenda } from '../utils/vendasDomain';
 import { toIndustriaPadrao } from '../utils/vendasDomain';
 import { formatBRL } from '../utils/currency';
 import { matchVendaByClienteGrupo } from '../utils/externalAccess';
+import { keepIndustriaNomesAtivos } from './industriaService';
 
 export const KANBAN_STATUSES = [
   'Enviado ou gerado',
@@ -208,7 +209,7 @@ export async function fetchKanbanFilterOptions(ano?: string) {
   }
 
   return {
-    industrias: [...industrias].sort((a, b) => a.localeCompare(b, 'pt-BR')),
+    industrias: await keepIndustriaNomesAtivos(industrias),
     vendedores: [...vendedores].sort((a, b) => a.localeCompare(b, 'pt-BR')),
     estados: [...estados].sort((a, b) => a.localeCompare(b, 'pt-BR')),
     anos: [...anos].sort((a, b) => Number(b) - Number(a)),
