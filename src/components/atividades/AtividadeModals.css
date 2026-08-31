@@ -543,6 +543,12 @@
   color: var(--text-muted);
 }
 
+.atividade-dia-senha {
+  margin-top: 12px;
+  font-size: 0.84rem;
+  color: var(--text);
+}
+
 .atividade-dia-photos {
   display: grid;
   gap: 12px;
