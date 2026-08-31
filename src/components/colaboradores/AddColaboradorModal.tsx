@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { USER_FORM_CARGOS } from '../../data/portalModules';
-import { maskCpfInput, maskPhoneInput } from '../../lib/cpf';
+import { brDateToIso, maskCpfInput, maskDateBrInput, maskPhoneInput } from '../../lib/cpf';
 import { saveUser } from '../../services/userService';
 import ModalShell from './ModalShell';
 
@@ -16,6 +16,7 @@ const emptyForm = {
   email: '',
   telefone: '',
   cpf: '',
+  dataNascimento: '',
   endereco: '',
   cargo: '',
   senha: '',
@@ -39,6 +40,15 @@ export default function AddColaboradorModal({ onClose, onSuccess }: AddColaborad
       setError('Preencha nome, CPF, cargo e senha.');
       return;
     }
+    if (!form.dataNascimento.trim()) {
+      setError('Informe a data de nascimento.');
+      return;
+    }
+    const dataNascimentoIso = brDateToIso(form.dataNascimento);
+    if (!dataNascimentoIso) {
+      setError('Data de nascimento inválida. Use DD/MM/AAAA.');
+      return;
+    }
 
     setSaving(true);
     setError(null);
@@ -52,6 +62,7 @@ export default function AddColaboradorModal({ onClose, onSuccess }: AddColaborad
         senha: form.senha,
         cargo: form.cargo,
         endereco: form.endereco,
+        data_nascimento: dataNascimentoIso,
       });
       onSuccess();
       onClose();
@@ -108,6 +119,18 @@ export default function AddColaboradorModal({ onClose, onSuccess }: AddColaborad
             placeholder="Insira seu cpf"
             value={form.cpf}
             onChange={(e) => updateField('cpf', maskCpfInput(e.target.value))}
+          />
+        </label>
+
+        <label className="colab-field full">
+          <span>Data de nascimento</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            placeholder="DD/MM/AAAA"
+            value={form.dataNascimento}
+            onChange={(e) => updateField('dataNascimento', maskDateBrInput(e.target.value))}
+            maxLength={10}
           />
         </label>
 
