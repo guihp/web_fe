@@ -108,6 +108,23 @@
   color: var(--coral);
 }
 
+.install-wrap {
+  position: relative;
+}
+
+.install-btn {
+  color: var(--coral);
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+}
+
+.install-btn:hover,
+.install-btn.is-open {
+  background: var(--coral-soft);
+  border-color: var(--coral);
+  color: var(--coral);
+}
+
 .notif-badge {
   position: absolute;
   top: 2px;

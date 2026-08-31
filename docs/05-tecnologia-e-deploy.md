@@ -9,6 +9,7 @@
 | Backend de dados | Supabase (Postgres + Storage + RPC) |
 | Exportação | xlsx, jsPDF, html2canvas |
 | Deploy | Docker (Node build + Nginx) via Coolify |
+| PWA | vite-plugin-pwa (injectManifest) + Web Push |
 
 Pacote npm: `app-fe-web-gerente`.
 
@@ -37,6 +38,10 @@ Opcionais (webhooks n8n):
 - `EXPO_PUBLIC_WEBHOOK_VALIDADE`
 - `EXPO_PUBLIC_WEBHOOK_VENDAS`
 
+Opcional (Web Push):
+
+- `VITE_VAPID_PUBLIC_KEY` — chave pública VAPID para inscrição push no browser
+
 (Alternativa aceita no código de vendas: `VITE_WEBHOOK_URL`.)
 
 ## Deploy Coolify
@@ -46,6 +51,13 @@ Opcionais (webhooks n8n):
 3. Porta **80**.
 4. Healthcheck: `GET /health` → `ok`.
 5. Definir as variáveis Supabase como build args / env de build.
+6. Para push notifications: incluir `VITE_VAPID_PUBLIC_KEY` no build.
+
+## PWA
+
+- Service worker customizado em `src/sw.ts` (precache + push).
+- Atualização de versão: banner “Nova versão disponível” via `PwaUpdateProvider`.
+- Notificações push: tabela Supabase `push_subscriptions`; Realtime em `baseVendas`, `pedido_kanban` e `contrato_faturamento` para badge do sino.
 
 ## Estrutura útil do código (para quem mantém)
 

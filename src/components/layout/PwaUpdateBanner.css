@@ -1,0 +1,75 @@
+.pwa-update-banner {
+  position: fixed;
+  left: 50%;
+  bottom: 20px;
+  transform: translateX(-50%);
+  z-index: 1200;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  max-width: min(560px, calc(100vw - 32px));
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg, 0 10px 30px rgba(0, 0, 0, 0.12));
+  color: var(--text);
+}
+
+.pwa-update-banner-text {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.875rem;
+}
+
+.pwa-update-banner-text span {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+}
+
+.pwa-update-banner-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pwa-update-btn {
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.pwa-update-btn.primary {
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+}
+
+.pwa-update-btn.primary:hover {
+  background: var(--btn-primary-bg-hover);
+}
+
+.pwa-update-btn.secondary {
+  background: var(--btn-secondary-bg);
+  color: var(--btn-secondary-text);
+  border-color: var(--btn-secondary-border);
+}
+
+.pwa-update-btn.secondary:hover {
+  background: var(--btn-secondary-bg-hover);
+}
+
+@media (max-width: 640px) {
+  .pwa-update-banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .pwa-update-banner-actions {
+    justify-content: flex-end;
+  }
+}

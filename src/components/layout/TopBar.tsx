@@ -1,9 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import AppIcon, { type AppIconName } from '../icons/AppIcon';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 import { useToast } from '../../context/ToastContext';
+import { useNotificationRealtime } from '../../hooks/useNotificationRealtime';
 import {
   countUnread,
   fetchAppNotifications,
@@ -18,6 +19,7 @@ import {
   removeProfilePhoto,
   uploadProfilePhoto,
 } from '../../services/profileService';
+import AppInstallModal from './AppInstallModal';
 import './TopBar.css';
 
 function IconSun() {
@@ -50,8 +52,10 @@ export default function TopBar() {
   const { showToast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const notifWrapRef = useRef<HTMLDivElement>(null);
+  const installWrapRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [installModalOpen, setInstallModalOpen] = useState(false);
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
@@ -59,7 +63,7 @@ export default function TopBar() {
   const firstName = user?.nome?.split(' ')[0] ?? 'Usuário';
   const avatarUrl = getProfileAvatarUrl(user);
 
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async () => {
     setNotifLoading(true);
     try {
       const items = await fetchAppNotifications(24, {
@@ -76,7 +80,11 @@ export default function TopBar() {
     } finally {
       setNotifLoading(false);
     }
-  };
+  }, [user?.tipo_usuario, user?.industria_nome, user?.cliente_grupo, user?.login_cnpj]);
+
+  useNotificationRealtime(() => {
+    void loadNotifications();
+  });
 
   useEffect(() => {
     void loadNotifications();
@@ -84,21 +92,26 @@ export default function TopBar() {
       void loadNotifications();
     }, 60_000);
     return () => window.clearInterval(timer);
-    // Escopo do usuário externo (indústria/cliente) altera o filtro
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.id, user?.tipo_usuario, user?.industria_nome, user?.cliente_grupo, user?.login_cnpj]);
+  }, [loadNotifications, user?.id]);
 
   useEffect(() => {
-    if (!notifOpen && !menuOpen) return;
+    if (!notifOpen && !menuOpen && !installModalOpen) return;
     const onPointerDown = (event: MouseEvent) => {
       const target = event.target as Node;
       if (notifOpen && notifWrapRef.current && !notifWrapRef.current.contains(target)) {
         setNotifOpen(false);
       }
+      if (
+        installModalOpen &&
+        installWrapRef.current &&
+        !installWrapRef.current.contains(target)
+      ) {
+        setInstallModalOpen(false);
+      }
     };
     document.addEventListener('mousedown', onPointerDown);
     return () => document.removeEventListener('mousedown', onPointerDown);
-  }, [notifOpen, menuOpen]);
+  }, [notifOpen, menuOpen, installModalOpen]);
 
   const handleLogout = () => {
     logout();
@@ -148,6 +161,7 @@ export default function TopBar() {
     const next = !notifOpen;
     setNotifOpen(next);
     setMenuOpen(false);
+    setInstallModalOpen(false);
     if (next) {
       await loadNotifications();
       markNotificationsSeen();
@@ -236,6 +250,24 @@ export default function TopBar() {
           )}
         </div>
 
+        <div className="install-wrap" ref={installWrapRef}>
+          <button
+            type="button"
+            className={`icon-btn install-btn ${installModalOpen ? 'is-open' : ''}`}
+            aria-label="Instalar app e notificações"
+            title="Instalar app e notificações"
+            onClick={() => {
+              setInstallModalOpen(true);
+              setNotifOpen(false);
+              setMenuOpen(false);
+            }}
+          >
+            <AppIcon name="download" size={18} />
+          </button>
+
+          <AppInstallModal open={installModalOpen} onClose={() => setInstallModalOpen(false)} />
+        </div>
+
         <div className="profile-menu-wrap">
           <button
             type="button"
@@ -243,6 +275,7 @@ export default function TopBar() {
             onClick={() => {
               setMenuOpen((open) => !open);
               setNotifOpen(false);
+              setInstallModalOpen(false);
             }}
             aria-expanded={menuOpen}
           >

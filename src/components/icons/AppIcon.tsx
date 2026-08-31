@@ -39,7 +39,8 @@ export type AppIconName =
   | 'save'
   | 'play'
   | 'arrowLeft'
-  | 'bell';
+  | 'bell'
+  | 'download';
 
 type Props = {
   name: AppIconName;
@@ -361,6 +362,14 @@ export default function AppIcon({ name, size = 20, className, title, ...rest }: 
         <Svg {...props}>
           <path d="M6 9a6 6 0 0 1 12 0c0 7 3 8 3 8H3s3-1 3-8" />
           <path d="M10 19a2 2 0 0 0 4 0" />
+        </Svg>
+      );
+    case 'download':
+      return (
+        <Svg {...props}>
+          <path d="M12 3v12" />
+          <path d="m7 10 5 5 5-5" />
+          <path d="M5 21h14" />
         </Svg>
       );
     default:

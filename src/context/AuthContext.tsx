@@ -9,6 +9,7 @@ import {
 } from 'react';
 import { defaultModulosForCargo, defaultSecoesForCargo } from '../data/portalModules';
 import { loginAs, type AuthUser, type LoginTipo } from '../services/authService';
+import { isPushSupported, subscribePush, unsubscribePush } from '../services/pushService';
 import { isTipoUsuario } from '../utils/externalAccess';
 
 const STORAGE_KEY = 'fe_web_auth_session';
@@ -63,8 +64,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    setUser(readStoredUser());
+    const storedUser = readStoredUser();
+    setUser(storedUser);
     setIsLoading(false);
+
+    if (storedUser && isPushSupported() && Notification.permission === 'granted') {
+      void subscribePush(storedUser.id);
+    }
   }, []);
 
   const login = useCallback(
@@ -87,14 +93,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setUser(loggedUser);
+
+      if (isPushSupported() && Notification.permission === 'granted') {
+        void subscribePush(loggedUser.id);
+      }
     },
     [],
   );
 
   const logout = useCallback(() => {
+    setUser((prev) => {
+      if (prev) {
+        void unsubscribePush(prev.id);
+      }
+      return null;
+    });
     sessionStorage.removeItem(STORAGE_KEY);
     localStorage.removeItem(STORAGE_KEY);
-    setUser(null);
   }, []);
 
   const updateUser = useCallback((partial: Partial<AuthUser>) => {
