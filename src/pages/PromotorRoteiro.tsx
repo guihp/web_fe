@@ -1,5 +1,6 @@
 import { FormEvent, useEffect, useMemo, useState } from 'react';
 import BackToPortal from '../components/layout/BackToPortal';
+import SenhaDoDiaCard from '../components/layout/SenhaDoDiaCard';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { fetchIndustriasAtivas } from '../services/industriaService';
@@ -160,10 +161,12 @@ export default function PromotorRoteiro() {
           <h1 className="page-title">Meu roteiro</h1>
           <p className="promotor-roteiro-subtitle">
             Olá, {firstName}. Selecione a loja, faça o check-in, escolha a indústria e envie as
-            fotos de antes e depois. Localização GPS ainda não é exigida.
+            fotos de antes e depois. A senha do dia é gravada automaticamente no envio.
           </p>
         </div>
       </header>
+
+      <SenhaDoDiaCard />
 
       {loading ? (
         <p className="promotor-roteiro-empty">Carregando lojas…</p>

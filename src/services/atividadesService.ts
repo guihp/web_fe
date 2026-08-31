@@ -281,6 +281,8 @@ export type AtividadeDia = {
   foto_antes_url?: string | null;
   foto_depois_url?: string | null;
   foto_justificativa_url?: string | null;
+  /** Senha do dia no momento do envio (padrão do fluxo de campo). */
+  senha_do_dia?: string | null;
 };
 
 export async function fetchAtividadeDias(atividadeId: number): Promise<AtividadeDia[]> {

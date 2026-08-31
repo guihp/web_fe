@@ -14,6 +14,7 @@ Formato: mais recente no topo.
 - **Lançar vencimentos** (Atividades / Merchandising): formulário nativo para internos; POST idêntico ao webhook `comercial1` (ex-app validade.vercel.app).
 - No código reduzido, o formulário consulta `public.codigos` e preenche automaticamente produto e indústria.
 - Cadastro de Promotor/Demonstradora: até **7 lojas** em `usuario_lojas`; no app/web o campo vê só esses PDVs, check-in sem GPS (cidade/UF da loja), indústria e fotos antes/depois.
+- Envio Antes/Depois grava automaticamente a **senha do dia** em `atividade_dia.senha_do_dia`.
 
 ### Documentação
 - Avisos em `02-modulos-e-telas.md`, `04-regras-de-negocio.md` e `05-tecnologia-e-deploy.md`.

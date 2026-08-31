@@ -98,6 +98,11 @@ function DiaDetailPanel({ item, tipo }: { item: DiaTimelineItem; tipo: string })
               </figure>
             )}
           </div>
+          {record?.senha_do_dia && (
+            <p className="atividade-dia-senha">
+              <strong>Senha do dia:</strong> {record.senha_do_dia}
+            </p>
+          )}
         </div>
       )}
 

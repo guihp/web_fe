@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase';
 import { todayISO } from '../utils/atividadesDomain';
 import type { Loja } from './lojasService';
+import { fetchSenhaDoDia } from './senhaDoDiaService';
 
 const BUCKET = 'atividade-fotos';
 const MAX_FILE_SIZE = 8 * 1024 * 1024;
@@ -25,6 +26,7 @@ async function uploadAtividadeFoto(
 
   const ext = extensionForFile(file);
   const stamp = Date.now();
+  // Nome deixa explícito antes/depois no Storage.
   const path = `${usuarioId}/${todayISO()}/${kind}-${stamp}.${ext}`;
 
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
@@ -45,7 +47,7 @@ export type PromotorExecucaoInput = {
   fotoDepois: File;
 };
 
-/** Check-in + envio Antes/Depois (sem GPS). Cria atividade do dia e atividade_dia. */
+/** Check-in + envio Antes/Depois (sem GPS). Grava fotos + senha do dia automaticamente. */
 export async function submitPromotorAntesDepois(
   input: PromotorExecucaoInput,
 ): Promise<{ atividadeId: number }> {
@@ -55,6 +57,8 @@ export async function submitPromotorAntesDepois(
 
   const hoje = todayISO();
   const lojaNome = input.loja.Nome.trim();
+
+  const senhaDoDia = await fetchSenhaDoDia().catch(() => null);
 
   const { data: atividade, error: atError } = await supabase
     .from('atividades')
@@ -86,6 +90,7 @@ export async function submitPromotorAntesDepois(
     status: 'Completo',
     foto_antes_url: fotoAntesUrl,
     foto_depois_url: fotoDepoisUrl,
+    senha_do_dia: senhaDoDia?.senha ?? null,
   });
 
   if (diaError) throw new Error(diaError.message);
