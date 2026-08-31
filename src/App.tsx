@@ -29,6 +29,7 @@ import Validades from './pages/Validades';
 import Merchandising from './pages/Merchandising';
 import FeRepresentacoes from './pages/FeRepresentacoes';
 import Price from './pages/Price';
+import Avisos from './pages/Avisos';
 
 export default function App() {
   return (
@@ -44,6 +45,7 @@ export default function App() {
           <Route path="/fe-representacoes" element={<FeRepresentacoes />} />
           <Route path="/fe-representacoes/price" element={<Price />} />
           <Route path="/fe-representacoes/sucesso-cliente" element={<AdminSucessoCliente />} />
+          <Route path="/fe-representacoes/avisos" element={<Avisos />} />
 
           {/* Legado → Fé Representações */}
           <Route

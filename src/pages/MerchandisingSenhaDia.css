@@ -1,0 +1,88 @@
+.senha-dia-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px 20px;
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, #ea580c 35%, var(--border));
+  background: color-mix(in srgb, #ea580c 10%, var(--surface));
+}
+
+.senha-dia-card-main {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.senha-dia-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.senha-dia-date {
+  font-size: 0.86rem;
+  color: var(--text-muted);
+}
+
+.senha-dia-value {
+  margin: 2px 0 0;
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  word-break: break-all;
+  font-variant-numeric: tabular-nums;
+}
+
+.senha-dia-status {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.senha-dia-status--error {
+  color: #f87171;
+}
+
+html:not([data-theme='dark']) .senha-dia-status--error {
+  color: #b91c1c;
+}
+
+.senha-dia-copy {
+  border: none;
+  border-radius: 10px;
+  padding: 10px 16px;
+  background: #ea580c;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.88rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.senha-dia-copy:hover {
+  filter: brightness(1.05);
+}
+
+.senha-dia-copy:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .senha-dia-card {
+    align-items: stretch;
+  }
+
+  .senha-dia-copy {
+    width: 100%;
+  }
+}

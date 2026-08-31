@@ -123,6 +123,10 @@ export default function Sidebar() {
         continue;
       }
 
+      if (section.id === 'fe-representacoes.avisos' && !canManageUsers(cargo)) {
+        continue;
+      }
+
       if (
         !userHasSectionAccess(cargo, secoes, section.id) &&
         !(

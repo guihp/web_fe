@@ -57,7 +57,8 @@ Opcional (Web Push):
 
 - Service worker customizado em `src/sw.ts` (precache + push).
 - Atualização de versão: banner “Nova versão disponível” via `PwaUpdateProvider`.
-- Notificações push: tabela Supabase `push_subscriptions`; Realtime em `baseVendas`, `pedido_kanban` e `contrato_faturamento` para badge do sino.
+- Notificações push: tabela Supabase `push_subscriptions`; Realtime em `baseVendas`, `pedido_kanban`, `contrato_faturamento` e `avisos` para badge do sino.
+- Avisos: tabela `avisos`, RPC `enviar_aviso`, Edge Function `send-web-push` (`kind = aviso`, só internos), cron `aviso-folha-dia-25` (dia 25 ~12:00 UTC).
 
 ## Estrutura útil do código (para quem mantém)
 

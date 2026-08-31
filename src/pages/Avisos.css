@@ -1,0 +1,270 @@
+.avisos-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding-bottom: 28px;
+  max-width: 820px;
+}
+
+.avisos-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.avisos-subtitle {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.avisos-note {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, #ea580c 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, #ea580c 35%, var(--border));
+  color: var(--text);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.avisos-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.avisos-card-head h2 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.avisos-card-head p {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.avisos-tipo-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.avisos-tipo-btn {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.avisos-tipo-btn:hover:not(.is-active) {
+  background: var(--surface-hover);
+}
+
+.avisos-tipo-btn.is-active {
+  background: #ea580c;
+  border-color: #ea580c;
+  color: #fff;
+}
+
+.avisos-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.avisos-field span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.avisos-field input,
+.avisos-field textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--input-bg);
+  font-size: 0.9rem;
+  color: var(--text);
+  outline: none;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.avisos-field input::placeholder,
+.avisos-field textarea::placeholder {
+  color: var(--input-placeholder);
+}
+
+.avisos-field input:focus,
+.avisos-field textarea:focus {
+  border-color: #f0b89a;
+  background: var(--input-bg);
+}
+
+.avisos-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.avisos-send {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  background: #ea580c;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.avisos-send:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.avisos-feedback {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+.avisos-feedback--error {
+  color: #f87171;
+}
+
+.avisos-feedback--ok {
+  color: #34d399;
+}
+
+html:not([data-theme='dark']) .avisos-feedback--error {
+  color: #b91c1c;
+}
+
+html:not([data-theme='dark']) .avisos-feedback--ok {
+  color: #047857;
+}
+
+.avisos-empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.avisos-history {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.avisos-history-item {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--surface-2);
+}
+
+.avisos-history-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.avisos-history-item strong {
+  font-size: 0.95rem;
+  color: var(--text);
+}
+
+.avisos-history-item p {
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  color: var(--text);
+}
+
+.avisos-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 2px 8px;
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.avisos-badge--salario {
+  background: color-mix(in srgb, #16a34a 18%, var(--surface));
+  color: #86efac;
+}
+
+.avisos-badge--feriado {
+  background: color-mix(in srgb, #2563eb 18%, var(--surface));
+  color: #93c5fd;
+}
+
+.avisos-badge--folha {
+  background: color-mix(in srgb, #ea580c 18%, var(--surface));
+  color: #fdba74;
+}
+
+html:not([data-theme='dark']) .avisos-badge--salario {
+  background: #ecfdf5;
+  color: #047857;
+}
+
+html:not([data-theme='dark']) .avisos-badge--feriado {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+html:not([data-theme='dark']) .avisos-badge--folha {
+  background: #fff7ed;
+  color: #c2410c;
+}
+
+html:not([data-theme='dark']) .avisos-note {
+  background: #fff7ed;
+  border-color: #fed7aa;
+  color: #9a3412;
+}
+
+@media (max-width: 640px) {
+  .avisos-card {
+    padding: 16px;
+  }
+
+  .avisos-actions {
+    justify-content: stretch;
+  }
+
+  .avisos-send {
+    width: 100%;
+  }
+}

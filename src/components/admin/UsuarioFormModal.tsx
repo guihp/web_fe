@@ -421,7 +421,9 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
                 const checked = isModuleChecked(mod.id);
                 const partial = isModulePartial(mod.id);
                 const isOpen = expanded[mod.id] ?? (partial || checked);
-                const visibleSections = mod.sections.filter((s) => !s.id.endsWith('.hub'));
+                const visibleSections = mod.sections.filter(
+                  (s) => !s.id.endsWith('.hub') && s.id !== 'fe-representacoes.avisos',
+                );
                 const hasManySections = visibleSections.length > 1;
 
                 return (

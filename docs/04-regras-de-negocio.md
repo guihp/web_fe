@@ -7,8 +7,15 @@
 3. Usuário **externo** só vê Validades, Atividades, Sucesso do cliente e **Price**, em leitura (sem Vendas).
 4. Indústria externa: dados filtrados pela indústria vinculada (Validades, Atividades, Sucesso do cliente e Price).
 5. Cliente externo: dados filtrados pelo **grupo de nome de loja** (ex.: MATEUS) e afinidade de CNPJ (raiz do CNPJ de login); no Price/Atividades, o grupo MATEUS também casa bandeiras curtas (`Mix`, `Super Castanhal`).
-6. Notificações de externos: só Sucesso do cliente do próprio escopo (sem vendas gerais nem financeiro).
-7. Balão **Fé Representações** concentra Price, Sucesso e Vendas; no cadastro interno, Vendas pode ser liberada ou não por seção.
+6. Notificações de externos: só Sucesso do cliente do próprio escopo (sem vendas gerais, financeiro nem avisos).
+7. Balão **Fé Representações** concentra Price, Sucesso, Avisos (Gerente) e Vendas; no cadastro interno, Vendas pode ser liberada ou não por seção.
+
+## Avisos
+
+1. Destinatários: somente usuários **internos** (sino + push). Indústria/cliente externo não recebem.
+2. **Salário** e **feriado**: Gerente envia em `/fe-representacoes/avisos` com modelo editável.
+3. **Folha de ponto**: automática todo dia 25 (texto padrão no banco); ninguém dispara manualmente.
+4. Preferência de push: `notify_aviso` (default ligado para internos).
 
 ## Price
 
@@ -16,6 +23,8 @@
 2. Internas: custo (`preco_custo`), markup/margem e gráfico; export/import de custo só para internos.
 3. Filtro por **`mes`**: um mês disponível → esse; vários → mês vigente (usuário pode trocar).
 4. Externos não exportam nem editam custo.
+
+## Vendas
 
 1. **Categoria é obrigatória** no lançamento de vendas.
 2. Indústria deve ser salva/consultada na forma padronizada (maiúsculas).

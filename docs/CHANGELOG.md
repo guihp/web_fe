@@ -2,6 +2,18 @@
 
 Formato: mais recente no topo.
 
+## 2026-08-31
+
+### App
+- Avisos (só Gerente, em Fé Representações): enviar **salário** ou **feriado** com modelo editável; cai no sino e no push da equipe **interna**.
+- Aviso de **folha de ponto** automático todo dia 25 (`pg_cron` + tabela `avisos`).
+- Preferência push `notify_aviso`; externos não recebem avisos.
+- Merchandising: **Senha do dia** no hub para Promotor, Demonstrador(a) e Supervisor (lê tabela `senhas` pelo dia BRT).
+
+### Documentação
+- Avisos em `02-modulos-e-telas.md`, `04-regras-de-negocio.md` e `05-tecnologia-e-deploy.md`.
+- Senha do dia em `02-modulos-e-telas.md`.
+
 ## 2026-08-28
 
 ### App

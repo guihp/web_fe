@@ -20,6 +20,8 @@ Hub: `/merchandising`
 | Atividades | `/atividades` | Visitas / ações de merchandising em PDV |
 | Validades | `/validades` | Lista + gráfico dos produtos que mais venceram no mês; filtros UF, indústria, mês, status e ordenação; exportação (internos); externos só o próprio escopo |
 
+No hub, **Promotor**, **Demonstrador(a)** e **Supervisor** veem o bloco **Senha do dia** (tabela `senhas`, coluna do calendário de hoje em America/Sao_Paulo). Demais cargos não veem.
+
 ### Validades — detalhes
 
 - Destaca itens a vencer em menos de 30 dias e itens já vencidos.
@@ -44,6 +46,7 @@ Hub: `/fe-representacoes`
 |-------|------|-----------|
 | Price | `/fe-representacoes/price` | Internas/externas por **mês**; export/import de custos; markup/margem + gráfico; externos em leitura com escopo |
 | Sucesso do cliente | `/fe-representacoes/sucesso-cliente` | Kanban de pedidos a partir das vendas lançadas; status arrastável (internos) |
+| Avisos | `/fe-representacoes/avisos` | **Só Gerente:** enviar aviso de salário ou feriado (modelos editáveis); folha de ponto automática no dia 25 |
 | Relatórios | `/fe-representacoes/relatorios` | Relatórios comerciais |
 | Projeção de metas | `/fe-representacoes/projecao-metas` | Metas vs realizado |
 | Vendas (dashboard) | `/fe-representacoes/vendas` | KPIs (com % MA/PI e PA), realizado x meta, barras/pizza por indústria |
@@ -118,5 +121,11 @@ Price **não** fica mais no Administrador — só em **Fé Representações**.
 
 ## Notificações
 
-- **Internos:** lançamentos de vendas, Sucesso do cliente e kanban financeiro.
-- **Externos (indústria/cliente):** apenas movimentações do **Sucesso do cliente** do próprio escopo. Se não houver nada no escopo, a lista fica vazia.
+- **Internos:** lançamentos de vendas, Sucesso do cliente, kanban financeiro e **avisos** (salário / feriado / folha).
+- **Externos (indústria/cliente):** apenas movimentações do **Sucesso do cliente** do próprio escopo. Externos **não** recebem avisos. Se não houver nada no escopo, a lista fica vazia.
+
+### Avisos (equipe interna)
+
+- Tabela `avisos` + RPC `enviar_aviso` (Gerente, tipos `salario` e `feriado`).
+- Folha (`tipo = folha`): job `pg_cron` `aviso-folha-dia-25` (todo dia 25 ~09:00 BRT), sem envio manual.
+- Push: Edge Function `send-web-push` com `kind = aviso` só para inscritos internos (`notify_aviso`).

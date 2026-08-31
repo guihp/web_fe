@@ -93,6 +93,12 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
         icon: 'check',
       },
       {
+        id: 'fe-representacoes.avisos',
+        title: 'Avisos',
+        path: '/fe-representacoes/avisos',
+        icon: 'bell',
+      },
+      {
         id: 'vendas.relatorios',
         title: 'Relatórios',
         path: '/fe-representacoes/relatorios',
@@ -215,6 +221,15 @@ export function canManageUsers(cargo: string | null | undefined): boolean {
   return USER_MANAGER_CARGOS.some((c) => normalizeCargoKey(c) === key);
 }
 
+/** Promotor, Demonstrador(a) e Supervisor — veem a senha do dia no hub Merchandising. */
+const SENHA_DO_DIA_CARGOS = ['Promotor', 'Demonstrador', 'Demonstradora', 'Supervisor'] as const;
+
+export function canViewSenhaDoDia(cargo: string | null | undefined): boolean {
+  if (!cargo) return false;
+  const key = normalizeCargoKey(cargo);
+  return SENHA_DO_DIA_CARGOS.some((c) => normalizeCargoKey(c) === key);
+}
+
 export function sectionsOfModule(moduleId: PortalModuleId): PortalSectionDef[] {
   return PORTAL_MODULES.find((m) => m.id === moduleId)?.sections ?? [];
 }
@@ -228,9 +243,9 @@ export function defaultSecoesForCargo(cargo: string): string[] {
   if (canManageUsers(cargo)) {
     return [...ALL_SECTION_IDS];
   }
-  return PORTAL_MODULES.filter((m) => m.id !== 'administrador').flatMap((m) =>
-    m.sections.map((s) => s.id),
-  );
+  return PORTAL_MODULES.filter((m) => m.id !== 'administrador')
+    .flatMap((m) => m.sections.map((s) => s.id))
+    .filter((id) => id !== 'fe-representacoes.avisos');
 }
 
 /** @deprecated use defaultSecoesForCargo — mantido para compat. */
@@ -264,7 +279,9 @@ export function sanitizeSecoes(cargo: string, secoes: string[] | null | undefine
 
   let next = picked;
   if (!canManageUsers(cargo)) {
-    next = next.filter((id) => !id.startsWith('administrador.'));
+    next = next.filter(
+      (id) => !id.startsWith('administrador.') && id !== 'fe-representacoes.avisos',
+    );
   }
 
   // Sempre inclui módulos liberados para todos
@@ -510,6 +527,10 @@ export function userHasSectionAccess(
   // Sucesso: idem
   if ((SUCESSO_SECTION_IDS as readonly string[]).includes(sectionId)) {
     return SUCESSO_SECTION_IDS.some((id) => resolved.includes(remapLegacySectionId(id)));
+  }
+
+  if (sectionId === 'fe-representacoes.avisos') {
+    return canManageUsers(cargo);
   }
 
   if (sectionId.startsWith('administrador.') && !canManageUsers(cargo)) {

@@ -2,7 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts';
 import { createClient } from 'jsr:@supabase/supabase-js@2';
 import webpush from 'npm:web-push@3.6.7';
 
-type NotificationKind = 'venda' | 'kanban_pedido' | 'kanban_financeiro';
+type NotificationKind = 'venda' | 'kanban_pedido' | 'kanban_financeiro' | 'aviso';
 
 type PushPayload = {
   title: string;
@@ -34,6 +34,7 @@ type NotificationPrefsRow = {
   notify_venda: boolean;
   notify_kanban_pedido: boolean;
   notify_kanban_financeiro: boolean;
+  notify_aviso?: boolean;
 };
 
 const FIN_COLUNA_LABEL: Record<string, string> = {
@@ -224,6 +225,17 @@ async function buildNotificationPayload(
     };
   }
 
+  if (kind === 'aviso') {
+    const titulo = String(record.titulo ?? 'Aviso').trim() || 'Aviso';
+    const corpo = String(record.corpo ?? '').trim();
+    if (!corpo) return null;
+    return {
+      title: titulo,
+      body: corpo.length > 180 ? `${corpo.slice(0, 177)}…` : corpo,
+      href: '/',
+    };
+  }
+
   return null;
 }
 
@@ -251,6 +263,11 @@ function shouldNotifyUser(
   venda: { industria?: string | null; cliente?: string | null; cnpj?: string | null } | null,
 ): boolean {
   const tipo = usuario.tipo_usuario;
+
+  // Avisos (salário / feriado / folha): somente internos
+  if (kind === 'aviso') {
+    return !isExternalTipo(tipo);
+  }
 
   if (!isExternalTipo(tipo)) {
     return true;
@@ -293,6 +310,7 @@ function shouldSendByPreferences(
   if (kind === 'venda') return prefs.notify_venda !== false;
   if (kind === 'kanban_pedido') return prefs.notify_kanban_pedido !== false;
   if (kind === 'kanban_financeiro') return prefs.notify_kanban_financeiro !== false;
+  if (kind === 'aviso') return prefs.notify_aviso !== false;
   return true;
 }
 
@@ -356,7 +374,9 @@ Deno.serve(async (req: Request) => {
   if (usuarioIds.length > 0) {
     const { data: prefsRows, error: prefsError } = await supabase
       .from('notification_preferences')
-      .select('usuario_id, notify_venda, notify_kanban_pedido, notify_kanban_financeiro')
+      .select(
+        'usuario_id, notify_venda, notify_kanban_pedido, notify_kanban_financeiro, notify_aviso',
+      )
       .in('usuario_id', usuarioIds);
 
     if (prefsError) {

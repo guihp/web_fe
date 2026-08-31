@@ -42,6 +42,7 @@ function IconMoon() {
 function kindIcon(kind: NotificationKind): AppIconName {
   if (kind === 'venda') return 'money';
   if (kind === 'kanban_pedido') return 'cart';
+  if (kind === 'aviso') return 'bell';
   return 'dollar';
 }
 
@@ -219,7 +220,7 @@ export default function TopBar() {
             <div className="notif-dropdown card" role="dialog" aria-label="Lista de notificações">
               <header className="notif-dropdown-header">
                 <strong>Notificações</strong>
-                <span>Vendas e kanbans</span>
+                <span>Vendas, kanbans e avisos</span>
               </header>
 
               <div className="notif-list">

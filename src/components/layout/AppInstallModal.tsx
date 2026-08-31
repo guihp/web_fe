@@ -361,6 +361,19 @@ export default function AppInstallModal({ open, onClose }: Props) {
                     />
                   </label>
                 )}
+
+                {!external && (
+                  <label className="app-install-toggle">
+                    <span className="app-install-toggle-label">Avisos da equipe</span>
+                    <input
+                      type="checkbox"
+                      checked={prefs.notify_aviso}
+                      onChange={(event) =>
+                        void handleToggle('notify_aviso', event.target.checked)
+                      }
+                    />
+                  </label>
+                )}
               </div>
             )}
           </section>

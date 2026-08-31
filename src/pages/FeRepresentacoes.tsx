@@ -33,6 +33,15 @@ const FE_CARDS: {
     section: 'fe-representacoes.sucesso',
   },
   {
+    id: 'avisos',
+    title: 'Avisos',
+    description: 'Enviar avisos de salário ou feriado para a equipe interna.',
+    path: '/fe-representacoes/avisos',
+    tone: 'orange',
+    icon: 'bell',
+    section: 'fe-representacoes.avisos',
+  },
+  {
     id: 'vendas',
     title: 'Vendas',
     description: 'Dashboard de realizado x meta por região e indústria.',

@@ -8,7 +8,7 @@ import {
 } from '../utils/externalAccess';
 import { toIndustriaPadrao } from '../utils/vendasDomain';
 
-export type NotificationKind = 'venda' | 'kanban_pedido' | 'kanban_financeiro';
+export type NotificationKind = 'venda' | 'kanban_pedido' | 'kanban_financeiro' | 'aviso';
 
 export type AppNotification = {
   id: string;
@@ -52,7 +52,7 @@ export async function fetchAppNotifications(
     return fetchExternalPedidoNotifications(limit, scope);
   }
 
-  const [vendasRes, pedidosRes, fatRes] = await Promise.all([
+  const [vendasRes, pedidosRes, fatRes, avisosRes] = await Promise.all([
     supabase
       .from('baseVendas')
       .select('id, numero_pedido, cliente, industria, valor, vendedor, created_at')
@@ -68,11 +68,17 @@ export async function fetchAppNotifications(
       .select('id, coluna, valor, updated_at, contratos(titulo, industria)')
       .order('updated_at', { ascending: false })
       .limit(12),
+    supabase
+      .from('avisos')
+      .select('id, tipo, titulo, corpo, created_at')
+      .order('created_at', { ascending: false })
+      .limit(12),
   ]);
 
   if (vendasRes.error) throw new Error(vendasRes.error.message);
   if (pedidosRes.error) throw new Error(pedidosRes.error.message);
   if (fatRes.error) throw new Error(fatRes.error.message);
+  if (avisosRes.error) throw new Error(avisosRes.error.message);
 
   const pedidoRows = pedidosRes.data ?? [];
   const vendaIds = [...new Set(pedidoRows.map((row) => String(row.venda_id)).filter(Boolean))];
@@ -137,6 +143,19 @@ export async function fetchAppNotifications(
       detail: `${titulo}${industria ? ` · ${industria}` : ''} → ${coluna} · ${valor}`,
       at: toIso(row.updated_at as string),
       href: '/financeiro?tab=kanban',
+    });
+  }
+
+  for (const row of avisosRes.data ?? []) {
+    const titulo = String(row.titulo ?? 'Aviso');
+    const corpo = String(row.corpo ?? '').trim();
+    items.push({
+      id: `aviso-${row.id}`,
+      kind: 'aviso',
+      title: titulo,
+      detail: corpo.length > 160 ? `${corpo.slice(0, 157)}…` : corpo,
+      at: toIso(row.created_at as string),
+      href: '/',
     });
   }
 
