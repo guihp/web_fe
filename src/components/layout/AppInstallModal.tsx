@@ -142,7 +142,7 @@ export default function AppInstallModal({ open, onClose }: Props) {
         <header className="app-install-header">
           <div>
             <h2 id="app-install-title">Instalar app e notificações</h2>
-            <p>Instale o Fé Gerente no dispositivo e configure alertas push.</p>
+            <p>Instale o App Fé no dispositivo e configure alertas push.</p>
           </div>
           <button
             type="button"
@@ -207,7 +207,7 @@ export default function AppInstallModal({ open, onClose }: Props) {
                   Clique no ícone <strong>Instalar</strong> (⊕) na barra de endereço
                 </li>
                 <li>
-                  Ou: menu do browser → <strong>Instalar Fé Gerente...</strong>
+                  Ou: menu do browser → <strong>Instalar App Fé...</strong>
                 </li>
                 <li>Confirme a instalação</li>
               </ol>
