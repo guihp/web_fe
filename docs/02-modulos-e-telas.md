@@ -17,7 +17,7 @@ Hub: `/merchandising`
 | Seção | Rota | O que faz |
 |-------|------|-----------|
 | Treinamentos | `/treinamento` | Materiais e PDFs de capacitação |
-| Atividades | `/atividades` | Visitas / ações de merchandising em PDV |
+| Atividades | `/atividades` | Gestores: visitas enviadas aos promotores. **Promotor/Demonstradora:** Meu roteiro (lojas vinculadas → check-in → indústria → fotos antes/depois; sem GPS) |
 | Lançar vencimentos | `/atividades/lancar-vencimentos` | Formulário de validade (internos); código reduzido preenche produto/indústria via `codigos`; envia ao webhook n8n `comercial1` |
 | Validades | `/validades` | Lista + gráfico dos produtos que mais venceram no mês; filtros UF, indústria, mês, status e ordenação; exportação (internos); externos só o próprio escopo |
 

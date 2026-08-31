@@ -9,7 +9,8 @@ import AppIcon from '../components/icons/AppIcon';
 import { useAtividadeModal } from '../context/AtividadeModalContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { canLancarVencimentos } from '../data/portalModules';
+import { canLancarVencimentos, isCampoMerchCargo } from '../data/portalModules';
+import PromotorRoteiro from './PromotorRoteiro';
 import {
   fetchAtividadeStats,
   fetchAtividades,
@@ -33,6 +34,14 @@ const STATUS_OPTIONS = ['Todos', 'Em andamento', 'Completo', 'Justificada', 'Can
 type Tab = 'acompanhamento' | 'historico';
 
 export default function Atividades() {
+  const { user } = useAuth();
+  if (isCampoMerchCargo(user?.cargo)) {
+    return <PromotorRoteiro />;
+  }
+  return <AtividadesGestao />;
+}
+
+function AtividadesGestao() {
   const { user } = useAuth();
   const { openAddAtividade, registerOnCreated } = useAtividadeModal();
   const { showToast } = useToast();

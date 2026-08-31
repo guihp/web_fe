@@ -12,12 +12,19 @@ import {
   USER_FORM_CARGOS,
   canManageUsers,
   defaultSecoesForCargo,
+  isCampoMerchCargo,
   parseSecoesFromNivelAcesso,
   sectionsOfModule,
   type PortalModuleId,
 } from '../../data/portalModules';
 import { saveUser, updateUser } from '../../services/userService';
 import { fetchIndustrias, fetchIndustriasAtivas } from '../../services/industriaService';
+import { fetchLojas, type Loja } from '../../services/lojasService';
+import {
+  MAX_USUARIO_LOJAS,
+  fetchUsuarioLojaIds,
+  formatUsuarioLojaLabel,
+} from '../../services/usuarioLojasService';
 import type { Usuario } from '../../utils/format';
 import { formatCpf } from '../../utils/format';
 import {
@@ -69,6 +76,9 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
     dataNascimento: isoDateToBr(user?.data_nascimento),
   });
   const [industrias, setIndustrias] = useState<IndustriaOpt[]>([]);
+  const [lojas, setLojas] = useState<Loja[]>([]);
+  const [lojaIds, setLojaIds] = useState<number[]>([]);
+  const [lojaSearch, setLojaSearch] = useState('');
   const [secoes, setSecoes] = useState<string[]>(initialSecoes);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
@@ -76,6 +86,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
 
   const externo = isExternalTipo(tipo);
   const managerCargo = canManageUsers(form.cargo);
+  const campoMerch = !externo && isCampoMerchCargo(form.cargo);
 
   useEffect(() => {
     void (async () => {
@@ -106,6 +117,49 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
     })();
   }, [user?.industria_id]);
 
+  useEffect(() => {
+    if (!campoMerch) return;
+    void fetchLojas()
+      .then((rows) => setLojas(rows.filter((l) => !l.status || l.status === 'Ativo')))
+      .catch(() => setLojas([]));
+  }, [campoMerch]);
+
+  useEffect(() => {
+    if (!isEdit || !user?.id || !isCampoMerchCargo(user.cargo)) return;
+    void fetchUsuarioLojaIds(user.id)
+      .then(setLojaIds)
+      .catch(() => setLojaIds([]));
+  }, [isEdit, user?.id, user?.cargo]);
+
+  const lojasFiltradas = useMemo(() => {
+    const q = lojaSearch.trim().toLowerCase();
+    const available = lojas.filter((l) => !lojaIds.includes(l.id));
+    if (!q) return available.slice(0, 40);
+    return available
+      .filter((l) => {
+        const label = formatUsuarioLojaLabel(l).toLowerCase();
+        return label.includes(q);
+      })
+      .slice(0, 40);
+  }, [lojas, lojaIds, lojaSearch]);
+
+  const lojasSelecionadas = useMemo(
+    () => lojas.filter((l) => lojaIds.includes(l.id)),
+    [lojas, lojaIds],
+  );
+
+  const toggleLoja = (id: number) => {
+    setLojaIds((prev) => {
+      if (prev.includes(id)) return prev.filter((x) => x !== id);
+      if (prev.length >= MAX_USUARIO_LOJAS) {
+        setError(`Máximo de ${MAX_USUARIO_LOJAS} lojas por promotor/demonstradora.`);
+        return prev;
+      }
+      setError(null);
+      return [...prev, id];
+    });
+  };
+
   const moduleOptions = useMemo(
     () => PORTAL_MODULES.filter((mod) => mod.id !== 'administrador' || managerCargo),
     [managerCargo],
@@ -125,6 +179,10 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
 
   const handleCargoChange = (cargo: string) => {
     updateField('cargo', cargo);
+    if (!isCampoMerchCargo(cargo)) {
+      setLojaIds([]);
+      setLojaSearch('');
+    }
     setSecoes((prev) => {
       const next = prev.length ? prev : defaultSecoesForCargo(cargo);
       if (!canManageUsers(cargo)) {
@@ -205,6 +263,10 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
         setError('Selecione ao menos uma seção de acesso.');
         return;
       }
+      if (isCampoMerchCargo(form.cargo) && lojaIds.length === 0) {
+        setError('Selecione ao menos uma loja para Promotor/Demonstradora.');
+        return;
+      }
     }
     if (tipo === 'industria' && !form.industriaId) {
       setError('Selecione a indústria.');
@@ -239,6 +301,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
           tipo === 'cliente' ? normalizeClienteGrupo(form.clienteGrupo || form.nome) : null,
         login_cnpj: tipo === 'cliente' ? form.loginCnpj : null,
         data_nascimento: dataNascimentoIso,
+        lojaIds: isCampoMerchCargo(form.cargo) ? lojaIds : [],
       };
 
       if (isEdit && user) {
@@ -373,6 +436,51 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
                 </select>
               </div>
             </label>
+
+            {campoMerch && (
+              <fieldset className="colab-field full usuario-lojas-field">
+                <legend>
+                  Lojas do roteiro ({lojaIds.length}/{MAX_USUARIO_LOJAS})
+                </legend>
+                <p className="usuario-modulos-hint">
+                  Escolha até {MAX_USUARIO_LOJAS} PDVs. Cidade e estado vêm da tabela de lojas no
+                  check-in (sem GPS por enquanto).
+                </p>
+                {lojasSelecionadas.length > 0 && (
+                  <ul className="usuario-lojas-chips">
+                    {lojasSelecionadas.map((loja) => (
+                      <li key={loja.id}>
+                        <button type="button" onClick={() => toggleLoja(loja.id)}>
+                          {formatUsuarioLojaLabel(loja)} ×
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {lojaIds.length < MAX_USUARIO_LOJAS && (
+                  <>
+                    <input
+                      type="search"
+                      value={lojaSearch}
+                      onChange={(e) => setLojaSearch(e.target.value)}
+                      placeholder="Buscar loja por nome, código ou cidade"
+                    />
+                    <ul className="usuario-lojas-options">
+                      {lojasFiltradas.map((loja) => (
+                        <li key={loja.id}>
+                          <button type="button" onClick={() => toggleLoja(loja.id)}>
+                            {formatUsuarioLojaLabel(loja)}
+                          </button>
+                        </li>
+                      ))}
+                      {lojasFiltradas.length === 0 && (
+                        <li className="usuario-lojas-empty">Nenhuma loja encontrada.</li>
+                      )}
+                    </ul>
+                  </>
+                )}
+              </fieldset>
+            )}
           </>
         )}
 

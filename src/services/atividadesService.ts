@@ -214,7 +214,7 @@ export async function fetchPromotores(): Promise<Usuario[]> {
     .from('usuarios')
     .select('*')
     .eq('status', true)
-    .in('cargo', ['Promotor', 'Degustação'])
+    .in('cargo', ['Promotor', 'Demonstradora', 'Degustação'])
     .order('nome');
 
   if (error) throw new Error(error.message);

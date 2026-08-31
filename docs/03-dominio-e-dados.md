@@ -18,7 +18,8 @@ Visão orientada ao **negócio**. Nomes técnicos entre parênteses ajudam a IA 
 | Conceito | Tabela | Uso |
 |----------|--------|-----|
 | Indústria | `industrias` | Nome padronizado (MAIÚSCULO); vendas, validades, comissão |
-| Loja / PDV | `lojas` | Filiais comerciais; CNPJ; regional |
+| Loja / PDV | `lojas` | Filiais comerciais; CNPJ; regional; cidade; estado |
+| Usuário × loja | `usuario_lojas` | Até 7 PDVs por Promotor/Demonstradora |
 | Regional | `regionais` | Agrupamento geográfico / gestão |
 | Empresa FE | `empresas` + `filiais` | Dados da própria empresa Fé |
 | Cliente (base) | `baseCliente` | CDC, CNPJ, fantasia, razão social |

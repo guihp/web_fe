@@ -13,7 +13,7 @@ Formato: mais recente no topo.
 - No dia do aniversário, o próprio usuário (interno ou externo) vê no sino uma mensagem de parabéns — só ele recebe.
 - **Lançar vencimentos** (Atividades / Merchandising): formulário nativo para internos; POST idêntico ao webhook `comercial1` (ex-app validade.vercel.app).
 - No código reduzido, o formulário consulta `public.codigos` e preenche automaticamente produto e indústria.
-- Promotor / Demonstradora: sino e push só com aniversário + avisos (pagamento, feriado, folha) — sem vendas/kanbans.
+- Cadastro de Promotor/Demonstradora: até **7 lojas** em `usuario_lojas`; no app/web o campo vê só esses PDVs, check-in sem GPS (cidade/UF da loja), indústria e fotos antes/depois.
 
 ### Documentação
 - Avisos em `02-modulos-e-telas.md`, `04-regras-de-negocio.md` e `05-tecnologia-e-deploy.md`.

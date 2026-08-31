@@ -221,6 +221,13 @@ export function canManageUsers(cargo: string | null | undefined): boolean {
   return USER_MANAGER_CARGOS.some((c) => normalizeCargoKey(c) === key);
 }
 
+/** Promotor / Demonstradora — usuário de campo (lojas atribuídas, execução em PDV). */
+export function isCampoMerchCargo(cargo: string | null | undefined): boolean {
+  if (!cargo) return false;
+  const key = normalizeCargoKey(cargo);
+  return key === 'promotor' || key === 'demonstradora';
+}
+
 /** Lançar vencimentos: todos os usuários internos (não indústria/cliente). */
 export function canLancarVencimentos(tipoUsuario: string | null | undefined): boolean {
   if (!tipoUsuario) return true; // legado interno

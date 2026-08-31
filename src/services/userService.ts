@@ -3,6 +3,7 @@ import { normalizeCpf } from '../lib/cpf';
 import {
   defaultSecoesForCargo,
   encodeNivelAcesso,
+  isCampoMerchCargo,
   sanitizeSecoes,
 } from '../data/portalModules';
 import {
@@ -14,6 +15,7 @@ import {
   normalizeCnpjDigits,
   type TipoUsuario,
 } from '../utils/externalAccess';
+import { setUsuarioLojas } from './usuarioLojasService';
 
 async function hashPassword(password: string): Promise<string> {
   const saltArray = crypto.getRandomValues(new Uint8Array(16));
@@ -67,6 +69,8 @@ export type SaveUserInput = {
   cliente_grupo?: string | null;
   login_cnpj?: string | null;
   data_nascimento: string;
+  /** Lojas do Promotor/Demonstradora (máx. 7). */
+  lojaIds?: number[];
 };
 
 function resolveTipo(data: { tipo_usuario?: TipoUsuario; cargo: string }): TipoUsuario {
@@ -130,10 +134,18 @@ export async function saveUser(data: SaveUserInput) {
     data_nascimento: dataNascimento,
   };
 
-  const { error } = await supabase.from('usuarios').insert([payload]);
+  const { data: created, error } = await supabase
+    .from('usuarios')
+    .insert([payload])
+    .select('id')
+    .single();
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (isCampoMerchCargo(cargo) && created?.id) {
+    await setUsuarioLojas(Number(created.id), data.lojaIds ?? []);
   }
 
   const webhookUrl = import.meta.env.EXPO_PUBLIC_WEBHOOK_SENHA;
@@ -158,7 +170,7 @@ export async function saveUser(data: SaveUserInput) {
     }
   }
 
-  return { success: true };
+  return { success: true, id: Number(created.id) };
 }
 
 export type UpdateUserInput = {
@@ -176,6 +188,7 @@ export type UpdateUserInput = {
   cliente_grupo?: string | null;
   login_cnpj?: string | null;
   data_nascimento?: string | null;
+  lojaIds?: number[];
 };
 
 export async function updateUser(userId: number, data: UpdateUserInput) {
@@ -227,6 +240,12 @@ export async function updateUser(userId: number, data: UpdateUserInput) {
 
   if (error) {
     throw new Error(error.message);
+  }
+
+  if (isCampoMerchCargo(cargo)) {
+    await setUsuarioLojas(userId, data.lojaIds ?? []);
+  } else if (data.lojaIds !== undefined) {
+    await setUsuarioLojas(userId, []);
   }
 
   return { success: true };

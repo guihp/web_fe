@@ -151,6 +151,74 @@
   line-height: 1.4;
 }
 
+.usuario-lojas-field {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin: 0;
+}
+
+.usuario-lojas-field legend {
+  padding: 0 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.usuario-lojas-chips {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.usuario-lojas-chips button {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.usuario-lojas-options {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  max-height: 180px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.usuario-lojas-options button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  padding: 10px 12px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 0.82rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.usuario-lojas-options li:last-child button {
+  border-bottom: none;
+}
+
+.usuario-lojas-options button:hover {
+  background: var(--surface-2);
+}
+
+.usuario-lojas-empty {
+  padding: 12px;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
 .usuario-modulos-grid {
   display: flex;
   flex-direction: column;
