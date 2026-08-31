@@ -30,6 +30,7 @@ a {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   background: var(--bg);
   color: var(--text);
@@ -230,6 +231,7 @@ button.link-action {
 
   .main-area {
     padding: 12px;
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
     gap: 12px;
   }
 
@@ -241,6 +243,7 @@ button.link-action {
 @media (max-width: 480px) {
   .main-area {
     padding: 10px;
+    padding-bottom: max(10px, env(safe-area-inset-bottom));
   }
 
   .home-atividades-kpis {

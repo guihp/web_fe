@@ -80,9 +80,16 @@ html:not([data-theme='dark']) .senha-dia-status--error {
 @media (max-width: 640px) {
   .senha-dia-card {
     align-items: stretch;
+    margin-bottom: 14px;
+    padding: 14px;
+  }
+
+  .senha-dia-value {
+    font-size: 1.35rem;
   }
 
   .senha-dia-copy {
     width: 100%;
+    min-height: 44px;
   }
 }

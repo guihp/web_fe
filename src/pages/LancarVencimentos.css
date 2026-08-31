@@ -151,7 +151,7 @@ html:not([data-theme='dark']) .lancar-venc-error {
 
 @media (max-width: 640px) {
   .lancar-venc-page {
-    padding: 0 0 24px;
+    padding: 0 0 max(24px, env(safe-area-inset-bottom));
     gap: 12px;
   }
 
@@ -171,6 +171,6 @@ html:not([data-theme='dark']) .lancar-venc-error {
 
   .lancar-venc-btn {
     width: 100%;
-    min-height: 44px;
+    min-height: 48px;
   }
 }
