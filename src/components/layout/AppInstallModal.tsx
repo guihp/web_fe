@@ -8,7 +8,7 @@ import {
   saveNotificationPreferences,
   type NotificationPreferences,
 } from '../../services/notificationPreferencesService';
-import { isPushSupported, subscribePush } from '../../services/pushService';
+import { isPushSupported, subscribePush, hasPushSubscription } from '../../services/pushService';
 import { isExternalTipo } from '../../utils/externalAccess';
 import './AppInstallModal.css';
 
@@ -34,6 +34,7 @@ export default function AppInstallModal({ open, onClose }: Props) {
   const [prefs, setPrefs] = useState<NotificationPreferences | null>(null);
   const [pushLoading, setPushLoading] = useState(false);
   const [installLoading, setInstallLoading] = useState(false);
+  const [deviceRegistered, setDeviceRegistered] = useState<boolean | null>(null);
   const [permission, setPermission] = useState<NotificationPermission>(() =>
     typeof Notification !== 'undefined' ? Notification.permission : 'default',
   );
@@ -42,8 +43,12 @@ export default function AppInstallModal({ open, onClose }: Props) {
 
   const loadPrefs = useCallback(async () => {
     if (!user) return;
-    const data = await fetchNotificationPreferences(user.id);
+    const [data, registered] = await Promise.all([
+      fetchNotificationPreferences(user.id),
+      hasPushSubscription(user.id),
+    ]);
     setPrefs(data);
+    setDeviceRegistered(registered);
   }, [user]);
 
   useEffect(() => {
@@ -85,10 +90,7 @@ export default function AppInstallModal({ open, onClose }: Props) {
       setPermission(result);
 
       if (result === 'granted') {
-        await subscribePush(user.id);
-        await enableAllNotificationPreferences(user.id, user.tipo_usuario);
-        await loadPrefs();
-        showToast('Notificações ativadas.', 'success');
+        await syncDevicePush();
       } else if (result === 'denied') {
         showToast(
           'Permissão negada. Reative nas configurações do navegador.',
@@ -102,6 +104,31 @@ export default function AppInstallModal({ open, onClose }: Props) {
       );
     } finally {
       setPushLoading(false);
+    }
+  };
+
+  const syncDevicePush = async () => {
+    if (!user) return;
+
+    const subscribed = await subscribePush(user.id);
+    if (!subscribed) {
+      showToast('Push não suportado neste navegador.', 'error');
+      return;
+    }
+
+    await enableAllNotificationPreferences(user.id, user.tipo_usuario);
+    await loadPrefs();
+
+    const registered = await hasPushSubscription(user.id);
+    setDeviceRegistered(registered);
+
+    if (registered) {
+      showToast('Dispositivo registrado para notificações push.', 'success');
+    } else {
+      showToast(
+        'Permissão ok, mas o dispositivo não foi salvo no servidor. Tente sincronizar de novo.',
+        'error',
+      );
     }
   };
 
@@ -198,6 +225,10 @@ export default function AppInstallModal({ open, onClose }: Props) {
                 <li>
                   Toque em <strong>Adicionar</strong>
                 </li>
+                <li>
+                  Abra o <strong>App Fé</strong> pela tela inicial e ative as notificações aqui
+                  (push no iPhone só funciona no app instalado, não no Safari).
+                </li>
               </ol>
             )}
 
@@ -232,6 +263,19 @@ export default function AppInstallModal({ open, onClose }: Props) {
               Status: <strong>{pushStatusLabel()}</strong>
             </p>
 
+            {permission === 'granted' && deviceRegistered !== null && (
+              <p className="app-install-push-status">
+                Dispositivo no servidor:{' '}
+                <strong>{deviceRegistered ? 'Registrado' : 'Não registrado'}</strong>
+              </p>
+            )}
+
+            {isIos && !isStandalone && (
+              <p className="app-install-push-hint">
+                No iPhone, instale o app na Tela de Início e abra por lá para registrar push.
+              </p>
+            )}
+
             {permission !== 'granted' && isPushSupported() && (
               <>
                 {permission === 'denied' ? (
@@ -250,6 +294,33 @@ export default function AppInstallModal({ open, onClose }: Props) {
                   </button>
                 )}
               </>
+            )}
+
+            {permission === 'granted' && isPushSupported() && (
+              <button
+                type="button"
+                className="app-install-btn"
+                onClick={() => {
+                  setPushLoading(true);
+                  void syncDevicePush()
+                    .catch((error) => {
+                      showToast(
+                        error instanceof Error
+                          ? error.message
+                          : 'Não foi possível sincronizar o dispositivo.',
+                        'error',
+                      );
+                    })
+                    .finally(() => setPushLoading(false));
+                }}
+                disabled={pushLoading}
+              >
+                {pushLoading
+                  ? 'Sincronizando...'
+                  : deviceRegistered
+                    ? 'Sincronizar dispositivo'
+                    : 'Registrar este dispositivo'}
+              </button>
             )}
 
             {permission === 'granted' && prefs && (
