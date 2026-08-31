@@ -44,6 +44,9 @@ function readStoredUser(): AuthUser | null {
       industria_nome: parsed.industria_nome ?? null,
       cliente_grupo: parsed.cliente_grupo ?? null,
       login_cnpj: parsed.login_cnpj ?? null,
+      data_nascimento: parsed.data_nascimento
+        ? String(parsed.data_nascimento).slice(0, 10)
+        : null,
       somente_leitura: tipo === 'industria' || tipo === 'cliente',
       modulos_acesso:
         parsed.modulos_acesso?.length > 0

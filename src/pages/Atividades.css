@@ -258,6 +258,17 @@
     flex-direction: column;
   }
 
+  .atividades-header .base-vendas-actions {
+    width: 100%;
+  }
+
+  .atividades-header .base-vendas-btn {
+    flex: 1 1 auto;
+    min-height: 42px;
+    white-space: normal;
+    text-align: center;
+  }
+
   .atividades-period-filter {
     width: 100%;
     flex-wrap: wrap;
@@ -273,5 +284,10 @@
 @media (max-width: 480px) {
   .atividades-kpi-grid {
     grid-template-columns: 1fr;
+  }
+
+  .atividades-header .base-vendas-btn {
+    width: 100%;
+    flex: 1 1 100%;
   }
 }

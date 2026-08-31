@@ -221,13 +221,15 @@ export function canManageUsers(cargo: string | null | undefined): boolean {
   return USER_MANAGER_CARGOS.some((c) => normalizeCargoKey(c) === key);
 }
 
-/** Promotor, Demonstrador(a) e Supervisor — veem a senha do dia no hub Merchandising. */
-const SENHA_DO_DIA_CARGOS = ['Promotor', 'Demonstrador', 'Demonstradora', 'Supervisor'] as const;
+/** Lançar vencimentos: todos os usuários internos (não indústria/cliente). */
+export function canLancarVencimentos(tipoUsuario: string | null | undefined): boolean {
+  if (!tipoUsuario) return true; // legado interno
+  return tipoUsuario !== 'industria' && tipoUsuario !== 'cliente';
+}
 
-export function canViewSenhaDoDia(cargo: string | null | undefined): boolean {
-  if (!cargo) return false;
-  const key = normalizeCargoKey(cargo);
-  return SENHA_DO_DIA_CARGOS.some((c) => normalizeCargoKey(c) === key);
+/** @deprecated Senha do dia é liberada para todos os usuários logados (internos e externos). */
+export function canViewSenhaDoDia(_cargo?: string | null): boolean {
+  return true;
 }
 
 export function sectionsOfModule(moduleId: PortalModuleId): PortalSectionDef[] {

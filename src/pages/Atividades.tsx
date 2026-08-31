@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import CancelAtividadeModal from '../components/atividades/CancelAtividadeModal';
 import DeleteAtividadeModal from '../components/atividades/DeleteAtividadeModal';
 import EditAtividadeModal from '../components/atividades/EditAtividadeModal';
@@ -8,6 +9,7 @@ import AppIcon from '../components/icons/AppIcon';
 import { useAtividadeModal } from '../context/AtividadeModalContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { canLancarVencimentos } from '../data/portalModules';
 import {
   fetchAtividadeStats,
   fetchAtividades,
@@ -36,6 +38,7 @@ export default function Atividades() {
   const { showToast } = useToast();
 
   const somenteLeitura = Boolean(user?.somente_leitura);
+  const podeLancarVencimentos = canLancarVencimentos(user?.tipo_usuario);
   const scopeIndustria =
     user?.tipo_usuario === 'industria' ? user.industria_nome ?? undefined : undefined;
   const scopeClienteGrupo =
@@ -143,6 +146,11 @@ export default function Atividades() {
           <button type="button" className="base-vendas-btn outline" onClick={loadData}>
             Atualizar
           </button>
+          {podeLancarVencimentos && (
+            <Link to="/atividades/lancar-vencimentos" className="base-vendas-btn outline">
+              Lançar vencimentos
+            </Link>
+          )}
           {!somenteLeitura && (
             <button type="button" className="base-vendas-btn primary" onClick={openAddAtividade}>
               + Nova atividade

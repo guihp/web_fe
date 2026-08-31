@@ -1,0 +1,176 @@
+.lancar-venc-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 4px 28px;
+  max-width: 720px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.lancar-venc-subtitle {
+  margin-top: 6px;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.lancar-venc-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-sizing: border-box;
+}
+
+.lancar-venc-card h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.lancar-venc-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px 16px;
+}
+
+.lancar-venc-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.lancar-venc-field.full {
+  grid-column: 1 / -1;
+}
+
+.lancar-venc-field span {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.lancar-venc-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
+
+.lancar-venc-hint.ok {
+  color: #2f7d4a;
+}
+
+.lancar-venc-hint.warn {
+  color: #a15c12;
+}
+
+[data-theme='dark'] .lancar-venc-hint.ok {
+  color: #7dcea0;
+}
+
+[data-theme='dark'] .lancar-venc-hint.warn {
+  color: #f0c674;
+}
+
+.lancar-venc-field input,
+.lancar-venc-field select,
+.lancar-venc-field textarea {
+  width: 100%;
+  max-width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--input-bg);
+  font-size: 16px;
+  color: var(--text);
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.lancar-venc-field input:focus,
+.lancar-venc-field select:focus,
+.lancar-venc-field textarea:focus {
+  border-color: #f0b89a;
+}
+
+.lancar-venc-actions {
+  display: flex;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.lancar-venc-btn {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 18px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.lancar-venc-btn.primary {
+  background: #ea580c;
+  color: #fff;
+}
+
+.lancar-venc-btn.primary:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.lancar-venc-btn.outline {
+  background: var(--surface-2);
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+.lancar-venc-error {
+  margin: 0;
+  font-size: 0.86rem;
+  color: #f87171;
+}
+
+html:not([data-theme='dark']) .lancar-venc-error {
+  color: #b91c1c;
+}
+
+@media (max-width: 640px) {
+  .lancar-venc-page {
+    padding: 0 0 24px;
+    gap: 12px;
+  }
+
+  .lancar-venc-card {
+    padding: 16px;
+    border-radius: 12px;
+  }
+
+  .lancar-venc-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .lancar-venc-actions {
+    flex-direction: column-reverse;
+  }
+
+  .lancar-venc-btn {
+    width: 100%;
+    min-height: 44px;
+  }
+}

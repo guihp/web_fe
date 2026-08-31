@@ -35,7 +35,7 @@ Opcionais (webhooks n8n):
 - `EXPO_PUBLIC_WEBHOOK_SENHA`
 - `EXPO_PUBLIC_WEBHOOK_PESQUISA`
 - `EXPO_PUBLIC_WEBHOOK_HARIBO`
-- `EXPO_PUBLIC_WEBHOOK_VALIDADE`
+- `EXPO_PUBLIC_WEBHOOK_VALIDADE` — Lançar vencimentos (fallback: webhook `comercial1` no n8n)
 - `EXPO_PUBLIC_WEBHOOK_VENDAS`
 
 Opcional (Web Push):

@@ -30,6 +30,7 @@ export type AuthUser = {
   industria_nome: string | null;
   cliente_grupo: string | null;
   login_cnpj: string | null;
+  data_nascimento: string | null;
   /** Somente visualização (indústria/cliente externo). */
   somente_leitura: boolean;
 };
@@ -82,6 +83,7 @@ type UsuarioRow = {
   industria_id?: number | null;
   cliente_grupo?: string | null;
   login_cnpj?: string | null;
+  data_nascimento?: string | null;
 };
 
 async function resolveIndustriaNome(industriaId: number | null | undefined): Promise<string | null> {
@@ -115,6 +117,9 @@ function toAuthUser(user: UsuarioRow, industriaNome: string | null): AuthUser {
     industria_nome: industriaNome,
     cliente_grupo: user.cliente_grupo ? String(user.cliente_grupo).trim().toUpperCase() : null,
     login_cnpj: user.login_cnpj ? normalizeCnpjDigits(String(user.login_cnpj)) : null,
+    data_nascimento: user.data_nascimento
+      ? String(user.data_nascimento).slice(0, 10)
+      : null,
     somente_leitura: isExternalTipo(tipo),
   };
 }
@@ -164,7 +169,7 @@ export async function loginAs(
     const { data, error } = await supabase
       .from('usuarios')
       .select(
-        'id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url, nivel_acesso, tipo_usuario, industria_id, cliente_grupo, login_cnpj',
+        'id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url, nivel_acesso, tipo_usuario, industria_id, cliente_grupo, login_cnpj, data_nascimento',
       )
       .eq('cpf', normalizedCpf)
       .maybeSingle();
@@ -204,7 +209,7 @@ export async function loginAs(
     const { data, error } = await supabase
       .from('usuarios')
       .select(
-        'id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url, nivel_acesso, tipo_usuario, industria_id, cliente_grupo, login_cnpj',
+        'id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url, nivel_acesso, tipo_usuario, industria_id, cliente_grupo, login_cnpj, data_nascimento',
       )
       .eq('tipo_usuario', 'industria')
       .eq('industria_id', industria.id)
@@ -223,7 +228,7 @@ export async function loginAs(
     const { data, error } = await supabase
       .from('usuarios')
       .select(
-        'id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url, nivel_acesso, tipo_usuario, industria_id, cliente_grupo, login_cnpj',
+        'id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url, nivel_acesso, tipo_usuario, industria_id, cliente_grupo, login_cnpj, data_nascimento',
       )
       .eq('tipo_usuario', 'cliente')
       .eq('login_cnpj', cnpj)

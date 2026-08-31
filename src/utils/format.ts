@@ -14,6 +14,7 @@ export type Usuario = {
   industria_id?: number | null;
   cliente_grupo?: string | null;
   login_cnpj?: string | null;
+  data_nascimento?: string | null;
 };
 
 const ESTADOS: Record<string, string> = {

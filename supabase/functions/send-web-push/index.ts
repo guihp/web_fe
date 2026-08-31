@@ -23,6 +23,7 @@ type SubscriptionRow = {
   usuario_id: number;
   usuarios: {
     tipo_usuario: string;
+    cargo: string | null;
     cliente_grupo: string | null;
     login_cnpj: string | null;
     industrias: { Nome: string } | { Nome: string }[] | null;
@@ -79,6 +80,21 @@ function formatBRL(value: number): string {
 
 function isExternalTipo(tipo: string | null | undefined): boolean {
   return tipo === 'industria' || tipo === 'cliente';
+}
+
+function normalizeCargoKey(cargo: string): string {
+  return cargo
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '');
+}
+
+/** Promotor / Demonstradora: só avisos (salário, feriado, folha). */
+function isCampoMerchNotifCargo(cargo: string | null | undefined): boolean {
+  if (!cargo) return false;
+  const key = normalizeCargoKey(cargo);
+  return key === 'promotor' || key === 'demonstradora';
 }
 
 function normalizeCnpjDigits(value: string): string {
@@ -269,6 +285,11 @@ function shouldNotifyUser(
     return !isExternalTipo(tipo);
   }
 
+  // Promotor / Demonstradora não recebem vendas nem kanbans
+  if (isCampoMerchNotifCargo(usuario.cargo)) {
+    return false;
+  }
+
   if (!isExternalTipo(tipo)) {
     return true;
   }
@@ -359,7 +380,7 @@ Deno.serve(async (req: Request) => {
   const { data: subscriptions, error: subsError } = await supabase
     .from('push_subscriptions')
     .select(
-      'id, endpoint, p256dh, auth, usuario_id, usuarios(tipo_usuario, cliente_grupo, login_cnpj, industrias(Nome))',
+      'id, endpoint, p256dh, auth, usuario_id, usuarios(tipo_usuario, cargo, cliente_grupo, login_cnpj, industrias(Nome))',
     );
 
   if (subsError) {

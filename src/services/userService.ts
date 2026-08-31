@@ -66,6 +66,7 @@ export type SaveUserInput = {
   industria_id?: number | null;
   cliente_grupo?: string | null;
   login_cnpj?: string | null;
+  data_nascimento: string;
 };
 
 function resolveTipo(data: { tipo_usuario?: TipoUsuario; cargo: string }): TipoUsuario {
@@ -105,6 +106,11 @@ export async function saveUser(data: SaveUserInput) {
     if (!grupo) throw new Error('Informe o grupo do cliente (ex.: MATEUS).');
   }
 
+  const dataNascimento = (data.data_nascimento ?? '').trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dataNascimento)) {
+    throw new Error('Informe a data de nascimento.');
+  }
+
   const payload: Record<string, unknown> = {
     nome: data.nome.trim(),
     email: data.email?.trim() || null,
@@ -121,6 +127,7 @@ export async function saveUser(data: SaveUserInput) {
     cliente_grupo:
       tipo === 'cliente' ? normalizeClienteGrupo(data.cliente_grupo ?? data.nome) : null,
     login_cnpj: tipo === 'cliente' ? normalizeCnpjDigits(data.login_cnpj ?? '') : null,
+    data_nascimento: dataNascimento,
   };
 
   const { error } = await supabase.from('usuarios').insert([payload]);
@@ -168,6 +175,7 @@ export type UpdateUserInput = {
   industria_id?: number | null;
   cliente_grupo?: string | null;
   login_cnpj?: string | null;
+  data_nascimento?: string | null;
 };
 
 export async function updateUser(userId: number, data: UpdateUserInput) {
@@ -189,6 +197,11 @@ export async function updateUser(userId: number, data: UpdateUserInput) {
     if (!grupo) throw new Error('Informe o grupo do cliente (ex.: MATEUS).');
   }
 
+  const dataNascimento = (data.data_nascimento ?? '').trim();
+  if (dataNascimento && !/^\d{4}-\d{2}-\d{2}$/.test(dataNascimento)) {
+    throw new Error('Data de nascimento inválida.');
+  }
+
   const payload: Record<string, string | number | null> = {
     nome: data.nome.trim(),
     email: data.email?.trim() || null,
@@ -203,6 +216,7 @@ export async function updateUser(userId: number, data: UpdateUserInput) {
     cliente_grupo:
       tipo === 'cliente' ? normalizeClienteGrupo(data.cliente_grupo ?? data.nome) : null,
     login_cnpj: tipo === 'cliente' ? normalizeCnpjDigits(data.login_cnpj ?? '') : null,
+    data_nascimento: dataNascimento || null,
   };
 
   if (data.senha?.trim()) {

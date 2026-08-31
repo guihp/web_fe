@@ -10,6 +10,7 @@ import {
   fetchAppNotifications,
   formatNotificationTime,
   getNotificationsSeenAt,
+  isCampoMerchNotifCargo,
   markNotificationsSeen,
   type AppNotification,
   type NotificationKind,
@@ -43,6 +44,7 @@ function kindIcon(kind: NotificationKind): AppIconName {
   if (kind === 'venda') return 'money';
   if (kind === 'kanban_pedido') return 'cart';
   if (kind === 'aviso') return 'bell';
+  if (kind === 'aniversario') return 'check';
   return 'dollar';
 }
 
@@ -63,15 +65,20 @@ export default function TopBar() {
   const [unread, setUnread] = useState(0);
   const firstName = user?.nome?.split(' ')[0] ?? 'Usuário';
   const avatarUrl = getProfileAvatarUrl(user);
+  const campoMerchNotif = isCampoMerchNotifCargo(user?.cargo);
 
   const loadNotifications = useCallback(async () => {
     setNotifLoading(true);
     try {
       const items = await fetchAppNotifications(24, {
         tipo_usuario: user?.tipo_usuario,
+        cargo: user?.cargo,
         industria_nome: user?.industria_nome,
         cliente_grupo: user?.cliente_grupo,
         login_cnpj: user?.login_cnpj,
+        usuario_id: user?.id,
+        usuario_nome: user?.nome,
+        data_nascimento: user?.data_nascimento,
       });
       setNotifications(items);
       setUnread(countUnread(items, getNotificationsSeenAt()));
@@ -81,7 +88,16 @@ export default function TopBar() {
     } finally {
       setNotifLoading(false);
     }
-  }, [user?.tipo_usuario, user?.industria_nome, user?.cliente_grupo, user?.login_cnpj]);
+  }, [
+    user?.tipo_usuario,
+    user?.cargo,
+    user?.industria_nome,
+    user?.cliente_grupo,
+    user?.login_cnpj,
+    user?.id,
+    user?.nome,
+    user?.data_nascimento,
+  ]);
 
   useNotificationRealtime(() => {
     void loadNotifications();
@@ -220,7 +236,11 @@ export default function TopBar() {
             <div className="notif-dropdown card" role="dialog" aria-label="Lista de notificações">
               <header className="notif-dropdown-header">
                 <strong>Notificações</strong>
-                <span>Vendas, kanbans e avisos</span>
+                <span>
+                  {campoMerchNotif
+                    ? 'Avisos da equipe e aniversário'
+                    : 'Vendas, kanbans, avisos e aniversário'}
+                </span>
               </header>
 
               <div className="notif-list">

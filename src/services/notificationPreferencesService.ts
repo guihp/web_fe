@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { isExternalTipo } from '../utils/externalAccess';
+import { isCampoMerchNotifCargo } from './notificationsService';
 
 export type NotificationPreferences = {
   notify_venda: boolean;
@@ -68,13 +69,24 @@ export async function saveNotificationPreferences(
 export async function enableAllNotificationPreferences(
   usuarioId: number,
   tipoUsuario?: string | null,
+  cargo?: string | null,
 ): Promise<void> {
   const external = isExternalTipo(tipoUsuario);
-  const prefs: NotificationPreferences = {
-    notify_venda: !external,
-    notify_kanban_pedido: true,
-    notify_kanban_financeiro: !external,
-    notify_aviso: !external,
-  };
+  const campoMerch = isCampoMerchNotifCargo(cargo);
+
+  const prefs: NotificationPreferences = campoMerch
+    ? {
+        notify_venda: false,
+        notify_kanban_pedido: false,
+        notify_kanban_financeiro: false,
+        notify_aviso: true,
+      }
+    : {
+        notify_venda: !external,
+        notify_kanban_pedido: true,
+        notify_kanban_financeiro: !external,
+        notify_aviso: !external,
+      };
+
   await saveNotificationPreferences(usuarioId, prefs);
 }

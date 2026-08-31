@@ -44,6 +44,7 @@
 .base-vendas-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
   padding: 10px 16px;
   border-radius: 10px;
@@ -51,6 +52,8 @@
   font-weight: 600;
   cursor: pointer;
   white-space: nowrap;
+  text-decoration: none;
+  box-sizing: border-box;
 }
 
 .base-vendas-btn.outline {

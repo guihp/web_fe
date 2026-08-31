@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { maskCpfInput, maskPhoneInput } from '../../lib/cpf';
+import {
+  brDateToIso,
+  isoDateToBr,
+  maskCpfInput,
+  maskDateBrInput,
+  maskPhoneInput,
+} from '../../lib/cpf';
 import {
   ALWAYS_AVAILABLE_SECTION_IDS,
   PORTAL_MODULES,
@@ -60,6 +66,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
     industriaId: user?.industria_id ? String(user.industria_id) : '',
     clienteGrupo: user?.cliente_grupo ?? '',
     loginCnpj: user?.login_cnpj ? maskCnpjInput(user.login_cnpj) : '',
+    dataNascimento: isoDateToBr(user?.data_nascimento),
   });
   const [industrias, setIndustrias] = useState<IndustriaOpt[]>([]);
   const [secoes, setSecoes] = useState<string[]>(initialSecoes);
@@ -179,6 +186,15 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
       setError('Informe ou gere uma senha para o novo usuário.');
       return;
     }
+    if (!form.dataNascimento.trim()) {
+      setError('Informe a data de nascimento.');
+      return;
+    }
+    const dataNascimentoIso = brDateToIso(form.dataNascimento);
+    if (!dataNascimentoIso) {
+      setError('Data de nascimento inválida. Use DD/MM/AAAA.');
+      return;
+    }
 
     if (tipo === 'interno') {
       if (!form.cpf.trim() || !form.cargo) {
@@ -222,6 +238,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
         cliente_grupo:
           tipo === 'cliente' ? normalizeClienteGrupo(form.clienteGrupo || form.nome) : null,
         login_cnpj: tipo === 'cliente' ? form.loginCnpj : null,
+        data_nascimento: dataNascimentoIso,
       };
 
       if (isEdit && user) {
@@ -303,6 +320,19 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
             value={form.telefone}
             onChange={(e) => updateField('telefone', maskPhoneInput(e.target.value))}
             placeholder="Telefone"
+          />
+        </label>
+
+        <label className="colab-field full">
+          <span>Data de nascimento</span>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={form.dataNascimento}
+            onChange={(e) => updateField('dataNascimento', maskDateBrInput(e.target.value))}
+            placeholder="DD/MM/AAAA"
+            maxLength={10}
+            required
           />
         </label>
 

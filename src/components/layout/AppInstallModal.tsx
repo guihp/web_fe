@@ -10,6 +10,7 @@ import {
 } from '../../services/notificationPreferencesService';
 import { isPushSupported, subscribePush, hasPushSubscription } from '../../services/pushService';
 import { isExternalTipo } from '../../utils/externalAccess';
+import { isCampoMerchNotifCargo } from '../../services/notificationsService';
 import './AppInstallModal.css';
 
 type InstallTab = 'android' | 'ios' | 'desktop';
@@ -40,6 +41,7 @@ export default function AppInstallModal({ open, onClose }: Props) {
   );
 
   const external = isExternalTipo(user?.tipo_usuario);
+  const campoMerch = isCampoMerchNotifCargo(user?.cargo);
 
   const loadPrefs = useCallback(async () => {
     if (!user) return;
@@ -116,7 +118,7 @@ export default function AppInstallModal({ open, onClose }: Props) {
       return;
     }
 
-    await enableAllNotificationPreferences(user.id, user.tipo_usuario);
+    await enableAllNotificationPreferences(user.id, user.tipo_usuario, user.cargo);
     await loadPrefs();
 
     const registered = await hasPushSubscription(user.id);
@@ -325,7 +327,7 @@ export default function AppInstallModal({ open, onClose }: Props) {
 
             {permission === 'granted' && prefs && (
               <div className="app-install-toggles">
-                {!external && (
+                {!external && !campoMerch && (
                   <label className="app-install-toggle">
                     <span className="app-install-toggle-label">Lançamento de vendas</span>
                     <input
@@ -338,18 +340,20 @@ export default function AppInstallModal({ open, onClose }: Props) {
                   </label>
                 )}
 
-                <label className="app-install-toggle">
-                  <span className="app-install-toggle-label">Kanban Sucesso do Cliente</span>
-                  <input
-                    type="checkbox"
-                    checked={prefs.notify_kanban_pedido}
-                    onChange={(event) =>
-                      void handleToggle('notify_kanban_pedido', event.target.checked)
-                    }
-                  />
-                </label>
+                {!campoMerch && (
+                  <label className="app-install-toggle">
+                    <span className="app-install-toggle-label">Kanban Sucesso do Cliente</span>
+                    <input
+                      type="checkbox"
+                      checked={prefs.notify_kanban_pedido}
+                      onChange={(event) =>
+                        void handleToggle('notify_kanban_pedido', event.target.checked)
+                      }
+                    />
+                  </label>
+                )}
 
-                {!external && (
+                {!external && !campoMerch && (
                   <label className="app-install-toggle">
                     <span className="app-install-toggle-label">Kanban Financeiro</span>
                     <input
@@ -364,7 +368,11 @@ export default function AppInstallModal({ open, onClose }: Props) {
 
                 {!external && (
                   <label className="app-install-toggle">
-                    <span className="app-install-toggle-label">Avisos da equipe</span>
+                    <span className="app-install-toggle-label">
+                      {campoMerch
+                        ? 'Avisos (pagamento, feriado e folha)'
+                        : 'Avisos da equipe'}
+                    </span>
                     <input
                       type="checkbox"
                       checked={prefs.notify_aviso}

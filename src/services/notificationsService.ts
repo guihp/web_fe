@@ -8,7 +8,12 @@ import {
 } from '../utils/externalAccess';
 import { toIndustriaPadrao } from '../utils/vendasDomain';
 
-export type NotificationKind = 'venda' | 'kanban_pedido' | 'kanban_financeiro' | 'aviso';
+export type NotificationKind =
+  | 'venda'
+  | 'kanban_pedido'
+  | 'kanban_financeiro'
+  | 'aviso'
+  | 'aniversario';
 
 export type AppNotification = {
   id: string;
@@ -21,9 +26,13 @@ export type AppNotification = {
 
 export type NotificationViewerScope = {
   tipo_usuario?: TipoUsuario | string | null;
+  cargo?: string | null;
   industria_nome?: string | null;
   cliente_grupo?: string | null;
   login_cnpj?: string | null;
+  usuario_id?: number | null;
+  usuario_nome?: string | null;
+  data_nascimento?: string | null;
 };
 
 const FIN_COLUNA_LABEL: Record<string, string> = {
@@ -31,6 +40,21 @@ const FIN_COLUNA_LABEL: Record<string, string> = {
   aguardando: 'Aguardando',
   faturado: 'Faturado',
 };
+
+function normalizeCargoKey(cargo: string) {
+  return cargo
+    .trim()
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '');
+}
+
+/** Promotor / Demonstradora: só avisos (salário, feriado, folha) + aniversário. */
+export function isCampoMerchNotifCargo(cargo: string | null | undefined): boolean {
+  if (!cargo) return false;
+  const key = normalizeCargoKey(cargo);
+  return key === 'promotor' || key === 'demonstradora';
+}
 
 function toIso(value: string | null | undefined) {
   if (!value) return new Date(0).toISOString();
@@ -41,15 +65,99 @@ function isExternalViewer(scope?: NotificationViewerScope | null) {
   return isExternalTipo(scope?.tipo_usuario ?? '');
 }
 
+/** Data de calendário hoje em America/Sao_Paulo (YYYY-MM-DD). */
+function todayKeyBRT(now = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
+}
+
+function isBirthdayToday(dataNascimento: string | null | undefined, todayKey = todayKeyBRT()): boolean {
+  const match = String(dataNascimento ?? '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return false;
+  const birthMonth = match[2];
+  const birthDay = match[3];
+  const [, todayMonth, todayDay] = todayKey.split('-');
+
+  // 29/02 em ano não bissexto: felicita em 28/02
+  if (birthMonth === '02' && birthDay === '29') {
+    const year = Number(todayKey.slice(0, 4));
+    const isLeap = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+    if (isLeap) return todayMonth === '02' && todayDay === '29';
+    return todayMonth === '02' && todayDay === '28';
+  }
+
+  return birthMonth === todayMonth && birthDay === todayDay;
+}
+
+function birthdayNotification(scope?: NotificationViewerScope | null): AppNotification | null {
+  if (!isBirthdayToday(scope?.data_nascimento)) return null;
+  const firstName = (scope?.usuario_nome ?? 'você').trim().split(/\s+/)[0] || 'você';
+  const userId = scope?.usuario_id ?? 0;
+  const today = todayKeyBRT();
+  return {
+    id: `aniversario-${userId}-${today}`,
+    kind: 'aniversario',
+    title: 'Feliz aniversário!',
+    detail: `Olá, ${firstName}! A equipe Fé Merchandising deseja a você um dia repleto de alegrias, saúde e conquistas. Parabéns!`,
+    at: new Date(`${today}T12:00:00-03:00`).toISOString(),
+    href: '/',
+  };
+}
+
+function withBirthday(
+  items: AppNotification[],
+  limit: number,
+  scope?: NotificationViewerScope | null,
+): AppNotification[] {
+  const bday = birthdayNotification(scope);
+  const merged = bday ? [bday, ...items] : items;
+  return merged
+    .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+    .slice(0, limit);
+}
+
 export async function fetchAppNotifications(
   limit = 20,
   scope?: NotificationViewerScope | null,
 ): Promise<AppNotification[]> {
   const externo = isExternalViewer(scope);
+  const campoMerch = isCampoMerchNotifCargo(scope?.cargo);
 
   // Externos só acompanham Sucesso do cliente do próprio escopo (sem vendas gerais / financeiro).
   if (externo) {
-    return fetchExternalPedidoNotifications(limit, scope);
+    const items = await fetchExternalPedidoNotifications(limit, scope);
+    return withBirthday(items, limit, scope);
+  }
+
+  // Promotor / Demonstradora: só avisos (pagamento, feriado, folha) + aniversário.
+  if (campoMerch) {
+    const avisosRes = await supabase
+      .from('avisos')
+      .select('id, tipo, titulo, corpo, created_at')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+
+    if (avisosRes.error) throw new Error(avisosRes.error.message);
+
+    const items: AppNotification[] = [];
+    for (const row of avisosRes.data ?? []) {
+      const titulo = String(row.titulo ?? 'Aviso');
+      const corpo = String(row.corpo ?? '').trim();
+      items.push({
+        id: `aviso-${row.id}`,
+        kind: 'aviso',
+        title: titulo,
+        detail: corpo.length > 160 ? `${corpo.slice(0, 157)}…` : corpo,
+        at: toIso(row.created_at as string),
+        href: '/',
+      });
+    }
+
+    return withBirthday(items, limit, scope);
   }
 
   const [vendasRes, pedidosRes, fatRes, avisosRes] = await Promise.all([
@@ -159,9 +267,7 @@ export async function fetchAppNotifications(
     });
   }
 
-  return items
-    .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
-    .slice(0, limit);
+  return withBirthday(items, limit, scope);
 }
 
 async function fetchExternalPedidoNotifications(

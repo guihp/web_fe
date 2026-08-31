@@ -8,7 +8,12 @@ Formato: mais recente no topo.
 - Avisos (só Gerente, em Fé Representações): enviar **salário** ou **feriado** com modelo editável; cai no sino e no push da equipe **interna**.
 - Aviso de **folha de ponto** automático todo dia 25 (`pg_cron` + tabela `avisos`).
 - Preferência push `notify_aviso`; externos não recebem avisos.
-- Merchandising: **Senha do dia** no hub para Promotor, Demonstrador(a) e Supervisor (lê tabela `senhas` pelo dia BRT).
+- Merchandising: **Senha do dia** no hub para **todos** os usuários logados (internos e externos); lê tabela `senhas` pelo dia BRT.
+- Cadastro de usuários: campo obrigatório **data de nascimento** (`usuarios.data_nascimento`); legados podem ser preenchidos na edição.
+- No dia do aniversário, o próprio usuário (interno ou externo) vê no sino uma mensagem de parabéns — só ele recebe.
+- **Lançar vencimentos** (Atividades / Merchandising): formulário nativo para internos; POST idêntico ao webhook `comercial1` (ex-app validade.vercel.app).
+- No código reduzido, o formulário consulta `public.codigos` e preenche automaticamente produto e indústria.
+- Promotor / Demonstradora: sino e push só com aniversário + avisos (pagamento, feriado, folha) — sem vendas/kanbans.
 
 ### Documentação
 - Avisos em `02-modulos-e-telas.md`, `04-regras-de-negocio.md` e `05-tecnologia-e-deploy.md`.

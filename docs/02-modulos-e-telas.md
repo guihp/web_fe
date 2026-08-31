@@ -18,9 +18,10 @@ Hub: `/merchandising`
 |-------|------|-----------|
 | Treinamentos | `/treinamento` | Materiais e PDFs de capacitação |
 | Atividades | `/atividades` | Visitas / ações de merchandising em PDV |
+| Lançar vencimentos | `/atividades/lancar-vencimentos` | Formulário de validade (internos); código reduzido preenche produto/indústria via `codigos`; envia ao webhook n8n `comercial1` |
 | Validades | `/validades` | Lista + gráfico dos produtos que mais venceram no mês; filtros UF, indústria, mês, status e ordenação; exportação (internos); externos só o próprio escopo |
 
-No hub, **Promotor**, **Demonstrador(a)** e **Supervisor** veem o bloco **Senha do dia** (tabela `senhas`, coluna do calendário de hoje em America/Sao_Paulo). Demais cargos não veem.
+No hub **Merchandising**, **todos** os usuários logados (internos e externos) veem o bloco **Senha do dia** (tabela `senhas`, calendário de hoje em America/Sao_Paulo).
 
 ### Validades — detalhes
 
@@ -121,7 +122,8 @@ Price **não** fica mais no Administrador — só em **Fé Representações**.
 
 ## Notificações
 
-- **Internos:** lançamentos de vendas, Sucesso do cliente, kanban financeiro e **avisos** (salário / feriado / folha).
+- **Internos (demais cargos):** lançamentos de vendas, Sucesso do cliente, kanban financeiro e **avisos** (salário / feriado / folha).
+- **Promotor / Demonstradora:** só **avisos** (pagamento, feriado, folha) e **aniversário** — sem vendas/kanbans.
 - **Externos (indústria/cliente):** apenas movimentações do **Sucesso do cliente** do próprio escopo. Externos **não** recebem avisos. Se não houver nada no escopo, a lista fica vazia.
 
 ### Avisos (equipe interna)

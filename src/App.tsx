@@ -14,6 +14,7 @@ import BaseDadosVendas from './pages/BaseDadosVendas';
 import Relatorios from './pages/Relatorios';
 import ProjecaoMetas from './pages/ProjecaoMetas';
 import Atividades from './pages/Atividades';
+import LancarVencimentos from './pages/LancarVencimentos';
 import Financeiro from './pages/Financeiro';
 import Administrador from './pages/Administrador';
 import AdminClientes from './pages/admin/AdminClientes';
@@ -70,6 +71,7 @@ export default function App() {
           />
 
           <Route path="/atividades" element={<Atividades />} />
+          <Route path="/atividades/lancar-vencimentos" element={<LancarVencimentos />} />
           <Route path="/colaboradores" element={<Colaboradores />} />
           <Route path="/treinamento" element={<Treinamentos />} />
           <Route path="/financeiro" element={<Financeiro />} />
