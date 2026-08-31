@@ -46,9 +46,13 @@ export function normalizeClienteGrupo(value: string): string {
   if (!upper) return '';
 
   // Preferência: token conhecido de redes
-  const known = ['MATEUS', 'ASSAI', 'ATACADAO', 'CARREFOUR', 'SAMS', 'EXTRA', 'PAGUE MENOS'];
+  const known = ['MATEUS', 'SENDAS', 'ASSAI', 'ATACADAO', 'CARREFOUR', 'SAMS', 'EXTRA', 'PAGUE MENOS'];
   for (const token of known) {
-    if (upper.includes(token)) return token;
+    if (upper.includes(token)) {
+      // Assaí pertence ao grupo Sendas
+      if (token === 'ASSAI') return 'SENDAS';
+      return token;
+    }
   }
 
   // Fallback: maior palavra com 4+ letras
@@ -80,10 +84,39 @@ export type ExternalScope = {
 
 /**
  * Em Price/pesquisas as lojas às vezes vêm no nome curto da bandeira
- * (ex.: "Mix Belém", "Super Castanhal") sem a palavra MATEUS.
+ * (ex.: "Mix Belém", "Super Castanhal", Posterus/Carone) sem a palavra MATEUS.
+ * Assaí → grupo SENDAS.
  */
 const CLIENTE_GRUPO_LOJA_ALIASES: Record<string, string[]> = {
-  MATEUS: ['MATEUS', 'MIX', 'SUPER CASTANHAL', 'SUPER MATEUS'],
+  MATEUS: [
+    'MATEUS',
+    'MIX',
+    'POSTERUS',
+    'CARONE',
+    'CAMINO',
+    'SUPER CASTANHAL',
+    'SUPER MATEUS',
+    'SUPER ANIL',
+    'SUPER COHATRAC',
+    'SUPER CODO',
+    'SUPER COELHO',
+    'SUPER RAPOSA',
+    'SUPER SAO RAIMUNDO',
+    'SUPER SANTA CLARA',
+    'SUPER ALEMANHA',
+    'SUPER MARABA',
+    'SUPER BARCARENA',
+    'SUPER CANAA',
+    'SUPER BURITICUPU',
+    'SUPER REI',
+    'SUPER DOCAS',
+    'SUPER ESTRADA',
+    'SUPER MARITUBA',
+    'JADERLANDIA',
+    'JARDELANDIA',
+  ],
+  SENDAS: ['SENDAS', 'ASSAI'],
+  ASSAI: ['SENDAS', 'ASSAI'],
 };
 
 function normalizeGrupoKey(grupo: string): string {

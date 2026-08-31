@@ -45,7 +45,17 @@ const FIN_COLUNA_LABEL: Record<string, string> = {
 };
 
 const CLIENTE_GRUPO_LOJA_ALIASES: Record<string, string[]> = {
-  MATEUS: ['MATEUS', 'MIX', 'SUPER CASTANHAL', 'SUPER MATEUS'],
+  MATEUS: [
+    'MATEUS',
+    'MIX',
+    'POSTERUS',
+    'CARONE',
+    'CAMINO',
+    'SUPER CASTANHAL',
+    'SUPER MATEUS',
+  ],
+  SENDAS: ['SENDAS', 'ASSAI'],
+  ASSAI: ['SENDAS', 'ASSAI'],
 };
 
 function jsonResponse(body: unknown, status = 200) {

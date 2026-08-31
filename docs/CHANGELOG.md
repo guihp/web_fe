@@ -16,6 +16,7 @@ Formato: mais recente no topo.
 - Cadastro de Promotor/Demonstradora: até **7 lojas** em `usuario_lojas`; no app/web o campo vê só esses PDVs, check-in sem GPS (cidade/UF da loja), indústria e fotos antes/depois.
 - Envio Antes/Depois grava automaticamente a **senha do dia** em `atividade_dia.senha_do_dia`.
 - Ajustes de responsividade mobile (Meu roteiro, senha do dia, lançar vencimentos, safe-area).
+- Sincronização de lojas: 25 PDVs novos; Assaí renomeado para **SENDAS**; aliases Mateus incluem Mix/Super/Posterus/Carone/Camino.
 
 ### Documentação
 - Avisos em `02-modulos-e-telas.md`, `04-regras-de-negocio.md` e `05-tecnologia-e-deploy.md`.
