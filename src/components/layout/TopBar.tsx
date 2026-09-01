@@ -49,6 +49,27 @@ function kindIcon(kind: NotificationKind): AppIconName {
   return 'dollar';
 }
 
+function kindLabel(kind: NotificationKind): string {
+  if (kind === 'venda') return 'Venda';
+  if (kind === 'kanban_pedido') return 'Sucesso do Cliente';
+  if (kind === 'kanban_financeiro') return 'Financeiro';
+  if (kind === 'aviso') return 'Aviso';
+  if (kind === 'aniversario') return 'Aniversário';
+  if (kind === 'meta') return 'Meta';
+  return 'Notificação';
+}
+
+function openActionLabel(item: AppNotification): string | null {
+  if (item.kind === 'aniversario') return null;
+  if (item.kind === 'aviso' && (item.href === '/' || !item.href)) return null;
+  if (item.href === '/fe-representacoes/vendas') return 'Ver dashboard de vendas';
+  if (item.href.includes('sucesso-cliente')) return 'Abrir Sucesso do Cliente';
+  if (item.href.includes('financeiro')) return 'Abrir Financeiro';
+  if (item.href.includes('base-vendas')) return 'Abrir base de vendas';
+  if (item.href && item.href !== '/') return 'Abrir';
+  return null;
+}
+
 export default function TopBar() {
   const navigate = useNavigate();
   const { user, logout, updateUser } = useAuth();
@@ -57,6 +78,7 @@ export default function TopBar() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const notifWrapRef = useRef<HTMLDivElement>(null);
   const installWrapRef = useRef<HTMLDivElement>(null);
+  const profileWrapRef = useRef<HTMLDivElement>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [installModalOpen, setInstallModalOpen] = useState(false);
@@ -64,6 +86,7 @@ export default function TopBar() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [notifLoading, setNotifLoading] = useState(false);
   const [unread, setUnread] = useState(0);
+  const [selectedNotif, setSelectedNotif] = useState<AppNotification | null>(null);
   const firstName = user?.nome?.split(' ')[0] ?? 'Usuário';
   const avatarUrl = getProfileAvatarUrl(user);
   const campoMerchNotif = isCampoMerchNotifCargo(user?.cargo);
@@ -113,23 +136,28 @@ export default function TopBar() {
   }, [loadNotifications, user?.id]);
 
   useEffect(() => {
-    if (!notifOpen && !menuOpen && !installModalOpen) return;
+    if (!notifOpen && !menuOpen) return;
     const onPointerDown = (event: MouseEvent) => {
       const target = event.target as Node;
       if (notifOpen && notifWrapRef.current && !notifWrapRef.current.contains(target)) {
         setNotifOpen(false);
       }
-      if (
-        installModalOpen &&
-        installWrapRef.current &&
-        !installWrapRef.current.contains(target)
-      ) {
-        setInstallModalOpen(false);
+      if (menuOpen && profileWrapRef.current && !profileWrapRef.current.contains(target)) {
+        setMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', onPointerDown);
     return () => document.removeEventListener('mousedown', onPointerDown);
-  }, [notifOpen, menuOpen, installModalOpen]);
+  }, [notifOpen, menuOpen]);
+
+  useEffect(() => {
+    if (!selectedNotif) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedNotif(null);
+    };
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [selectedNotif]);
 
   const handleLogout = () => {
     logout();
@@ -188,9 +216,16 @@ export default function TopBar() {
   };
 
   const openNotification = (item: AppNotification) => {
+    setSelectedNotif(item);
     setNotifOpen(false);
-    navigate(item.href);
   };
+
+  const goFromNotification = (item: AppNotification) => {
+    setSelectedNotif(null);
+    if (item.href) navigate(item.href);
+  };
+
+  const selectedAction = selectedNotif ? openActionLabel(selectedNotif) : null;
 
   return (
     <header className="topbar">
@@ -239,8 +274,8 @@ export default function TopBar() {
                 <strong>Notificações</strong>
                 <span>
                   {campoMerchNotif
-                    ? 'Avisos da equipe e aniversário'
-                    : 'Vendas, kanbans, avisos e aniversário'}
+                    ? 'Avisos e aniversário · toque para ler'
+                    : 'Toque para ler completa'}
                 </span>
               </header>
 
@@ -263,6 +298,7 @@ export default function TopBar() {
                       <span className="notif-item-body">
                         <span className="notif-item-title">{item.title}</span>
                         <span className="notif-item-detail">{item.detail}</span>
+                        <span className="notif-item-read-hint">Toque para ler completa</span>
                       </span>
                       <span className="notif-item-time">{formatNotificationTime(item.at)}</span>
                     </button>
@@ -290,7 +326,7 @@ export default function TopBar() {
           <AppInstallModal open={installModalOpen} onClose={() => setInstallModalOpen(false)} />
         </div>
 
-        <div className="profile-menu-wrap">
+        <div className="profile-menu-wrap" ref={profileWrapRef}>
           <button
             type="button"
             className="profile-btn"
@@ -347,6 +383,63 @@ export default function TopBar() {
           )}
         </div>
       </div>
+
+      {selectedNotif && (
+        <div
+          className="notif-detail-overlay"
+          role="presentation"
+          onClick={() => setSelectedNotif(null)}
+        >
+          <div
+            className="notif-detail-sheet"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="notif-detail-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <header className="notif-detail-header">
+              <div className="notif-detail-heading">
+                <span className="notif-detail-kind">{kindLabel(selectedNotif.kind)}</span>
+                <h2 id="notif-detail-title">{selectedNotif.title}</h2>
+                <time dateTime={selectedNotif.at}>
+                  {formatNotificationTime(selectedNotif.at)}
+                </time>
+              </div>
+              <button
+                type="button"
+                className="notif-detail-close"
+                aria-label="Fechar"
+                onClick={() => setSelectedNotif(null)}
+              >
+                ×
+              </button>
+            </header>
+            <div className="notif-detail-body">
+              {selectedNotif.detail?.trim()
+                ? selectedNotif.detail
+                : 'Sem detalhes adicionais.'}
+            </div>
+            <div className="notif-detail-actions">
+              <button
+                type="button"
+                className="notif-detail-btn ghost"
+                onClick={() => setSelectedNotif(null)}
+              >
+                Fechar
+              </button>
+              {selectedAction && (
+                <button
+                  type="button"
+                  className="notif-detail-btn primary"
+                  onClick={() => goFromNotification(selectedNotif)}
+                >
+                  {selectedAction}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

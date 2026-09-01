@@ -8,6 +8,9 @@ Formato: mais recente no topo.
 - Preferência **Aviso de aniversário** (`notify_aniversario`, padrão ligado) para **todos** (interno, externo, Promotor/Demonstradora) no modal Instalar app e notificações.
 - Sessão atualiza `data_nascimento` no bootstrap; sino resolve aniversário do banco se a sessão estiver antiga — só o próprio aniversariante vê a mensagem.
 - **Meta batida** (mensal e anual, regionais MA/PI e PA): aviso no sino para cargos de liderança internos — Gerente, Supervisor, Analista admin, RH e Financeiro. Preferência `notify_meta` no modal (só esses cargos).
+- Loja **230 — MATEUS SUPERMERCADOS S.A. MIX CAXIAS** (CAXIAS/MA) em `lojas`.
+- Lançar vencimentos: busca de loja por nome/número + calendário opcional na data de vencimento.
+- Sino: toque abre leitura completa da notificação (sheet no mobile); avisos sem corte de 160 chars; modal Instalar app melhor no celular.
 
 ### Documentação
 - Preferência de aniversário em `02-modulos-e-telas.md`, `04-regras-de-negocio.md` e `05-tecnologia-e-deploy.md`.

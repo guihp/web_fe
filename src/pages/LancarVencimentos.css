@@ -100,6 +100,89 @@
   border-color: #f0b89a;
 }
 
+.lancar-venc-loja-list {
+  list-style: none;
+  margin: 0;
+  padding: 6px;
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg);
+}
+
+.lancar-venc-loja-list button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.lancar-venc-loja-list button:hover,
+.lancar-venc-loja-list button.is-selected {
+  background: var(--surface-hover);
+}
+
+.lancar-venc-loja-empty {
+  padding: 12px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.lancar-venc-date-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+.lancar-venc-date-wrap input[type='text'] {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+}
+
+.lancar-venc-date-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.lancar-venc-date-cal-btn {
+  flex: 0 0 48px;
+  width: 48px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--text);
+  cursor: pointer;
+  padding: 0;
+}
+
+.lancar-venc-date-cal-btn:hover {
+  background: var(--surface-hover);
+  border-color: #f0b89a;
+}
+
 .lancar-venc-actions {
   display: flex;
   justify-content: flex-end;
@@ -149,6 +232,13 @@ html:not([data-theme='dark']) .lancar-venc-error {
   color: #b91c1c;
 }
 
+@media (max-width: 900px) {
+  .lancar-venc-field--date,
+  .lancar-venc-field--industria {
+    grid-column: 1 / -1;
+  }
+}
+
 @media (max-width: 640px) {
   .lancar-venc-page {
     padding: 0 0 max(24px, env(safe-area-inset-bottom));
@@ -163,6 +253,12 @@ html:not([data-theme='dark']) .lancar-venc-error {
   .lancar-venc-grid {
     grid-template-columns: 1fr;
     gap: 12px;
+  }
+
+  .lancar-venc-date-cal-btn {
+    flex-basis: 52px;
+    width: 52px;
+    min-height: 52px;
   }
 
   .lancar-venc-actions {

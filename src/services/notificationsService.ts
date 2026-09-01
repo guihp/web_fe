@@ -258,7 +258,7 @@ export async function fetchAppNotifications(
         id: `aviso-${row.id}`,
         kind: 'aviso',
         title: titulo,
-        detail: corpo.length > 160 ? `${corpo.slice(0, 157)}…` : corpo,
+        detail: corpo,
         at: toIso(row.created_at as string),
         href: '/',
       });
@@ -368,7 +368,7 @@ export async function fetchAppNotifications(
       id: `aviso-${row.id}`,
       kind: 'aviso',
       title: titulo,
-      detail: corpo.length > 160 ? `${corpo.slice(0, 157)}…` : corpo,
+      detail: corpo,
       at: toIso(row.created_at as string),
       href: '/',
     });
