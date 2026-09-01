@@ -10,13 +10,13 @@
 6. Notificações de externos: só Sucesso do cliente do próprio escopo (sem vendas gerais, financeiro nem avisos). No dia do aniversário, o próprio usuário (interno ou externo) vê mensagem de parabéns só no seu sino (preferência `notify_aniversario`, padrão ligada).
 8. **Promotor** e **Demonstradora**: no sino/push só **aniversário** e **avisos** (pagamento/salário, feriado e fechamento de folha). Não recebem lançamento de venda nem kanbans.
 9. **Meta batida** (mensal ou anual, regionais MA/PI e PA): só cargos de liderança internos — Gerente, Supervisor, Analista admin, RH e Financeiro — no sino (preferência `notify_meta`).
-9. Promotor/Demonstradora têm até **7 lojas** em `usuario_lojas`. Em Atividades: check-in na loja (cidade/UF automáticos da tabela `lojas`, sem GPS), escolha de indústria e fotos antes/depois.
+9. Promotor/Demonstradora têm até **7 lojas** em `usuario_lojas`. Em Atividades: check-in na loja (cidade/UF automáticos da tabela `lojas`, sem GPS), escolha de indústria e fotos antes/depois. Antes do envio, confirma com prévia das fotos + senha do dia — após confirmar é **irreversível**; a senha grava em `atividade_dia.senha_do_dia`.
 10. Balão **Fé Representações** concentra Price, Sucesso, Avisos (Gerente) e Vendas; no cadastro interno, Vendas pode ser liberada ou não por seção.
 
 ## Avisos
 
 1. Destinatários: somente usuários **internos** (sino + push). Indústria/cliente externo não recebem.
-2. **Salário** e **feriado**: Gerente envia em `/fe-representacoes/avisos` com modelo editável.
+2. **Salário** e **feriado**: Gerente envia em `/fe-representacoes/avisos` com modelo editável. Antes do envio, confirma com prévia do título/mensagem — após confirmar é **irreversível**.
 3. **Folha de ponto**: automática todo dia 25 (texto padrão no banco); ninguém dispara manualmente.
 4. Preferência de push: `notify_aviso` (default ligado para internos).
 

@@ -11,10 +11,13 @@ Formato: mais recente no topo.
 - Loja **230 — MATEUS SUPERMERCADOS S.A. MIX CAXIAS** (CAXIAS/MA) em `lojas`.
 - Lançar vencimentos: busca de loja por nome/número + calendário opcional na data de vencimento.
 - Sino: toque abre leitura completa da notificação (sheet no mobile); avisos sem corte de 160 chars; modal Instalar app melhor no celular.
+- **Avisos:** popup de confirmação com prévia do título/mensagem e aviso de envio irreversível (sheet no celular).
+- **Meu roteiro:** popup de confirmação antes de enviar fotos — mostra antes/depois, senha do dia e aviso de irreversível; prévias estáveis; sheet responsivo no celular.
 
 ### Documentação
 - Preferência de aniversário em `02-modulos-e-telas.md`, `04-regras-de-negocio.md` e `05-tecnologia-e-deploy.md`.
 - Aviso de meta batida nas mesmas docs.
+- Confirmações de envio (avisos e Meu roteiro) em `02-modulos-e-telas.md` e `04-regras-de-negocio.md`.
 ## 2026-08-31
 
 ### App

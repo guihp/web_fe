@@ -1,4 +1,5 @@
-import { FormEvent, useEffect, useMemo, useState } from 'react';
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import ModalShell from '../components/colaboradores/ModalShell';
 import BackToPortal from '../components/layout/BackToPortal';
 import SenhaDoDiaCard from '../components/layout/SenhaDoDiaCard';
 import { useAuth } from '../context/AuthContext';
@@ -8,6 +9,11 @@ import {
   fetchMinhasAtividadesHoje,
   submitPromotorAntesDepois,
 } from '../services/promotorAtividadeService';
+import {
+  fetchSenhaDoDia,
+  formatDiaBR,
+  todayDateKeyBRT,
+} from '../services/senhaDoDiaService';
 import {
   fetchUsuarioLojas,
   formatUsuarioLojaLabel,
@@ -28,6 +34,9 @@ export default function PromotorRoteiro() {
   >([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [senhaConfirm, setSenhaConfirm] = useState<string | null>(null);
+  const [senhaDiaLabel, setSenhaDiaLabel] = useState(() => formatDiaBR(todayDateKeyBRT()));
   const [error, setError] = useState<string | null>(null);
 
   const [step, setStep] = useState<Step>('lojas');
@@ -37,6 +46,8 @@ export default function PromotorRoteiro() {
   const [fotoDepois, setFotoDepois] = useState<File | null>(null);
   const [previewAntes, setPreviewAntes] = useState<string | null>(null);
   const [previewDepois, setPreviewDepois] = useState<string | null>(null);
+  const previewAntesRef = useRef<string | null>(null);
+  const previewDepoisRef = useRef<string | null>(null);
 
   const firstName = user?.nome?.split(' ')[0] ?? 'Promotor';
 
@@ -78,12 +89,25 @@ export default function PromotorRoteiro() {
     void reload();
   }, [user?.id]);
 
+  // Só revoga no unmount — não quando a outra foto muda (evita quebrar a prévia).
   useEffect(() => {
     return () => {
-      if (previewAntes) URL.revokeObjectURL(previewAntes);
-      if (previewDepois) URL.revokeObjectURL(previewDepois);
+      if (previewAntesRef.current) URL.revokeObjectURL(previewAntesRef.current);
+      if (previewDepoisRef.current) URL.revokeObjectURL(previewDepoisRef.current);
     };
-  }, [previewAntes, previewDepois]);
+  }, []);
+
+  const setPreview = (kind: 'antes' | 'depois', nextUrl: string | null) => {
+    if (kind === 'antes') {
+      if (previewAntesRef.current) URL.revokeObjectURL(previewAntesRef.current);
+      previewAntesRef.current = nextUrl;
+      setPreviewAntes(nextUrl);
+    } else {
+      if (previewDepoisRef.current) URL.revokeObjectURL(previewDepoisRef.current);
+      previewDepoisRef.current = nextUrl;
+      setPreviewDepois(nextUrl);
+    }
+  };
 
   const resetFlow = () => {
     setStep('lojas');
@@ -91,10 +115,10 @@ export default function PromotorRoteiro() {
     setIndustria('');
     setFotoAntes(null);
     setFotoDepois(null);
-    if (previewAntes) URL.revokeObjectURL(previewAntes);
-    if (previewDepois) URL.revokeObjectURL(previewDepois);
-    setPreviewAntes(null);
-    setPreviewDepois(null);
+    setPreview('antes', null);
+    setPreview('depois', null);
+    setConfirmOpen(false);
+    setSenhaConfirm(null);
     setError(null);
   };
 
@@ -108,13 +132,11 @@ export default function PromotorRoteiro() {
     if (!file) return;
     const url = URL.createObjectURL(file);
     if (kind === 'antes') {
-      if (previewAntes) URL.revokeObjectURL(previewAntes);
       setFotoAntes(file);
-      setPreviewAntes(url);
+      setPreview('antes', url);
     } else {
-      if (previewDepois) URL.revokeObjectURL(previewDepois);
       setFotoDepois(file);
-      setPreviewDepois(url);
+      setPreview('depois', url);
     }
   };
 
@@ -130,6 +152,25 @@ export default function PromotorRoteiro() {
       return;
     }
 
+    // Recria as prévias a partir dos arquivos (garante as duas no popup).
+    setPreview('antes', URL.createObjectURL(fotoAntes));
+    setPreview('depois', URL.createObjectURL(fotoDepois));
+
+    setError(null);
+    try {
+      const senha = await fetchSenhaDoDia();
+      setSenhaConfirm(senha?.senha ?? null);
+      setSenhaDiaLabel(formatDiaBR(senha?.dia ?? todayDateKeyBRT()));
+    } catch {
+      setSenhaConfirm(null);
+      setSenhaDiaLabel(formatDiaBR(todayDateKeyBRT()));
+    }
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmSend = async () => {
+    if (!user?.id || !loja || !fotoAntes || !fotoDepois) return;
+
     setSending(true);
     setError(null);
     try {
@@ -140,6 +181,7 @@ export default function PromotorRoteiro() {
         fotoAntes,
         fotoDepois,
       });
+      setConfirmOpen(false);
       showToast('Atividade enviada com sucesso.', 'success');
       resetFlow();
       await reload();
@@ -147,6 +189,7 @@ export default function PromotorRoteiro() {
       const message = err instanceof Error ? err.message : 'Falha ao enviar atividade.';
       setError(message);
       showToast(message, 'error');
+      setConfirmOpen(false);
     } finally {
       setSending(false);
     }
@@ -306,6 +349,77 @@ export default function PromotorRoteiro() {
             </section>
           )}
         </>
+      )}
+
+      {confirmOpen && loja && previewAntes && previewDepois && (
+        <ModalShell
+          onClose={() => {
+            if (!sending) setConfirmOpen(false);
+          }}
+          className="promotor-confirm-modal"
+        >
+          <div className="promotor-confirm-header">
+            <h2>Confirmar envio?</h2>
+            <button
+              type="button"
+              className="promotor-confirm-close"
+              aria-label="Fechar"
+              disabled={sending}
+              onClick={() => setConfirmOpen(false)}
+            >
+              ×
+            </button>
+          </div>
+
+          <p className="promotor-confirm-warn">
+            Depois de enviar, a ação é <strong>irreversível</strong>. Confira as fotos e a senha do
+            dia antes de confirmar.
+          </p>
+
+          <div className="promotor-confirm-meta">
+            <p>
+              <strong>{industria}</strong>
+            </p>
+            <p>
+              {loja.Nome} · {regionalLabel}
+            </p>
+          </div>
+
+          <div className="promotor-confirm-senha">
+            <span>Senha do dia · {senhaDiaLabel}</span>
+            <strong>{senhaConfirm ?? 'Indisponível no momento'}</strong>
+          </div>
+
+          <div className="promotor-confirm-fotos">
+            <figure>
+              <figcaption>Antes</figcaption>
+              <img src={previewAntes} alt="Foto de antes" />
+            </figure>
+            <figure>
+              <figcaption>Depois</figcaption>
+              <img src={previewDepois} alt="Foto de depois" />
+            </figure>
+          </div>
+
+          <div className="promotor-confirm-actions">
+            <button
+              type="button"
+              className="promotor-btn outline"
+              disabled={sending}
+              onClick={() => setConfirmOpen(false)}
+            >
+              Revisar
+            </button>
+            <button
+              type="button"
+              className="promotor-btn primary"
+              disabled={sending}
+              onClick={() => void handleConfirmSend()}
+            >
+              {sending ? 'Enviando…' : 'Sim, enviar'}
+            </button>
+          </div>
+        </ModalShell>
       )}
     </div>
   );
