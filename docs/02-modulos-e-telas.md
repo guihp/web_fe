@@ -125,6 +125,7 @@ Price **não** fica mais no Administrador — só em **Fé Representações**.
 - **Internos (demais cargos):** lançamentos de vendas, Sucesso do cliente, kanban financeiro e **avisos** (salário / feriado / folha).
 - **Promotor / Demonstradora:** só **avisos** (pagamento, feriado, folha) e **aniversário** — sem vendas/kanbans.
 - **Externos (indústria/cliente):** apenas movimentações do **Sucesso do cliente** do próprio escopo. Externos **não** recebem avisos. Se não houver nada no escopo, a lista fica vazia.
+- **Aniversário (todos):** no dia do aniversário, só o próprio usuário vê “Feliz aniversário!” no sino. Preferência `notify_aniversario` (padrão ligado) no modal Instalar app e notificações, para interno e externo.
 
 ### Avisos (equipe interna)
 

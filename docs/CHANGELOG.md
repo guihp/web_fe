@@ -2,6 +2,15 @@
 
 Formato: mais recente no topo.
 
+## 2026-09-01
+
+### App
+- Preferência **Aviso de aniversário** (`notify_aniversario`, padrão ligado) para **todos** (interno, externo, Promotor/Demonstradora) no modal Instalar app e notificações.
+- Sessão atualiza `data_nascimento` no bootstrap; sino resolve aniversário do banco se a sessão estiver antiga — só o próprio aniversariante vê a mensagem.
+
+### Documentação
+- Preferência de aniversário em `02-modulos-e-telas.md`, `04-regras-de-negocio.md` e `05-tecnologia-e-deploy.md`.
+
 ## 2026-08-31
 
 ### App

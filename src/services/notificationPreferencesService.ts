@@ -7,6 +7,8 @@ export type NotificationPreferences = {
   notify_kanban_pedido: boolean;
   notify_kanban_financeiro: boolean;
   notify_aviso: boolean;
+  /** Só o próprio usuário no dia do aniversário (interno e externo). */
+  notify_aniversario: boolean;
 };
 
 const DEFAULT_PREFS: NotificationPreferences = {
@@ -14,6 +16,7 @@ const DEFAULT_PREFS: NotificationPreferences = {
   notify_kanban_pedido: true,
   notify_kanban_financeiro: true,
   notify_aviso: true,
+  notify_aniversario: true,
 };
 
 type PrefsRow = NotificationPreferences & { usuario_id: number };
@@ -25,6 +28,7 @@ function rowToPrefs(row: PrefsRow | null): NotificationPreferences {
     notify_kanban_pedido: row.notify_kanban_pedido,
     notify_kanban_financeiro: row.notify_kanban_financeiro,
     notify_aviso: row.notify_aviso !== false,
+    notify_aniversario: row.notify_aniversario !== false,
   };
 }
 
@@ -33,7 +37,9 @@ export async function fetchNotificationPreferences(
 ): Promise<NotificationPreferences> {
   const { data, error } = await supabase
     .from('notification_preferences')
-    .select('notify_venda, notify_kanban_pedido, notify_kanban_financeiro, notify_aviso')
+    .select(
+      'notify_venda, notify_kanban_pedido, notify_kanban_financeiro, notify_aviso, notify_aniversario',
+    )
     .eq('usuario_id', usuarioId)
     .maybeSingle();
 
@@ -56,6 +62,7 @@ export async function saveNotificationPreferences(
       notify_kanban_pedido: prefs.notify_kanban_pedido,
       notify_kanban_financeiro: prefs.notify_kanban_financeiro,
       notify_aviso: prefs.notify_aviso,
+      notify_aniversario: prefs.notify_aniversario,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'usuario_id' },
@@ -80,12 +87,14 @@ export async function enableAllNotificationPreferences(
         notify_kanban_pedido: false,
         notify_kanban_financeiro: false,
         notify_aviso: true,
+        notify_aniversario: true,
       }
     : {
         notify_venda: !external,
         notify_kanban_pedido: true,
         notify_kanban_financeiro: !external,
         notify_aviso: !external,
+        notify_aniversario: true,
       };
 
   await saveNotificationPreferences(usuarioId, prefs);

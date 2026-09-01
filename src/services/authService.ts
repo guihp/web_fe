@@ -153,6 +153,27 @@ export async function loginWithCpf(cpf: string, senha: string): Promise<AuthUser
   return loginAs('interno', cpf, senha);
 }
 
+/** Recarrega o usuário logado do banco (ex.: data_nascimento atualizada). */
+export async function refreshAuthUser(userId: number): Promise<AuthUser | null> {
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select(
+      'id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url, nivel_acesso, tipo_usuario, industria_id, cliente_grupo, login_cnpj, data_nascimento',
+    )
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (error || !data) return null;
+  const row = data as UsuarioRow;
+  if (row.status === false) return null;
+
+  const tipo: TipoUsuario = isTipoUsuario(row.tipo_usuario) ? row.tipo_usuario : 'interno';
+  const industriaNome =
+    tipo === 'industria' ? await resolveIndustriaNome(row.industria_id) : null;
+
+  return toAuthUser(row, industriaNome);
+}
+
 export async function loginAs(
   loginTipo: LoginTipo,
   identifier: string,

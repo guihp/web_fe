@@ -7,7 +7,7 @@
 3. Usuário **externo** só vê Validades, Atividades, Sucesso do cliente e **Price**, em leitura (sem Vendas).
 4. Indústria externa: dados filtrados pela indústria vinculada (Validades, Atividades, Sucesso do cliente e Price).
 5. Cliente externo: dados filtrados pelo **grupo de nome de loja** (ex.: MATEUS) e afinidade de CNPJ (raiz do CNPJ de login); no Price/Atividades, o grupo MATEUS também casa bandeiras curtas (`Mix`, `Super Castanhal`).
-6. Notificações de externos: só Sucesso do cliente do próprio escopo (sem vendas gerais, financeiro nem avisos). No dia do aniversário, o próprio usuário (interno ou externo) vê mensagem de parabéns só no seu sino.
+6. Notificações de externos: só Sucesso do cliente do próprio escopo (sem vendas gerais, financeiro nem avisos). No dia do aniversário, o próprio usuário (interno ou externo) vê mensagem de parabéns só no seu sino (preferência `notify_aniversario`, padrão ligada).
 8. **Promotor** e **Demonstradora**: no sino/push só **aniversário** e **avisos** (pagamento/salário, feriado e fechamento de folha). Não recebem lançamento de venda nem kanbans.
 9. Promotor/Demonstradora têm até **7 lojas** em `usuario_lojas`. Em Atividades: check-in na loja (cidade/UF automáticos da tabela `lojas`, sem GPS), escolha de indústria e fotos antes/depois.
 10. Balão **Fé Representações** concentra Price, Sucesso, Avisos (Gerente) e Vendas; no cadastro interno, Vendas pode ser liberada ou não por seção.

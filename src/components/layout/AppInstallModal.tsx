@@ -382,6 +382,17 @@ export default function AppInstallModal({ open, onClose }: Props) {
                     />
                   </label>
                 )}
+
+                <label className="app-install-toggle">
+                  <span className="app-install-toggle-label">Aviso de aniversário</span>
+                  <input
+                    type="checkbox"
+                    checked={prefs.notify_aniversario}
+                    onChange={(event) =>
+                      void handleToggle('notify_aniversario', event.target.checked)
+                    }
+                  />
+                </label>
               </div>
             )}
           </section>

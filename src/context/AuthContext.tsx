@@ -8,7 +8,12 @@ import {
   type ReactNode,
 } from 'react';
 import { defaultModulosForCargo, defaultSecoesForCargo } from '../data/portalModules';
-import { loginAs, type AuthUser, type LoginTipo } from '../services/authService';
+import {
+  loginAs,
+  refreshAuthUser,
+  type AuthUser,
+  type LoginTipo,
+} from '../services/authService';
 import { isPushSupported, subscribePush, unsubscribePush } from '../services/pushService';
 import { isTipoUsuario } from '../utils/externalAccess';
 
@@ -67,13 +72,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const storedUser = readStoredUser();
-    setUser(storedUser);
-    setIsLoading(false);
+    let cancelled = false;
 
-    if (storedUser && isPushSupported() && Notification.permission === 'granted') {
-      void subscribePush(storedUser.id);
-    }
+    const bootstrap = async () => {
+      const storedUser = readStoredUser();
+      if (!storedUser) {
+        if (!cancelled) {
+          setUser(null);
+          setIsLoading(false);
+        }
+        return;
+      }
+
+      // Atualiza sessão com dados frescos (ex.: data_nascimento para aniversário).
+      const fresh = await refreshAuthUser(storedUser.id).catch(() => null);
+      const nextUser = fresh ?? storedUser;
+
+      if (cancelled) return;
+
+      setUser(nextUser);
+      setIsLoading(false);
+
+      const payload = JSON.stringify(nextUser);
+      if (localStorage.getItem(STORAGE_KEY)) {
+        localStorage.setItem(STORAGE_KEY, payload);
+      } else if (sessionStorage.getItem(STORAGE_KEY)) {
+        sessionStorage.setItem(STORAGE_KEY, payload);
+      }
+
+      if (isPushSupported() && Notification.permission === 'granted') {
+        void subscribePush(nextUser.id);
+      }
+    };
+
+    void bootstrap();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const login = useCallback(

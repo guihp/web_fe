@@ -112,25 +112,62 @@ function withBirthday(
   items: AppNotification[],
   limit: number,
   scope?: NotificationViewerScope | null,
+  includeBirthday = true,
 ): AppNotification[] {
-  const bday = birthdayNotification(scope);
+  const bday = includeBirthday ? birthdayNotification(scope) : null;
   const merged = bday ? [bday, ...items] : items;
   return merged
     .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
     .slice(0, limit);
 }
 
+async function resolveBirthdayScope(
+  scope?: NotificationViewerScope | null,
+): Promise<NotificationViewerScope | null | undefined> {
+  if (!scope?.usuario_id) return scope;
+  if (scope.data_nascimento) return scope;
+
+  const { data, error } = await supabase
+    .from('usuarios')
+    .select('data_nascimento, nome')
+    .eq('id', scope.usuario_id)
+    .maybeSingle();
+
+  if (error || !data) return scope;
+
+  return {
+    ...scope,
+    data_nascimento: data.data_nascimento
+      ? String(data.data_nascimento).slice(0, 10)
+      : null,
+    usuario_nome: scope.usuario_nome || (data.nome as string | null) || null,
+  };
+}
+
+async function shouldIncludeBirthday(usuarioId?: number | null): Promise<boolean> {
+  if (!usuarioId) return true;
+  const { data, error } = await supabase
+    .from('notification_preferences')
+    .select('notify_aniversario')
+    .eq('usuario_id', usuarioId)
+    .maybeSingle();
+  if (error || !data) return true;
+  return data.notify_aniversario !== false;
+}
+
 export async function fetchAppNotifications(
   limit = 20,
   scope?: NotificationViewerScope | null,
 ): Promise<AppNotification[]> {
-  const externo = isExternalViewer(scope);
-  const campoMerch = isCampoMerchNotifCargo(scope?.cargo);
+  const resolvedScope = await resolveBirthdayScope(scope);
+  const includeBirthday = await shouldIncludeBirthday(resolvedScope?.usuario_id);
+  const externo = isExternalViewer(resolvedScope);
+  const campoMerch = isCampoMerchNotifCargo(resolvedScope?.cargo);
 
   // Externos só acompanham Sucesso do cliente do próprio escopo (sem vendas gerais / financeiro).
   if (externo) {
-    const items = await fetchExternalPedidoNotifications(limit, scope);
-    return withBirthday(items, limit, scope);
+    const items = await fetchExternalPedidoNotifications(limit, resolvedScope);
+    return withBirthday(items, limit, resolvedScope, includeBirthday);
   }
 
   // Promotor / Demonstradora: só avisos (pagamento, feriado, folha) + aniversário.
@@ -157,7 +194,7 @@ export async function fetchAppNotifications(
       });
     }
 
-    return withBirthday(items, limit, scope);
+    return withBirthday(items, limit, resolvedScope, includeBirthday);
   }
 
   const [vendasRes, pedidosRes, fatRes, avisosRes] = await Promise.all([
@@ -267,7 +304,7 @@ export async function fetchAppNotifications(
     });
   }
 
-  return withBirthday(items, limit, scope);
+  return withBirthday(items, limit, resolvedScope, includeBirthday);
 }
 
 async function fetchExternalPedidoNotifications(
