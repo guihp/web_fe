@@ -95,6 +95,7 @@
   color: #b91c1c;
 }
 
+button.atividade-btn-submit,
 .atividade-btn-submit {
   width: 100%;
   margin-top: 20px;
@@ -108,8 +109,10 @@
   cursor: pointer;
 }
 
+button.atividade-btn-submit:hover:not(:disabled),
 .atividade-btn-submit:hover:not(:disabled) {
   background: #145218;
+  color: var(--text-on-accent);
 }
 
 .atividade-btn-submit:disabled {
@@ -333,45 +336,70 @@
 .atividade-detail-actions {
   display: flex;
   flex-wrap: wrap;
+  align-items: stretch;
   gap: 10px;
   margin-top: 8px;
 }
 
+button.atividade-btn-outline,
 .atividade-btn-outline {
   padding: 10px 16px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   border-radius: 10px;
-  background: var(--surface);
+  background: var(--surface-2);
   color: var(--text);
   font-size: 0.85rem;
   font-weight: 600;
   cursor: pointer;
 }
 
+button.atividade-btn-outline:hover,
 .atividade-btn-outline:hover {
   background: var(--surface-hover);
+  color: var(--text);
 }
 
+button.atividade-btn-outline.warn,
 .atividade-btn-outline.warn {
-  border-color: #f59e0b;
-  color: #b45309;
+  border-color: var(--warning);
+  color: var(--warning);
+  background: var(--warning-bg);
 }
 
+button.atividade-btn-outline.warn:hover,
+.atividade-btn-outline.warn:hover {
+  filter: brightness(0.97);
+}
+
+button.atividade-btn-outline.danger,
 .atividade-btn-outline.danger {
-  border-color: #fca5a5;
-  color: #b91c1c;
+  border-color: var(--danger);
+  color: var(--btn-danger-text);
+  background: var(--danger-bg);
 }
 
+button.atividade-btn-outline.danger:hover,
+.atividade-btn-outline.danger:hover {
+  background: var(--btn-danger-bg-hover);
+  color: var(--btn-danger-text);
+}
+
+/* Fechar: coral com texto branco — vence o color: inherit global do theme.css */
+button.atividade-btn-submit.secondary,
 .atividade-btn-submit.secondary {
-  background: #374151;
   margin-top: 0;
   width: auto;
   flex: 1;
   min-width: 120px;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  border: none;
 }
 
+button.atividade-btn-submit.secondary:hover:not(:disabled),
 .atividade-btn-submit.secondary:hover:not(:disabled) {
-  background: #1f2937;
+  background: var(--btn-primary-bg-hover);
+  color: var(--btn-primary-text);
 }
 
 .atividade-view-modal {

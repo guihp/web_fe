@@ -45,6 +45,7 @@ function kindIcon(kind: NotificationKind): AppIconName {
   if (kind === 'kanban_pedido') return 'cart';
   if (kind === 'aviso') return 'bell';
   if (kind === 'aniversario') return 'check';
+  if (kind === 'meta') return 'target';
   return 'dollar';
 }
 

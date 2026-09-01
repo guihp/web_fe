@@ -174,3 +174,99 @@ export async function fetchMetasDashboard(anoProjecao: number): Promise<MetasDas
 
   return result;
 }
+
+export type MetaBatidaAlert = {
+  id: string;
+  periodo: 'mensal' | 'anual';
+  regiao: Regiao;
+  ano: number;
+  mesNome?: string;
+  realizado: number;
+  meta: number;
+  at: string;
+};
+
+function todayPartsBRT(now = new Date()) {
+  const key = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(now);
+  const [anoStr, mesStr] = key.split('-');
+  const ano = Number(anoStr);
+  const mesNumero = Number(mesStr);
+  const mesNome = MESES_PT[mesNumero - 1] ?? 'JANEIRO';
+  return { key, ano, mesStr, mesNumero, mesNome };
+}
+
+function sumRealizadoByRegiao(
+  rows: Array<{ valor: number; estado?: string | null }>,
+  regiao: Regiao,
+): number {
+  return rows.reduce((acc, row) => {
+    if (regiaoFromEstado(row.estado ?? '') !== regiao) return acc;
+    return acc + (Number(row.valor) || 0);
+  }, 0);
+}
+
+/**
+ * Detecta metas mensais/anuais batidas por regional (MA/PI e PA) no calendário BRT.
+ * Usado no sino para cargos de liderança.
+ */
+export async function fetchMetaBatidaAlerts(now = new Date()): Promise<MetaBatidaAlert[]> {
+  const { key, ano, mesStr, mesNome } = todayPartsBRT(now);
+  const at = new Date(`${key}T12:00:00-03:00`).toISOString();
+
+  const [metasDash, rowsAno] = await Promise.all([
+    fetchMetasDashboard(ano),
+    fetchVendasRealizadoAno(ano),
+  ]);
+  const mesKey = mesNome
+    .toUpperCase()
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '');
+  const rowsMes = rowsAno.filter((r) => {
+    const rowKey = (r.mes ?? '')
+      .toUpperCase()
+      .normalize('NFD')
+      .replace(/\p{M}/gu, '');
+    return rowKey === mesKey;
+  });
+
+  const alerts: MetaBatidaAlert[] = [];
+  const regions: Regiao[] = ['MA/PI', 'PA'];
+
+  for (const regiao of regions) {
+    const bucket = regiao === 'PA' ? metasDash.pa : metasDash.mapi;
+    const realizadoMes = sumRealizadoByRegiao(rowsMes, regiao);
+    const realizadoAno = sumRealizadoByRegiao(rowsAno, regiao);
+
+    if (bucket.mensal > 0 && realizadoMes >= bucket.mensal) {
+      alerts.push({
+        id: `meta-mensal-${regiao === 'PA' ? 'pa' : 'mapi'}-${ano}-${mesStr}`,
+        periodo: 'mensal',
+        regiao,
+        ano,
+        mesNome,
+        realizado: realizadoMes,
+        meta: bucket.mensal,
+        at,
+      });
+    }
+
+    if (bucket.anual > 0 && realizadoAno >= bucket.anual) {
+      alerts.push({
+        id: `meta-anual-${regiao === 'PA' ? 'pa' : 'mapi'}-${ano}`,
+        periodo: 'anual',
+        regiao,
+        ano,
+        realizado: realizadoAno,
+        meta: bucket.anual,
+        at,
+      });
+    }
+  }
+
+  return alerts;
+}

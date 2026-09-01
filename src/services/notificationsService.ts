@@ -7,13 +7,15 @@ import {
   type TipoUsuario,
 } from '../utils/externalAccess';
 import { toIndustriaPadrao } from '../utils/vendasDomain';
+import { fetchMetaBatidaAlerts } from './metasService';
 
 export type NotificationKind =
   | 'venda'
   | 'kanban_pedido'
   | 'kanban_financeiro'
   | 'aviso'
-  | 'aniversario';
+  | 'aniversario'
+  | 'meta';
 
 export type AppNotification = {
   id: string;
@@ -54,6 +56,22 @@ export function isCampoMerchNotifCargo(cargo: string | null | undefined): boolea
   if (!cargo) return false;
   const key = normalizeCargoKey(cargo);
   return key === 'promotor' || key === 'demonstradora';
+}
+
+/**
+ * Liderança interna: Gerente, Supervisor, Analista admin, RH e Financeiro.
+ * Recebem aviso de meta mensal/anual batida por regional.
+ */
+export function isLiderancaNotifCargo(cargo: string | null | undefined): boolean {
+  if (!cargo) return false;
+  const key = normalizeCargoKey(cargo);
+  return (
+    key === 'gerente' ||
+    key === 'supervisor' ||
+    key === 'analista admin' ||
+    key === 'rh' ||
+    key === 'financeiro'
+  );
 }
 
 function toIso(value: string | null | undefined) {
@@ -155,6 +173,49 @@ async function shouldIncludeBirthday(usuarioId?: number | null): Promise<boolean
   return data.notify_aniversario !== false;
 }
 
+async function shouldIncludeMeta(usuarioId?: number | null): Promise<boolean> {
+  if (!usuarioId) return true;
+  const { data, error } = await supabase
+    .from('notification_preferences')
+    .select('notify_meta')
+    .eq('usuario_id', usuarioId)
+    .maybeSingle();
+  if (error || !data) return true;
+  return data.notify_meta !== false;
+}
+
+function mesLabelPt(mesNome: string) {
+  const lower = mesNome.toLowerCase();
+  return lower.charAt(0).toUpperCase() + lower.slice(1);
+}
+
+async function fetchMetaNotifications(): Promise<AppNotification[]> {
+  try {
+    const alerts = await fetchMetaBatidaAlerts();
+    return alerts.map((alert) => {
+      const pct = alert.meta > 0 ? ((alert.realizado / alert.meta) * 100).toFixed(0) : '0';
+      const periodoLabel =
+        alert.periodo === 'mensal'
+          ? `Meta mensal · ${mesLabelPt(alert.mesNome ?? '')}/${alert.ano}`
+          : `Meta anual · ${alert.ano}`;
+      return {
+        id: alert.id,
+        kind: 'meta' as const,
+        title: alert.periodo === 'mensal' ? 'Meta mensal batida!' : 'Meta anual batida!',
+        detail: `${alert.regiao} — ${periodoLabel}: ${formatBRL(alert.realizado)} de ${formatBRL(alert.meta)} (${pct}%)`,
+        at: alert.at,
+        href: '/fe-representacoes/vendas',
+      };
+    });
+  } catch (error) {
+    console.warn(
+      '[notificações] Falha ao calcular metas batidas:',
+      error instanceof Error ? error.message : error,
+    );
+    return [];
+  }
+}
+
 export async function fetchAppNotifications(
   limit = 20,
   scope?: NotificationViewerScope | null,
@@ -163,6 +224,15 @@ export async function fetchAppNotifications(
   const includeBirthday = await shouldIncludeBirthday(resolvedScope?.usuario_id);
   const externo = isExternalViewer(resolvedScope);
   const campoMerch = isCampoMerchNotifCargo(resolvedScope?.cargo);
+  const lideranca =
+    !externo && isLiderancaNotifCargo(resolvedScope?.cargo);
+  const includeMeta =
+    lideranca && (await shouldIncludeMeta(resolvedScope?.usuario_id));
+
+  const finish = async (items: AppNotification[]) => {
+    const metaItems = includeMeta ? await fetchMetaNotifications() : [];
+    return withBirthday([...metaItems, ...items], limit, resolvedScope, includeBirthday);
+  };
 
   // Externos só acompanham Sucesso do cliente do próprio escopo (sem vendas gerais / financeiro).
   if (externo) {
@@ -304,7 +374,7 @@ export async function fetchAppNotifications(
     });
   }
 
-  return withBirthday(items, limit, resolvedScope, includeBirthday);
+  return finish(items);
 }
 
 async function fetchExternalPedidoNotifications(

@@ -10,7 +10,7 @@ import {
 } from '../../services/notificationPreferencesService';
 import { isPushSupported, subscribePush, hasPushSubscription } from '../../services/pushService';
 import { isExternalTipo } from '../../utils/externalAccess';
-import { isCampoMerchNotifCargo } from '../../services/notificationsService';
+import { isCampoMerchNotifCargo, isLiderancaNotifCargo } from '../../services/notificationsService';
 import './AppInstallModal.css';
 
 type InstallTab = 'android' | 'ios' | 'desktop';
@@ -42,6 +42,7 @@ export default function AppInstallModal({ open, onClose }: Props) {
 
   const external = isExternalTipo(user?.tipo_usuario);
   const campoMerch = isCampoMerchNotifCargo(user?.cargo);
+  const lideranca = !external && isLiderancaNotifCargo(user?.cargo);
 
   const loadPrefs = useCallback(async () => {
     if (!user) return;
@@ -361,6 +362,21 @@ export default function AppInstallModal({ open, onClose }: Props) {
                       checked={prefs.notify_kanban_financeiro}
                       onChange={(event) =>
                         void handleToggle('notify_kanban_financeiro', event.target.checked)
+                      }
+                    />
+                  </label>
+                )}
+
+                {lideranca && (
+                  <label className="app-install-toggle">
+                    <span className="app-install-toggle-label">
+                      Metas batidas (mensal e anual)
+                    </span>
+                    <input
+                      type="checkbox"
+                      checked={prefs.notify_meta}
+                      onChange={(event) =>
+                        void handleToggle('notify_meta', event.target.checked)
                       }
                     />
                   </label>

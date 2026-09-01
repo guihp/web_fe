@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { isExternalTipo } from '../utils/externalAccess';
-import { isCampoMerchNotifCargo } from './notificationsService';
+import { isCampoMerchNotifCargo, isLiderancaNotifCargo } from './notificationsService';
 
 export type NotificationPreferences = {
   notify_venda: boolean;
@@ -9,6 +9,8 @@ export type NotificationPreferences = {
   notify_aviso: boolean;
   /** Só o próprio usuário no dia do aniversário (interno e externo). */
   notify_aniversario: boolean;
+  /** Meta mensal/anual batida — só cargos de liderança internos. */
+  notify_meta: boolean;
 };
 
 const DEFAULT_PREFS: NotificationPreferences = {
@@ -17,6 +19,7 @@ const DEFAULT_PREFS: NotificationPreferences = {
   notify_kanban_financeiro: true,
   notify_aviso: true,
   notify_aniversario: true,
+  notify_meta: true,
 };
 
 type PrefsRow = NotificationPreferences & { usuario_id: number };
@@ -29,6 +32,7 @@ function rowToPrefs(row: PrefsRow | null): NotificationPreferences {
     notify_kanban_financeiro: row.notify_kanban_financeiro,
     notify_aviso: row.notify_aviso !== false,
     notify_aniversario: row.notify_aniversario !== false,
+    notify_meta: row.notify_meta !== false,
   };
 }
 
@@ -38,7 +42,7 @@ export async function fetchNotificationPreferences(
   const { data, error } = await supabase
     .from('notification_preferences')
     .select(
-      'notify_venda, notify_kanban_pedido, notify_kanban_financeiro, notify_aviso, notify_aniversario',
+      'notify_venda, notify_kanban_pedido, notify_kanban_financeiro, notify_aviso, notify_aniversario, notify_meta',
     )
     .eq('usuario_id', usuarioId)
     .maybeSingle();
@@ -63,6 +67,7 @@ export async function saveNotificationPreferences(
       notify_kanban_financeiro: prefs.notify_kanban_financeiro,
       notify_aviso: prefs.notify_aviso,
       notify_aniversario: prefs.notify_aniversario,
+      notify_meta: prefs.notify_meta,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'usuario_id' },
@@ -80,6 +85,7 @@ export async function enableAllNotificationPreferences(
 ): Promise<void> {
   const external = isExternalTipo(tipoUsuario);
   const campoMerch = isCampoMerchNotifCargo(cargo);
+  const lideranca = !external && isLiderancaNotifCargo(cargo);
 
   const prefs: NotificationPreferences = campoMerch
     ? {
@@ -88,6 +94,7 @@ export async function enableAllNotificationPreferences(
         notify_kanban_financeiro: false,
         notify_aviso: true,
         notify_aniversario: true,
+        notify_meta: false,
       }
     : {
         notify_venda: !external,
@@ -95,6 +102,7 @@ export async function enableAllNotificationPreferences(
         notify_kanban_financeiro: !external,
         notify_aviso: !external,
         notify_aniversario: true,
+        notify_meta: lideranca,
       };
 
   await saveNotificationPreferences(usuarioId, prefs);
