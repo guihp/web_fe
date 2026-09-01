@@ -1,5 +1,6 @@
 import { FormEvent, useCallback, useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
+import ModalShell from '../components/colaboradores/ModalShell';
 import BackToPortal from '../components/layout/BackToPortal';
 import { useAuth } from '../context/AuthContext';
 import { canManageUsers } from '../data/portalModules';
@@ -29,6 +30,7 @@ export default function Avisos() {
   const [historico, setHistorico] = useState<Aviso[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
 
@@ -60,13 +62,18 @@ export default function Avisos() {
     setSuccess(null);
   };
 
-  const handleSubmit = async (event: FormEvent) => {
+  const handleSubmit = (event: FormEvent) => {
     event.preventDefault();
     if (!titulo.trim() || !corpo.trim()) {
       setError('Preencha título e mensagem.');
       return;
     }
+    setError(null);
+    setSuccess(null);
+    setConfirmOpen(true);
+  };
 
+  const handleConfirmSend = async () => {
     setSending(true);
     setError(null);
     setSuccess(null);
@@ -77,10 +84,12 @@ export default function Avisos() {
         corpo: corpo.trim(),
         criadoPor: user?.id ?? null,
       });
+      setConfirmOpen(false);
       setSuccess('Aviso enviado. A equipe interna recebe no sino e no push.');
       await loadHistorico();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Não foi possível enviar o aviso.');
+      setConfirmOpen(false);
     } finally {
       setSending(false);
     }
@@ -105,7 +114,7 @@ export default function Avisos() {
         precisa disparar manualmente.
       </p>
 
-      <form className="avisos-card" onSubmit={(e) => void handleSubmit(e)}>
+      <form className="avisos-card" onSubmit={handleSubmit}>
         <div className="avisos-card-head">
           <h2>Novo aviso</h2>
           <p>Escolha o modelo, edite se quiser e envie.</p>
@@ -187,6 +196,58 @@ export default function Avisos() {
           </ul>
         )}
       </section>
+
+      {confirmOpen && (
+        <ModalShell
+          onClose={() => {
+            if (!sending) setConfirmOpen(false);
+          }}
+          className="avisos-confirm-modal"
+        >
+          <div className="avisos-confirm-header">
+            <h2 id="avisos-confirm-title">Confirmar envio do aviso?</h2>
+            <button
+              type="button"
+              className="avisos-confirm-close"
+              aria-label="Fechar"
+              disabled={sending}
+              onClick={() => setConfirmOpen(false)}
+            >
+              ×
+            </button>
+          </div>
+
+          <p className="avisos-confirm-warn">
+            Depois de enviar, a ação é <strong>irreversível</strong>. O aviso vai para o sino e o
+            push de toda a equipe interna.
+          </p>
+
+          <div className="avisos-confirm-preview">
+            <span className={`avisos-badge avisos-badge--${tipo}`}>{TIPO_LABEL[tipo]}</span>
+            <strong>{titulo.trim()}</strong>
+            <p>{corpo.trim()}</p>
+          </div>
+
+          <div className="avisos-confirm-actions">
+            <button
+              type="button"
+              className="avisos-confirm-cancel"
+              disabled={sending}
+              onClick={() => setConfirmOpen(false)}
+            >
+              Revisar
+            </button>
+            <button
+              type="button"
+              className="avisos-confirm-send"
+              disabled={sending}
+              onClick={() => void handleConfirmSend()}
+            >
+              {sending ? 'Enviando…' : 'Sim, enviar aviso'}
+            </button>
+          </div>
+        </ModalShell>
+      )}
     </div>
   );
 }

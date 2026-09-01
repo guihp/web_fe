@@ -255,6 +255,122 @@ html:not([data-theme='dark']) .avisos-note {
   color: #9a3412;
 }
 
+.avisos-confirm-modal {
+  max-width: 480px;
+  width: min(480px, 94vw);
+  padding: 0;
+  overflow: hidden;
+}
+
+.avisos-confirm-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.avisos-confirm-header h2 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.avisos-confirm-close {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.avisos-confirm-close:hover:not(:disabled) {
+  background: var(--btn-ghost-hover);
+  color: var(--text);
+}
+
+.avisos-confirm-warn {
+  margin: 0;
+  padding: 14px 18px;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--text);
+  background: color-mix(in srgb, #dc2626 10%, var(--surface));
+  border-bottom: 1px solid var(--border);
+}
+
+html:not([data-theme='dark']) .avisos-confirm-warn {
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+.avisos-confirm-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 18px;
+  max-height: min(40vh, 280px);
+  overflow-y: auto;
+}
+
+.avisos-confirm-preview strong {
+  font-size: 1rem;
+  color: var(--text);
+}
+
+.avisos-confirm-preview p {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--text);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.avisos-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 18px 18px;
+  border-top: 1px solid var(--border);
+}
+
+.avisos-confirm-cancel,
+.avisos-confirm-send {
+  flex: 1;
+  min-width: 120px;
+  min-height: 44px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.avisos-confirm-cancel {
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.avisos-confirm-send {
+  border: none;
+  background: #ea580c;
+  color: #fff;
+}
+
+.avisos-confirm-send:disabled,
+.avisos-confirm-cancel:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 @media (max-width: 640px) {
   .avisos-card {
     padding: 16px;
@@ -266,5 +382,15 @@ html:not([data-theme='dark']) .avisos-note {
 
   .avisos-send {
     width: 100%;
+  }
+
+  .avisos-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .avisos-confirm-cancel,
+  .avisos-confirm-send {
+    width: 100%;
+    min-width: 0;
   }
 }
