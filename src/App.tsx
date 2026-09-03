@@ -16,6 +16,7 @@ import ProjecaoMetas from './pages/ProjecaoMetas';
 import Atividades from './pages/Atividades';
 import LancarVencimentos from './pages/LancarVencimentos';
 import LancarEncartes from './pages/LancarEncartes';
+import FazerPesquisa from './pages/FazerPesquisa';
 import Financeiro from './pages/Financeiro';
 import Administrador from './pages/Administrador';
 import AdminClientes from './pages/admin/AdminClientes';
@@ -45,6 +46,7 @@ export default function App() {
           <Route path="/" element={<PortalHome />} />
           <Route path="/merchandising" element={<Merchandising />} />
           <Route path="/merchandising/encartes" element={<LancarEncartes />} />
+          <Route path="/merchandising/pesquisas" element={<FazerPesquisa />} />
           <Route path="/fe-representacoes" element={<FeRepresentacoes />} />
           <Route path="/fe-representacoes/price" element={<Price />} />
           <Route path="/fe-representacoes/sucesso-cliente" element={<AdminSucessoCliente />} />

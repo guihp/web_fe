@@ -4,7 +4,7 @@
 
 O **Painel Web da Fé Merchandising** é o sistema usado pela operação e gestão para acompanhar:
 
-- Merchandising em loja (treinamentos, atividades, validades)
+- Merchandising em loja (treinamentos, atividades, pesquisa, validades)
 - Representações / comercial (Price, Sucesso do cliente, vendas)
 - Financeiro (contratos, composição, comissões)
 - Administração (usuários, indústrias, filiais, regionais, etc.)

@@ -279,6 +279,44 @@ export async function updatePesquisasCustoBatch(rows: PesquisaCustoUpdate[]): Pr
   return updated;
 }
 
+export type CreatePesquisaInicioInput = {
+  tipo: TipoPesquisa;
+  loja: string;
+  uf: string;
+  industria: string;
+  promotor?: string | null;
+};
+
+/**
+ * Inicia uma pesquisa na tabela `pesquisa` (contexto loja/UF/tipo).
+ * Produto/preços via câmera OCR entram numa etapa futura — por enquanto grava rascunho.
+ */
+export async function createPesquisaInicio(input: CreatePesquisaInicioInput): Promise<PesquisaItem> {
+  const loja = input.loja.trim();
+  const uf = input.uf.trim().toUpperCase();
+  const industria = toIndustriaPadrao(input.industria.trim()) || input.industria.trim();
+  if (!loja) throw new Error('Selecione a loja.');
+  if (!uf) throw new Error('Selecione o estado.');
+  if (!industria) throw new Error('Informe o fornecedor / indústria.');
+
+  const payload = {
+    tipo_pesquisa: input.tipo,
+    loja,
+    uf,
+    industria,
+    promotor: input.promotor?.trim() || null,
+    descricao: '[RASCUNHO] Aguardando captura pela câmera',
+    preco_varejo: null,
+    preco_atacado: null,
+    preco_custo: null,
+    mes: mesVigente(),
+  };
+
+  const { data, error } = await supabase.from('pesquisa').insert([payload]).select('*').single();
+  if (error) throw new Error(error.message);
+  return mapRow(data as Record<string, unknown>);
+}
+
 /** Markup % = ((PV - PC) / PC) * 100 */
 export function calcMarkupPercent(pv: number | null, pc: number | null): number | null {
   if (pv == null || pc == null || pc === 0) return null;

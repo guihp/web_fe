@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import {
   PORTAL_MODULES,
   canLancarEncartes,
+  canLancarVencimentos,
   canManageUsers,
   moduleIdFromSection,
   sectionIdForPath,
@@ -129,6 +130,10 @@ export default function Sidebar() {
       }
 
       if (section.id === 'merchandising.encartes' && !canLancarEncartes(cargo)) {
+        continue;
+      }
+
+      if (section.id === 'merchandising.pesquisas' && !canLancarVencimentos(user?.tipo_usuario)) {
         continue;
       }
 

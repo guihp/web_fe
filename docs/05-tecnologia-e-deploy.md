@@ -52,6 +52,7 @@ Opcional (Web Push):
 4. Healthcheck: `GET /health` → `ok`.
 5. Definir as variáveis Supabase como build args / env de build.
 6. Para push notifications: incluir `VITE_VAPID_PUBLIC_KEY` no build.
+7. Redeploy: push em `main` dispara o Coolify se o app estiver com webhook GitHub. Sem migration nova nesta entrega (usa a tabela `pesquisa` já existente).
 
 ## PWA
 

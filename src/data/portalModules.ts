@@ -55,7 +55,7 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
   {
     id: 'merchandising',
     title: 'Merchandising',
-    description: 'Treinamentos, atividades em loja e controle de validades.',
+    description: 'Treinamentos, atividades em loja, pesquisa e controle de validades.',
     badge: 'Operação',
     icon: 'merchandising',
     path: '/merchandising',
@@ -69,6 +69,12 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
         title: 'Lançar promoções/encarte',
         path: '/merchandising/encartes',
         icon: 'tag',
+      },
+      {
+        id: 'merchandising.pesquisas',
+        title: 'Fazer pesquisa',
+        path: '/merchandising/pesquisas',
+        icon: 'search',
       },
     ],
   },
@@ -566,6 +572,11 @@ export function userHasSectionAccess(
 
   if (sectionId === 'merchandising.encartes') {
     return canLancarEncartes(cargo);
+  }
+
+  // Fazer pesquisa: liberado no hub para internos (gate de tipo_usuario na página/card)
+  if (sectionId === 'merchandising.pesquisas') {
+    return true;
   }
 
   if (sectionId.startsWith('administrador.') && !canManageUsers(cargo)) {

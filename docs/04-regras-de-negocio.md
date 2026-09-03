@@ -12,6 +12,7 @@
 9. **Meta batida** (mensal ou anual, regionais MA/PI e PA): só cargos de liderança internos — Gerente, Supervisor, Analista admin, RH e Financeiro — no sino (preferência `notify_meta`).
 9. Promotor/Demonstradora têm até **7 lojas** em `usuario_lojas`. Em Atividades: check-in na loja (cidade/UF automáticos da tabela `lojas`, sem GPS), escolha de indústria e fotos antes/depois. Antes do envio, confirma com prévia das fotos + senha do dia — após confirmar é **irreversível**; a senha grava em `atividade_dia.senha_do_dia`.
 10. Balão **Fé Representações** concentra Price, Sucesso, Avisos (Gerente) e Vendas; no cadastro interno, Vendas pode ser liberada ou não por seção.
+11. Balão **Merchandising** inclui **Fazer pesquisa** para todos os usuários internos (não indústria/cliente).
 
 ## Avisos
 
@@ -26,6 +27,7 @@
 2. Internas: custo (`preco_custo`), markup/margem e gráfico; export/import de custo só para internos.
 3. Filtro por **`mes`**: um mês disponível → esse; vários → mês vigente (usuário pode trocar).
 4. Externos não exportam nem editam custo.
+5. **Fazer pesquisa** (`/merchandising/pesquisas`): internos escolhem tipo (interna = só nossas indústrias; externa = nosso produto ou concorrência), UF (MA/PI/PA), loja e fornecedor. Promotor/Demonstradora só veem lojas de `usuario_lojas`; gerente/supervisor e demais internos veem todas. Grava rascunho em `pesquisa` (câmera/OCR depois).
 
 ## Vendas
 

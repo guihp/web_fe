@@ -48,7 +48,7 @@ Região nas comissões costuma aparecer como `MA/PI` ou `PA` (a partir do estado
 | Conceito | Tabela | Uso |
 |----------|--------|-----|
 | Validade | `validades` | lojas (texto), industria, produto, lote, data_vencimento, UF, promotor, `qtde_unit`, **`todos_vendidos`** (boolean; some da lista quando true) |
-| Pesquisa de preço (Price) | `pesquisa` | `tipo_pesquisa` (`interna`\|`externa`), produto (`descricao`), industria, loja, UF, `preco_varejo`, `preco_atacado`, `preco_custo` (internas), **`mes`** (ex.: AGOSTO) |
+| Pesquisa de preço (Price) | `pesquisa` | `tipo_pesquisa` (`interna`\|`externa`), produto (`descricao`), industria, loja, UF, `preco_varejo`, `preco_atacado`, `preco_custo` (internas), **`mes`** (ex.: AGOSTO), `promotor`. Rascunhos de **Fazer pesquisa** usam descrição `[RASCUNHO] Aguardando captura pela câmera`. |
 | Atividade | `atividades` / `atividade_dia` | Ações em loja / dia |
 | Treinamento | `treinamento` | Catálogo; PDF em storage |
 

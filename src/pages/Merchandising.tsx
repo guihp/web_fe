@@ -76,6 +76,16 @@ const MERCH_CARDS: {
     section: 'merchandising.encartes',
     encartesOnly: true,
   },
+  {
+    id: 'pesquisas',
+    title: 'Fazer pesquisa',
+    description: 'Lançar pesquisa de preço interna ou externa (Price).',
+    path: '/merchandising/pesquisas',
+    tone: 'orange',
+    icon: 'search',
+    section: 'merchandising.pesquisas',
+    internoOnly: true,
+  },
 ];
 
 function formatPreco(value: number | null): string {
@@ -125,7 +135,9 @@ export default function Merchandising() {
 
       <header className="admin-header">
         <h1 className="page-title">Merchandising</h1>
-        <p className="admin-subtitle">Treinamentos, atividades em loja e controle de validades.</p>
+        <p className="admin-subtitle">
+          Treinamentos, atividades em loja, pesquisa e controle de validades.
+        </p>
       </header>
 
       <SenhaDoDiaCard />

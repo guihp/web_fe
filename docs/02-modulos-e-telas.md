@@ -20,6 +20,8 @@ Hub: `/merchandising`
 | Atividades | `/atividades` | Gestores: visitas enviadas aos promotores. **Promotor/Demonstradora:** Meu roteiro (lojas vinculadas → check-in → indústria → fotos antes/depois; sem GPS). Antes de enviar, confirma com prévia das fotos + senha do dia (irreversível). |
 | Lançar vencimentos | `/atividades/lancar-vencimentos` | Formulário de validade (internos); código reduzido preenche produto/indústria via `codigos`; envia ao webhook n8n `comercial1` |
 | Validades | `/validades` | Lista + gráfico dos produtos que mais venceram no mês; filtros UF, indústria, mês, status e ordenação; exportação (internos); externos só o próprio escopo |
+| Lançar promoções/encarte | `/merchandising/encartes` | **Gerente / Supervisor / Analista admin:** importar Excel e lançar encartes na operação |
+| Fazer pesquisa | `/merchandising/pesquisas` | **Internos:** lançar pesquisa interna ou externa (mesma tabela `pesquisa` do Price). Promotor/Demonstradora escolhem só lojas cadastradas; demais internos, todas. Câmera/OCR fica para etapa seguinte. |
 
 No hub **Merchandising**, **todos** os usuários logados (internos e externos) veem o bloco **Senha do dia** (tabela `senhas`, calendário de hoje em America/Sao_Paulo).
 
@@ -45,7 +47,7 @@ Hub: `/fe-representacoes`
 
 | Seção | Rota | O que faz |
 |-------|------|-----------|
-| Price | `/fe-representacoes/price` | Internas/externas por **mês**; export/import de custos; markup/margem + gráfico; externos em leitura com escopo |
+| Price | `/fe-representacoes/price` | Internas/externas por **mês**; export/import de custos; markup/margem + gráfico; externos em leitura com escopo; internos têm atalho **Fazer pesquisa** |
 | Sucesso do cliente | `/fe-representacoes/sucesso-cliente` | Kanban de pedidos a partir das vendas lançadas; status arrastável (internos) |
 | Avisos | `/fe-representacoes/avisos` | **Só Gerente:** enviar aviso de salário ou feriado (modelos editáveis); confirmação com prévia da mensagem antes do envio (irreversível); folha de ponto automática no dia 25 |
 | Relatórios | `/fe-representacoes/relatorios` | Relatórios comerciais |

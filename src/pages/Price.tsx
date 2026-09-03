@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import PriceInternoChart from '../components/price/PriceInternoChart';
 import BackToPortal from '../components/layout/BackToPortal';
 import { useAuth } from '../context/AuthContext';
+import { canLancarVencimentos } from '../data/portalModules';
 import { useToast } from '../context/ToastContext';
 import {
   PRICE_PAGE_SIZE,
@@ -374,6 +376,11 @@ export default function Price() {
             Pesquisas {tipo === 'interna' ? 'internas' : 'externas'} ({total})
           </h2>
           <div className="base-vendas-actions">
+            {!somenteLeitura && canLancarVencimentos(user?.tipo_usuario) && (
+              <Link to="/merchandising/pesquisas" className="base-vendas-btn primary">
+                Fazer pesquisa
+              </Link>
+            )}
             {tipo === 'interna' && (
               <div className="price-view-toggle" role="group" aria-label="Visualização">
                 <button
