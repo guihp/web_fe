@@ -1,20 +1,17 @@
 .fazer-pesquisa-page {
   --fp-pad: clamp(12px, 3.2vw, 20px);
-  --fp-tap: 52px;
+  --fp-tap: 48px;
   --fp-radius: 12px;
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 480px;
+  max-width: 560px;
   min-width: 0;
-  min-height: 100%;
   margin: 0 auto;
   box-sizing: border-box;
-  overflow-x: clip;
 }
 
 .fazer-pesquisa-hero {
-  position: relative;
   display: grid;
   grid-template-columns: var(--fp-tap) minmax(0, 1fr) var(--fp-tap);
   align-items: center;
@@ -22,19 +19,15 @@
   color: var(--text-on-accent, #fff);
   border-radius: 14px;
   min-height: var(--fp-tap);
-  padding: 8px var(--fp-pad);
+  padding: 4px 8px;
 }
 
 .fazer-pesquisa-hero h1 {
   margin: 0;
   text-align: center;
-  font-size: clamp(1.05rem, 4.2vw, 1.2rem);
+  font-size: clamp(1.05rem, 4vw, 1.2rem);
   font-weight: 700;
-  letter-spacing: 0.01em;
   line-height: 1.2;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
 }
 
 .fazer-pesquisa-back {
@@ -43,7 +36,6 @@
   justify-content: center;
   width: var(--fp-tap);
   height: var(--fp-tap);
-  margin-left: calc(var(--fp-pad) * -0.4);
   border-radius: 12px;
   color: inherit;
   touch-action: manipulation;
@@ -57,21 +49,21 @@
 }
 
 .fazer-pesquisa-card {
-  flex: 1;
   display: flex;
   flex-direction: column;
   min-width: 0;
   margin-top: 14px;
-  padding: 4px 2px 0;
-  background: transparent;
-  border: 0;
-  box-shadow: none;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
 }
 
 .fazer-pesquisa-fields {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   min-width: 0;
 }
 
@@ -98,7 +90,6 @@
   font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
 }
 
 .fazer-pesquisa-tipo button.active {
@@ -109,14 +100,13 @@
 
 .fazer-pesquisa-hint {
   margin: 0;
-  font-size: clamp(0.75rem, 3.2vw, 0.82rem);
+  font-size: 0.8rem;
   color: var(--text-muted);
   line-height: 1.4;
 }
 
 .fazer-pesquisa-field,
 .fazer-pesquisa-uf {
-  position: relative;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -127,6 +117,10 @@
   border: 0;
 }
 
+.fazer-pesquisa-uf {
+  min-inline-size: 0;
+}
+
 .fazer-pesquisa-label {
   font-size: 0.78rem;
   font-weight: 600;
@@ -135,45 +129,60 @@
 }
 
 .fazer-pesquisa-field input,
-.fazer-pesquisa-field select {
+.fazer-pesquisa-select select {
   width: 100%;
   max-width: 100%;
   min-width: 0;
   min-height: var(--fp-tap);
   box-sizing: border-box;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border: 1px solid var(--border);
   border-radius: var(--fp-radius);
-  background: var(--input-bg, var(--surface));
+  background-color: var(--input-bg, var(--surface));
+  background-image: none;
   color: var(--text);
   font: inherit;
   font-size: 16px;
   line-height: 1.3;
   outline: none;
-  appearance: none;
-  -webkit-appearance: none;
   touch-action: manipulation;
 }
 
-.fazer-pesquisa-field select {
-  padding-right: 42px;
-  background-color: var(--input-bg, var(--surface));
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23666' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
-  background-repeat: no-repeat;
-  background-position: right 14px center;
-  background-size: 18px;
-  cursor: pointer;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
+.fazer-pesquisa-select {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
 }
 
-[data-theme='dark'] .fazer-pesquisa-field select {
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%23bbb' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'><path d='M6 9l6 6 6-6'/></svg>");
+.fazer-pesquisa-select select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.fazer-pesquisa-select::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 16px;
+  width: 8px;
+  height: 8px;
+  margin-top: -6px;
+  border-right: 2px solid var(--text-muted);
+  border-bottom: 2px solid var(--text-muted);
+  transform: rotate(45deg);
+  pointer-events: none;
+}
+
+.fazer-pesquisa-select select::-ms-expand {
+  display: none;
 }
 
 .fazer-pesquisa-field input:focus,
-.fazer-pesquisa-field select:focus {
+.fazer-pesquisa-select select:focus {
   border-color: var(--coral);
 }
 
@@ -181,7 +190,7 @@
   color: var(--input-placeholder, var(--text-muted));
 }
 
-.fazer-pesquisa-field select:disabled,
+.fazer-pesquisa-select select:disabled,
 .fazer-pesquisa-field input:disabled {
   opacity: 0.65;
   cursor: not-allowed;
@@ -206,7 +215,6 @@
   letter-spacing: 0.04em;
   cursor: pointer;
   touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
 }
 
 .fazer-pesquisa-uf-row button.active {
@@ -220,24 +228,21 @@
   flex-direction: column;
   gap: 10px;
   margin-top: 16px;
-  padding-bottom: max(8px, env(safe-area-inset-bottom));
 }
 
 .fazer-pesquisa-camera {
   width: 100%;
-  min-height: 54px;
+  min-height: 52px;
   border: none;
   border-radius: var(--fp-radius);
-  padding: 16px 18px;
+  padding: 14px 18px;
   background: var(--coral);
   color: var(--text-on-accent, #fff);
   font: inherit;
-  font-size: clamp(0.95rem, 3.6vw, 1.05rem);
+  font-size: 1rem;
   font-weight: 700;
-  letter-spacing: 0.03em;
   cursor: pointer;
   touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
 }
 
 .fazer-pesquisa-camera:hover:not(:disabled) {
@@ -259,96 +264,50 @@
 @media (max-width: 900px) {
   .fazer-pesquisa-page {
     max-width: none;
-    width: calc(100% + 24px);
-    margin: -12px -12px 0;
-    min-height: calc(100% + 12px);
   }
 
   .fazer-pesquisa-hero {
-    border-radius: 0;
-    padding-top: max(6px, env(safe-area-inset-top, 0px));
+    border-radius: 12px;
   }
 
   .fazer-pesquisa-card {
-    margin-top: 0;
     padding: var(--fp-pad);
-    padding-bottom: 0;
-    background: var(--bg);
   }
 
   .fazer-pesquisa-actions {
     position: sticky;
     bottom: 0;
     z-index: 2;
-    margin-top: auto;
     padding: 12px 0 max(12px, env(safe-area-inset-bottom));
-    background: linear-gradient(180deg, transparent, var(--bg) 18%);
+    background: linear-gradient(180deg, transparent, var(--surface) 22%);
   }
 }
 
 @media (max-width: 480px) {
-  .fazer-pesquisa-page {
-    width: calc(100% + 20px);
-    margin: -10px -10px 0;
+  .fazer-pesquisa-hero {
+    border-radius: 10px;
   }
 
-  .fazer-pesquisa-label {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  .fazer-pesquisa-field,
-  .fazer-pesquisa-uf {
-    gap: 0;
-  }
-
-  .fazer-pesquisa-hint {
-    font-size: 0.78rem;
+  .fazer-pesquisa-card {
+    border-radius: 12px;
   }
 }
 
 @media (max-height: 560px) and (orientation: landscape) {
-  .fazer-pesquisa-hero {
-    min-height: 44px;
-    padding-block: 4px;
-  }
-
   .fazer-pesquisa-fields {
     gap: 8px;
   }
 
   .fazer-pesquisa-tipo button,
   .fazer-pesquisa-field input,
-  .fazer-pesquisa-field select,
+  .fazer-pesquisa-select select,
   .fazer-pesquisa-uf-row button,
   .fazer-pesquisa-camera {
     min-height: 44px;
-    padding-block: 8px;
   }
 
   .fazer-pesquisa-actions {
     position: static;
     padding-bottom: 8px;
-  }
-}
-
-@media (min-width: 901px) {
-  .fazer-pesquisa-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 16px;
-    padding: 18px 16px 16px;
-    box-shadow: var(--shadow);
-  }
-
-  .fazer-pesquisa-hero {
-    margin-bottom: 2px;
   }
 }

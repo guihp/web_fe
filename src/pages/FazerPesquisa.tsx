@@ -199,27 +199,29 @@ export default function FazerPesquisa() {
 
           <label className="fazer-pesquisa-field">
             <span className="fazer-pesquisa-label">Nome da Loja</span>
-            <select
-              value={lojaId}
-              onChange={(e) => setLojaId(e.target.value)}
-              required
-              disabled={loadingOpts || !uf}
-            >
-              <option value="">
-                {!uf
-                  ? 'Selecione o estado primeiro'
-                  : lojasFiltradas.length === 0
-                    ? campoMerch
-                      ? 'Nenhuma loja sua neste estado'
-                      : 'Nenhuma loja neste estado'
-                    : 'Nome da Loja'}
-              </option>
-              {lojasFiltradas.map((l) => (
-                <option key={l.id} value={l.id}>
-                  {campoMerch ? formatUsuarioLojaLabel(l) : formatLojaNome(l)}
+            <span className="fazer-pesquisa-select">
+              <select
+                value={lojaId}
+                onChange={(e) => setLojaId(e.target.value)}
+                required
+                disabled={loadingOpts || !uf}
+              >
+                <option value="">
+                  {!uf
+                    ? 'Selecione o estado primeiro'
+                    : lojasFiltradas.length === 0
+                      ? campoMerch
+                        ? 'Nenhuma loja sua neste estado'
+                        : 'Nenhuma loja neste estado'
+                      : 'Nome da Loja'}
                 </option>
-              ))}
-            </select>
+                {lojasFiltradas.map((l) => (
+                  <option key={l.id} value={l.id}>
+                    {campoMerch ? formatUsuarioLojaLabel(l) : formatLojaNome(l)}
+                  </option>
+                ))}
+              </select>
+            </span>
           </label>
 
           <label className="fazer-pesquisa-field">
@@ -227,19 +229,21 @@ export default function FazerPesquisa() {
               {tipo === 'interna' ? 'Indústria' : 'Nome do Fornecedor'}
             </span>
             {tipo === 'interna' ? (
-              <select
-                value={industria}
-                onChange={(e) => setIndustria(e.target.value)}
-                required
-                disabled={loadingOpts}
-              >
-                <option value="">Nome do Fornecedor</option>
-                {industrias.map((nome) => (
-                  <option key={nome} value={nome}>
-                    {nome}
-                  </option>
-                ))}
-              </select>
+              <span className="fazer-pesquisa-select">
+                <select
+                  value={industria}
+                  onChange={(e) => setIndustria(e.target.value)}
+                  required
+                  disabled={loadingOpts}
+                >
+                  <option value="">Nome do Fornecedor</option>
+                  {industrias.map((nome) => (
+                    <option key={nome} value={nome}>
+                      {nome}
+                    </option>
+                  ))}
+                </select>
+              </span>
             ) : (
               <input
                 type="text"
