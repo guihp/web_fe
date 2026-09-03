@@ -64,6 +64,12 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
       { id: 'treinamentos.home', title: 'Treinamentos', path: '/treinamento', icon: 'briefcase' },
       { id: 'atividades.home', title: 'Atividades', path: '/atividades', icon: 'clipboard' },
       { id: 'validades.home', title: 'Validades', path: '/validades', icon: 'calendar' },
+      {
+        id: 'merchandising.encartes',
+        title: 'Lançar promoções/encarte',
+        path: '/merchandising/encartes',
+        icon: 'tag',
+      },
     ],
   },
   {
@@ -234,6 +240,15 @@ export function canLancarVencimentos(tipoUsuario: string | null | undefined): bo
   return tipoUsuario !== 'industria' && tipoUsuario !== 'cliente';
 }
 
+/** Lançar promoções/encarte: Gerente, Supervisor e Analista admin. */
+export const ENCARTE_LANCAR_CARGOS = ['Gerente', 'Supervisor', 'Analista admin'] as const;
+
+export function canLancarEncartes(cargo: string | null | undefined): boolean {
+  if (!cargo) return false;
+  const key = normalizeCargoKey(cargo);
+  return ENCARTE_LANCAR_CARGOS.some((c) => normalizeCargoKey(c) === key);
+}
+
 /** @deprecated Senha do dia é liberada para todos os usuários logados (internos e externos). */
 export function canViewSenhaDoDia(_cargo?: string | null): boolean {
   return true;
@@ -254,7 +269,11 @@ export function defaultSecoesForCargo(cargo: string): string[] {
   }
   return PORTAL_MODULES.filter((m) => m.id !== 'administrador')
     .flatMap((m) => m.sections.map((s) => s.id))
-    .filter((id) => id !== 'fe-representacoes.avisos');
+    .filter((id) => {
+      if (id === 'fe-representacoes.avisos') return false;
+      if (id === 'merchandising.encartes') return canLancarEncartes(cargo);
+      return true;
+    });
 }
 
 /** @deprecated use defaultSecoesForCargo — mantido para compat. */
@@ -291,6 +310,9 @@ export function sanitizeSecoes(cargo: string, secoes: string[] | null | undefine
     next = next.filter(
       (id) => !id.startsWith('administrador.') && id !== 'fe-representacoes.avisos',
     );
+  }
+  if (!canLancarEncartes(cargo)) {
+    next = next.filter((id) => id !== 'merchandising.encartes');
   }
 
   // Sempre inclui módulos liberados para todos
@@ -540,6 +562,10 @@ export function userHasSectionAccess(
 
   if (sectionId === 'fe-representacoes.avisos') {
     return canManageUsers(cargo);
+  }
+
+  if (sectionId === 'merchandising.encartes') {
+    return canLancarEncartes(cargo);
   }
 
   if (sectionId.startsWith('administrador.') && !canManageUsers(cargo)) {

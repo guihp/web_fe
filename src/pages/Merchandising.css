@@ -1,0 +1,96 @@
+.merch-promos {
+  margin: 0 0 24px;
+  padding: 18px 20px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+  min-width: 0;
+}
+
+.merch-promos-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.merch-promos-subtitle {
+  margin: 6px 0 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.merch-promos-empty {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.merch-promos-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.merch-promo-card {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--coral-soft);
+  border: 1px solid var(--border);
+  min-width: 0;
+}
+
+.merch-promo-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.merch-promo-top strong {
+  word-break: break-word;
+  min-width: 0;
+  flex: 1 1 160px;
+}
+
+.merch-promo-tipo {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--coral-dark);
+  white-space: nowrap;
+}
+
+.merch-promo-meta,
+.merch-promo-dates {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.merch-promo-dates {
+  font-weight: 600;
+  color: var(--coral);
+}
+
+@media (max-width: 700px) {
+  .merch-promos {
+    padding: 14px 16px;
+    margin-bottom: 18px;
+  }
+
+  .merch-promo-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .merch-promo-tipo {
+    white-space: normal;
+  }
+}

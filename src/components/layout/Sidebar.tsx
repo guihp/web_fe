@@ -3,6 +3,7 @@ import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   PORTAL_MODULES,
+  canLancarEncartes,
   canManageUsers,
   moduleIdFromSection,
   sectionIdForPath,
@@ -124,6 +125,10 @@ export default function Sidebar() {
       }
 
       if (section.id === 'fe-representacoes.avisos' && !canManageUsers(cargo)) {
+        continue;
+      }
+
+      if (section.id === 'merchandising.encartes' && !canLancarEncartes(cargo)) {
         continue;
       }
 

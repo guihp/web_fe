@@ -1,0 +1,26 @@
+.lancar-encartes-page .base-vendas-actions {
+  gap: 8px;
+}
+
+@media (max-width: 900px) {
+  .lancar-encartes-page .base-vendas-actions {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .lancar-encartes-page .base-vendas-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .lancar-encartes-page .base-vendas-pagination {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+
+  .lancar-encartes-page .base-vendas-table {
+    min-width: 720px;
+  }
+}

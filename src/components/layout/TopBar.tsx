@@ -46,6 +46,8 @@ function kindIcon(kind: NotificationKind): AppIconName {
   if (kind === 'aviso') return 'bell';
   if (kind === 'aniversario') return 'check';
   if (kind === 'meta') return 'target';
+  if (kind === 'encarte') return 'tag';
+  if (kind === 'atividade') return 'clipboard';
   return 'dollar';
 }
 
@@ -56,6 +58,8 @@ function kindLabel(kind: NotificationKind): string {
   if (kind === 'aviso') return 'Aviso';
   if (kind === 'aniversario') return 'Aniversário';
   if (kind === 'meta') return 'Meta';
+  if (kind === 'encarte') return 'Promoção';
+  if (kind === 'atividade') return 'Tarefa';
   return 'Notificação';
 }
 
@@ -274,7 +278,7 @@ export default function TopBar() {
                 <strong>Notificações</strong>
                 <span>
                   {campoMerchNotif
-                    ? 'Avisos e aniversário · toque para ler'
+                    ? 'Tarefas, avisos e promoções · toque para ler'
                     : 'Toque para ler completa'}
                 </span>
               </header>

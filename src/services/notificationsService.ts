@@ -7,6 +7,11 @@ import {
   type TipoUsuario,
 } from '../utils/externalAccess';
 import { toIndustriaPadrao } from '../utils/vendasDomain';
+import {
+  fetchEncartesDoDiaParaUsuario,
+  formatEncarteDateBr,
+  lojaLabelForEncarte,
+} from './encarteService';
 import { fetchMetaBatidaAlerts } from './metasService';
 
 export type NotificationKind =
@@ -15,7 +20,9 @@ export type NotificationKind =
   | 'kanban_financeiro'
   | 'aviso'
   | 'aniversario'
-  | 'meta';
+  | 'meta'
+  | 'encarte'
+  | 'atividade';
 
 export type AppNotification = {
   id: string;
@@ -76,7 +83,13 @@ export function isLiderancaNotifCargo(cargo: string | null | undefined): boolean
 
 function toIso(value: string | null | undefined) {
   if (!value) return new Date(0).toISOString();
-  return new Date(value).toISOString();
+  // YYYY-MM-DD → meio-dia BRT (evita UTC 00:00 cair no fim da fila)
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value.trim())) {
+    return new Date(`${value.trim()}T12:00:00-03:00`).toISOString();
+  }
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return new Date(0).toISOString();
+  return d.toISOString();
 }
 
 function isExternalViewer(scope?: NotificationViewerScope | null) {
@@ -126,6 +139,14 @@ function birthdayNotification(scope?: NotificationViewerScope | null): AppNotifi
   };
 }
 
+function priorityRank(kind: NotificationKind): number {
+  if (kind === 'aniversario') return 0;
+  if (kind === 'atividade') return 1;
+  if (kind === 'encarte') return 2;
+  if (kind === 'meta') return 3;
+  return 4;
+}
+
 function withBirthday(
   items: AppNotification[],
   limit: number,
@@ -135,8 +156,108 @@ function withBirthday(
   const bday = includeBirthday ? birthdayNotification(scope) : null;
   const merged = bday ? [bday, ...items] : items;
   return merged
-    .sort((a, b) => new Date(b.at).getTime() - new Date(a.at).getTime())
+    .sort((a, b) => {
+      const byKind = priorityRank(a.kind) - priorityRank(b.kind);
+      if (byKind !== 0) return byKind;
+      return new Date(b.at).getTime() - new Date(a.at).getTime();
+    })
     .slice(0, limit);
+}
+
+function mapEncarteNotifications(
+  encartes: Awaited<ReturnType<typeof fetchEncartesDoDiaParaUsuario>>,
+): AppNotification[] {
+  const today = todayKeyBRT();
+  return encartes.map((e) => ({
+    id: `encarte-${e.id}`,
+    kind: 'encarte' as const,
+    title: `Promoção: ${e.produto ?? 'Encarte'}`,
+    detail: `${e.marca ?? '—'} · ${lojaLabelForEncarte(e)} · até ${formatEncarteDateBr(e.dataFim)}`,
+    at: new Date(`${today}T23:50:00-03:00`).toISOString(),
+    href: '/merchandising',
+  }));
+}
+
+async function safeEncartesDoDia(
+  scope?: NotificationViewerScope | null,
+): Promise<Awaited<ReturnType<typeof fetchEncartesDoDiaParaUsuario>>> {
+  try {
+    return await fetchEncartesDoDiaParaUsuario({
+      tipo_usuario: scope?.tipo_usuario,
+      cargo: scope?.cargo,
+      industria_nome: scope?.industria_nome,
+      cliente_grupo: scope?.cliente_grupo,
+      usuario_id: scope?.usuario_id,
+    });
+  } catch (error) {
+    console.warn(
+      '[notificações] Falha ao buscar encartes do dia:',
+      error instanceof Error ? error.message : error,
+    );
+    return [];
+  }
+}
+
+function formatAtividadePeriodo(inicio: string | null | undefined, fim: string | null | undefined) {
+  const fmt = (v: string | null | undefined) => {
+    if (!v) return '—';
+    const [y, m, d] = String(v).slice(0, 10).split('-');
+    if (!y || !m || !d) return String(v).slice(0, 10);
+    return `${d}/${m}/${y}`;
+  };
+  const a = fmt(inicio);
+  const b = fmt(fim);
+  return a === b ? a : `${a} → ${b}`;
+}
+
+/** Tarefas atribuídas ao promotor/demonstradora (mais recentes primeiro). */
+async function fetchAtividadeNotificationsForUser(
+  usuarioId: number | null | undefined,
+  limit = 12,
+): Promise<AppNotification[]> {
+  if (!usuarioId) return [];
+  try {
+    const { data, error } = await supabase
+      .from('atividades')
+      .select('id, tipo, loja, industria, data_inicio, data_fim, status')
+      .eq('usuario_responsavel', usuarioId)
+      .order('id', { ascending: false })
+      .limit(limit);
+
+    if (error) throw new Error(error.message);
+
+    const today = todayKeyBRT();
+    return (data ?? [])
+      .filter((row) => {
+        const status = String(row.status ?? '').toLowerCase();
+        return status !== 'cancelado' && status !== 'cancelada';
+      })
+      .map((row, index) => {
+        const tipo = String(row.tipo ?? 'Tarefa');
+        const loja = String(row.loja ?? '—');
+        const industria = String(row.industria ?? '');
+        const periodo = formatAtividadePeriodo(
+          row.data_inicio as string,
+          row.data_fim as string,
+        );
+        // Sem created_at na tabela: prioriza por id (já ordenado) com horário decrescente fictício
+        const at = new Date(`${today}T23:${String(59 - Math.min(index, 50)).padStart(2, '0')}:00-03:00`).toISOString();
+        return {
+          id: `atividade-${row.id}`,
+          kind: 'atividade' as const,
+          title: `Nova tarefa: ${tipo}`,
+          detail: `${loja}${industria ? ` · ${industria}` : ''} · ${periodo}`,
+          at,
+          href: '/atividades',
+        };
+      });
+  } catch (error) {
+    console.warn(
+      '[notificações] Falha ao buscar tarefas do usuário:',
+      error instanceof Error ? error.message : error,
+    );
+    return [];
+  }
 }
 
 async function resolveBirthdayScope(
@@ -236,21 +357,36 @@ export async function fetchAppNotifications(
 
   // Externos só acompanham Sucesso do cliente do próprio escopo (sem vendas gerais / financeiro).
   if (externo) {
-    const items = await fetchExternalPedidoNotifications(limit, resolvedScope);
-    return withBirthday(items, limit, resolvedScope, includeBirthday);
+    const [pedidoItems, encartes] = await Promise.all([
+      fetchExternalPedidoNotifications(limit, resolvedScope),
+      safeEncartesDoDia(resolvedScope),
+    ]);
+    return withBirthday(
+      [...mapEncarteNotifications(encartes), ...pedidoItems],
+      limit,
+      resolvedScope,
+      includeBirthday,
+    );
   }
 
-  // Promotor / Demonstradora: só avisos (pagamento, feriado, folha) + aniversário.
+  // Promotor / Demonstradora: tarefas atribuídas + avisos + encartes do dia + aniversário.
   if (campoMerch) {
-    const avisosRes = await supabase
-      .from('avisos')
-      .select('id, tipo, titulo, corpo, created_at')
-      .order('created_at', { ascending: false })
-      .limit(limit);
+    const [avisosRes, encartes, atividadeItems] = await Promise.all([
+      supabase
+        .from('avisos')
+        .select('id, tipo, titulo, corpo, created_at')
+        .order('created_at', { ascending: false })
+        .limit(limit),
+      safeEncartesDoDia(resolvedScope),
+      fetchAtividadeNotificationsForUser(resolvedScope?.usuario_id, limit),
+    ]);
 
     if (avisosRes.error) throw new Error(avisosRes.error.message);
 
-    const items: AppNotification[] = [];
+    const items: AppNotification[] = [
+      ...atividadeItems,
+      ...mapEncarteNotifications(encartes),
+    ];
     for (const row of avisosRes.data ?? []) {
       const titulo = String(row.titulo ?? 'Aviso');
       const corpo = String(row.corpo ?? '').trim();
@@ -267,7 +403,7 @@ export async function fetchAppNotifications(
     return withBirthday(items, limit, resolvedScope, includeBirthday);
   }
 
-  const [vendasRes, pedidosRes, fatRes, avisosRes] = await Promise.all([
+  const [vendasRes, pedidosRes, fatRes, avisosRes, encartes] = await Promise.all([
     supabase
       .from('baseVendas')
       .select('id, numero_pedido, cliente, industria, valor, vendedor, created_at')
@@ -288,6 +424,7 @@ export async function fetchAppNotifications(
       .select('id, tipo, titulo, corpo, created_at')
       .order('created_at', { ascending: false })
       .limit(12),
+    safeEncartesDoDia(resolvedScope),
   ]);
 
   if (vendasRes.error) throw new Error(vendasRes.error.message);
@@ -373,6 +510,8 @@ export async function fetchAppNotifications(
       href: '/',
     });
   }
+
+  items.unshift(...mapEncarteNotifications(encartes));
 
   return finish(items);
 }

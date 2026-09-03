@@ -39,6 +39,16 @@ export function useNotificationRealtime(onRefresh: () => void) {
         { event: 'INSERT', schema: 'public', table: 'avisos' },
         scheduleRefresh,
       )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'atividades' },
+        scheduleRefresh,
+      )
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'encarte_avisos' },
+        scheduleRefresh,
+      )
       .subscribe();
 
     return () => {
