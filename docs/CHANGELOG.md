@@ -5,6 +5,7 @@ Formato: mais recente no topo.
 ## 2026-09-03
 
 ### App
+- Hub Merchandising: balão **Catálogo das indústrias** (só internos) abre `https://catalogo-fe.vercel.app/` em nova aba.
 - Balão **Merchandising** passa a citar **pesquisa** na descrição da home.
 - **Fazer pesquisa** (`/merchandising/pesquisas`): tela para internos lançarem pesquisa interna/externa na tabela `pesquisa` (Price). Lojas do promotor vs todas para gerente/supervisor; UFs MA/PI/PA. Layout mobile-first. Atalho na tela Price.
 - Câmera/OCR de produto e preços fica para etapa seguinte (grava rascunho no banco).

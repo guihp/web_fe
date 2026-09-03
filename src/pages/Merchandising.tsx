@@ -18,14 +18,17 @@ import {
 import './Administrador.css';
 import './Merchandising.css';
 
+const CATALOGO_INDUSTRIAS_URL = 'https://catalogo-fe.vercel.app/';
+
 const MERCH_CARDS: {
   id: string;
   title: string;
   description: string;
-  path: string;
+  path?: string;
+  externalUrl?: string;
   tone: 'orange' | 'blue' | 'green' | 'sky';
   icon: AppIconName;
-  section: string;
+  section?: string;
   internoOnly?: boolean;
   encartesOnly?: boolean;
 }[] = [
@@ -86,6 +89,16 @@ const MERCH_CARDS: {
     section: 'merchandising.pesquisas',
     internoOnly: true,
   },
+  {
+    id: 'catalogo-industrias',
+    title: 'Catálogo das indústrias',
+    description:
+      'Abre o catálogo em nova aba (site próprio). O painel permanece logado; o catálogo pode pedir login separado.',
+    externalUrl: CATALOGO_INDUSTRIAS_URL,
+    tone: 'green',
+    icon: 'factory',
+    internoOnly: true,
+  },
 ];
 
 function formatPreco(value: number | null): string {
@@ -102,6 +115,7 @@ export default function Merchandising() {
   const cards = MERCH_CARDS.filter((card) => {
     if (card.internoOnly && !interno) return false;
     if (card.encartesOnly && !canLancarEncartes(user?.cargo)) return false;
+    if (!card.section) return true;
     return userHasSectionAccess(user?.cargo ?? '', user?.secoes_acesso, card.section);
   });
 
@@ -172,15 +186,38 @@ export default function Merchandising() {
       </section>
 
       <div className="admin-grid admin-grid--compact">
-        {cards.map((card) => (
-          <Link key={card.id} to={card.path} className={`admin-card admin-card--${card.tone}`}>
-            <span className="admin-card-icon" aria-hidden>
-              <AppIcon name={card.icon} size={22} />
-            </span>
-            <h2 className="admin-card-title">{card.title}</h2>
-            <p className="admin-card-desc">{card.description}</p>
-          </Link>
-        ))}
+        {cards.map((card) => {
+          const className = `admin-card admin-card--${card.tone}`;
+          const body = (
+            <>
+              <span className="admin-card-icon" aria-hidden>
+                <AppIcon name={card.icon} size={22} />
+              </span>
+              <h2 className="admin-card-title">{card.title}</h2>
+              <p className="admin-card-desc">{card.description}</p>
+            </>
+          );
+
+          if (card.externalUrl) {
+            return (
+              <a
+                key={card.id}
+                href={card.externalUrl}
+                className={className}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {body}
+              </a>
+            );
+          }
+
+          return (
+            <Link key={card.id} to={card.path ?? '/merchandising'} className={className}>
+              {body}
+            </Link>
+          );
+        })}
       </div>
 
       {cards.length === 0 && (
