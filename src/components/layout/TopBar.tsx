@@ -110,9 +110,11 @@ export default function TopBar() {
       });
       setNotifications(items);
       setUnread(countUnread(items, getNotificationsSeenAt()));
+      return items;
     } catch {
       setNotifications([]);
       setUnread(0);
+      return [] as AppNotification[];
     } finally {
       setNotifLoading(false);
     }
@@ -213,8 +215,8 @@ export default function TopBar() {
     setMenuOpen(false);
     setInstallModalOpen(false);
     if (next) {
-      await loadNotifications();
-      markNotificationsSeen();
+      const items = await loadNotifications();
+      markNotificationsSeen(items);
       setUnread(0);
     }
   };

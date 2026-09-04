@@ -127,9 +127,16 @@ Price **não** fica mais no Administrador — só em **Fé Representações**.
 
 - **Internos (demais cargos):** lançamentos de vendas, Sucesso do cliente, kanban financeiro e **avisos** (salário / feriado / folha).
 - **Liderança (Gerente, Supervisor, Analista admin, RH, Financeiro):** além do acima, avisos de **meta mensal/anual batida** por regional (MA/PI e PA), com preferência `notify_meta` no modal Instalar app e notificações.
-- **Promotor / Demonstradora:** só **avisos** (pagamento, feriado, folha) e **aniversário** — sem vendas/kanbans.
-- **Externos (indústria/cliente):** apenas movimentações do **Sucesso do cliente** do próprio escopo. Externos **não** recebem avisos. Se não houver nada no escopo, a lista fica vazia.
+- **Promotor / Demonstradora:** **avisos** (pagamento, feriado, folha), **tarefas** novas, **encartes do dia de início**, **aniversário**.
+- **Externos (indústria/cliente):** Sucesso do cliente do próprio escopo + **encartes do dia de início** (marca/loja no escopo). Externos **não** recebem avisos de RH.
 - **Aniversário (todos):** no dia do aniversário, só o próprio usuário vê “Feliz aniversário!” no sino. Preferência `notify_aniversario` (padrão ligado) no modal Instalar app e notificações, para interno e externo.
+
+### Janela e leitura do sino
+
+- O sino mostra só eventos dos **últimos 2 dias civis (BRT)**. Itens mais antigos **saem** da lista (não ficam acumulados).
+- Encartes no sino: só no **dia de início** da promoção (`dataPromocao = hoje`).
+- Tarefas no sino: só se `data_inicio` estiver na janela e a tarefa ainda estiver vigente.
+- Abrir o sino marca tudo como lido (badge zera); timestamps não ficam “no futuro” para forçar não-lido de novo.
 
 ### Avisos (equipe interna)
 

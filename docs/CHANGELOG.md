@@ -2,6 +2,16 @@
 
 Formato: mais recente no topo.
 
+## 2026-09-04
+
+### App
+- **Sino:** itens antigos saem após **2 dias** (BRT); avisos/vendas/kanban filtrados na consulta; tarefas e encartes sem timestamp “fim do dia” (badge não ficava eternamente vermelho).
+- Abrir o sino marca como lido usando o horário mais recente da lista carregada.
+- Cards de promoção no Merchandising mais compactos no mobile; código do produto (`#codigo`) antes do nome no hub e no sino.
+
+### Documentação
+- Janela e regras do sino em `02-modulos-e-telas.md` e `04-regras-de-negocio.md`.
+
 ## 2026-09-03
 
 ### App

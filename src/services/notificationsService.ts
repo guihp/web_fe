@@ -107,6 +107,46 @@ function todayKeyBRT(now = new Date()): string {
   }).format(now);
 }
 
+/** Soma/subtrai dias em YYYY-MM-DD (calendário, sem fuso). */
+function shiftDateKey(key: string, days: number): string {
+  const [y, m, d] = key.split('-').map(Number);
+  const dt = new Date(Date.UTC(y!, m! - 1, d! + days));
+  return dt.toISOString().slice(0, 10);
+}
+
+/** ISO em BRT para um dia civil (evita “sempre no futuro” e badge eterno). */
+function brtDayAt(key: string, hour = 9, minute = 0): string {
+  const hh = String(hour).padStart(2, '0');
+  const mm = String(minute).padStart(2, '0');
+  return new Date(`${key}T${hh}:${mm}:00-03:00`).toISOString();
+}
+
+/**
+ * Janela do sino: eventos dos últimos `days` dias civis BRT (inclui hoje).
+ * Itens mais antigos saem da lista (não “ficam para sempre”).
+ */
+const NOTIF_RETENTION_DAYS = 2;
+
+function notifWindowStartKey(now = new Date()): string {
+  return shiftDateKey(todayKeyBRT(now), -(NOTIF_RETENTION_DAYS - 1));
+}
+
+function notifWindowStartIso(now = new Date()): string {
+  return brtDayAt(notifWindowStartKey(now), 0, 0);
+}
+
+function isIsoOnOrAfter(iso: string | null | undefined, minIso: string): boolean {
+  if (!iso) return false;
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return false;
+  return t >= new Date(minIso).getTime();
+}
+
+function filterRecentNotifications(items: AppNotification[], now = new Date()): AppNotification[] {
+  const minIso = notifWindowStartIso(now);
+  return items.filter((item) => isIsoOnOrAfter(item.at, minIso));
+}
+
 function isBirthdayToday(dataNascimento: string | null | undefined, todayKey = todayKeyBRT()): boolean {
   const match = String(dataNascimento ?? '').match(/^(\d{4})-(\d{2})-(\d{2})/);
   if (!match) return false;
@@ -168,15 +208,17 @@ function withBirthday(
 function mapEncarteNotifications(
   encartes: Awaited<ReturnType<typeof fetchEncartesDoDiaParaUsuario>>,
 ): AppNotification[] {
-  const today = todayKeyBRT();
-  return encartes.map((e) => ({
-    id: `encarte-${e.id}`,
-    kind: 'encarte' as const,
-    title: `Promoção: ${produtoLabelForEncarte(e, 'Encarte')}`,
-    detail: `${e.marca ?? '—'} · ${lojaLabelForEncarte(e)} · até ${formatEncarteDateBr(e.dataFim)}`,
-    at: new Date(`${today}T23:50:00-03:00`).toISOString(),
-    href: '/merchandising',
-  }));
+  return encartes.map((e) => {
+    const day = e.dataPromocao ?? todayKeyBRT();
+    return {
+      id: `encarte-${e.id}-${day}`,
+      kind: 'encarte' as const,
+      title: `Promoção: ${produtoLabelForEncarte(e, 'Encarte')}`,
+      detail: `${e.marca ?? '—'} · ${lojaLabelForEncarte(e)} · até ${formatEncarteDateBr(e.dataFim)}`,
+      at: brtDayAt(day, 9, 0),
+      href: '/merchandising',
+    };
+  });
 }
 
 async function safeEncartesDoDia(
@@ -211,29 +253,38 @@ function formatAtividadePeriodo(inicio: string | null | undefined, fim: string |
   return a === b ? a : `${a} → ${b}`;
 }
 
-/** Tarefas atribuídas ao promotor/demonstradora (mais recentes primeiro). */
+/** Tarefas novas (início nos últimos dias da janela) ainda vigentes. */
 async function fetchAtividadeNotificationsForUser(
   usuarioId: number | null | undefined,
   limit = 12,
 ): Promise<AppNotification[]> {
   if (!usuarioId) return [];
   try {
+    const today = todayKeyBRT();
+    const windowStart = notifWindowStartKey();
     const { data, error } = await supabase
       .from('atividades')
       .select('id, tipo, loja, industria, data_inicio, data_fim, status')
       .eq('usuario_responsavel', usuarioId)
       .order('id', { ascending: false })
-      .limit(limit);
+      .limit(Math.max(limit * 3, 24));
 
     if (error) throw new Error(error.message);
 
-    const today = todayKeyBRT();
     return (data ?? [])
       .filter((row) => {
         const status = String(row.status ?? '').toLowerCase();
-        return status !== 'cancelado' && status !== 'cancelada';
+        if (status === 'cancelado' || status === 'cancelada') return false;
+        const inicio = String(row.data_inicio ?? '').slice(0, 10);
+        const fim = String(row.data_fim ?? '').slice(0, 10);
+        if (!inicio) return false;
+        // Só “nova tarefa” recente: início dentro da janela e ainda vigente hoje
+        if (inicio < windowStart || inicio > today) return false;
+        if (fim && fim < today) return false;
+        return true;
       })
-      .map((row, index) => {
+      .slice(0, limit)
+      .map((row) => {
         const tipo = String(row.tipo ?? 'Tarefa');
         const loja = String(row.loja ?? '—');
         const industria = String(row.industria ?? '');
@@ -241,14 +292,13 @@ async function fetchAtividadeNotificationsForUser(
           row.data_inicio as string,
           row.data_fim as string,
         );
-        // Sem created_at na tabela: prioriza por id (já ordenado) com horário decrescente fictício
-        const at = new Date(`${today}T23:${String(59 - Math.min(index, 50)).padStart(2, '0')}:00-03:00`).toISOString();
+        const inicio = String(row.data_inicio ?? '').slice(0, 10);
         return {
-          id: `atividade-${row.id}`,
+          id: `atividade-${row.id}-${inicio}`,
           kind: 'atividade' as const,
           title: `Nova tarefa: ${tipo}`,
           detail: `${loja}${industria ? ` · ${industria}` : ''} · ${periodo}`,
-          at,
+          at: brtDayAt(inicio || today, 8, 30),
           href: '/atividades',
         };
       });
@@ -353,8 +403,15 @@ export async function fetchAppNotifications(
 
   const finish = async (items: AppNotification[]) => {
     const metaItems = includeMeta ? await fetchMetaNotifications() : [];
-    return withBirthday([...metaItems, ...items], limit, resolvedScope, includeBirthday);
+    return withBirthday(
+      filterRecentNotifications([...metaItems, ...items]),
+      limit,
+      resolvedScope,
+      includeBirthday,
+    );
   };
+
+  const sinceIso = notifWindowStartIso();
 
   // Externos só acompanham Sucesso do cliente do próprio escopo (sem vendas gerais / financeiro).
   if (externo) {
@@ -363,7 +420,7 @@ export async function fetchAppNotifications(
       safeEncartesDoDia(resolvedScope),
     ]);
     return withBirthday(
-      [...mapEncarteNotifications(encartes), ...pedidoItems],
+      filterRecentNotifications([...mapEncarteNotifications(encartes), ...pedidoItems]),
       limit,
       resolvedScope,
       includeBirthday,
@@ -376,6 +433,7 @@ export async function fetchAppNotifications(
       supabase
         .from('avisos')
         .select('id, tipo, titulo, corpo, created_at')
+        .gte('created_at', sinceIso)
         .order('created_at', { ascending: false })
         .limit(limit),
       safeEncartesDoDia(resolvedScope),
@@ -401,28 +459,37 @@ export async function fetchAppNotifications(
       });
     }
 
-    return withBirthday(items, limit, resolvedScope, includeBirthday);
+    return withBirthday(
+      filterRecentNotifications(items),
+      limit,
+      resolvedScope,
+      includeBirthday,
+    );
   }
 
   const [vendasRes, pedidosRes, fatRes, avisosRes, encartes] = await Promise.all([
     supabase
       .from('baseVendas')
       .select('id, numero_pedido, cliente, industria, valor, vendedor, created_at')
+      .gte('created_at', sinceIso)
       .order('created_at', { ascending: false })
       .limit(12),
     supabase
       .from('pedido_kanban')
       .select('id, status, updated_at, venda_id')
+      .gte('updated_at', sinceIso)
       .order('updated_at', { ascending: false })
       .limit(12),
     supabase
       .from('contrato_faturamento')
       .select('id, coluna, valor, updated_at, contratos(titulo, industria)')
+      .gte('updated_at', sinceIso)
       .order('updated_at', { ascending: false })
       .limit(12),
     supabase
       .from('avisos')
       .select('id, tipo, titulo, corpo, created_at')
+      .gte('created_at', sinceIso)
       .order('created_at', { ascending: false })
       .limit(12),
     safeEncartesDoDia(resolvedScope),
@@ -533,6 +600,7 @@ async function fetchExternalPedidoNotifications(
   const { data: pedidoRows, error } = await supabase
     .from('pedido_kanban')
     .select('id, status, updated_at, venda_id')
+    .gte('updated_at', notifWindowStartIso())
     .order('updated_at', { ascending: false })
     .limit(80);
 
@@ -605,9 +673,22 @@ export function getNotificationsSeenAt(): string | null {
   }
 }
 
-export function markNotificationsSeen(at = new Date().toISOString()) {
+export function markNotificationsSeen(
+  atOrItems: string | AppNotification[] = new Date().toISOString(),
+) {
   try {
-    localStorage.setItem(SEEN_KEY, at);
+    let stamp: string;
+    if (typeof atOrItems === 'string') {
+      stamp = atOrItems;
+    } else {
+      const now = Date.now();
+      const maxAt = atOrItems.reduce((m, i) => {
+        const t = new Date(i.at).getTime();
+        return Number.isFinite(t) ? Math.max(m, t) : m;
+      }, now);
+      stamp = new Date(Math.max(now, maxAt)).toISOString();
+    }
+    localStorage.setItem(SEEN_KEY, stamp);
   } catch {
     /* ignore */
   }

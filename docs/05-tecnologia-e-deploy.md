@@ -58,7 +58,7 @@ Opcional (Web Push):
 
 - Service worker customizado em `src/sw.ts` (precache + push).
 - Atualização de versão: banner “Nova versão disponível” via `PwaUpdateProvider`.
-- Notificações push: tabela Supabase `push_subscriptions`; Realtime em `baseVendas`, `pedido_kanban`, `contrato_faturamento` e `avisos` para badge do sino.
+- Notificações do sino: retenção de **2 dias civis BRT**; queries de `avisos` / `baseVendas` / `pedido_kanban` / `contrato_faturamento` com `.gte` na janela.
 - Preferências: `notification_preferences` (`notify_venda`, `notify_kanban_*`, `notify_aviso`, `notify_aniversario`, `notify_meta`). Aniversário e meta batida são avisos no sino (não web-push em massa).
 - Avisos: tabela `avisos`, RPC `enviar_aviso`, Edge Function `send-web-push` (`kind = aviso`, só internos), cron `aviso-folha-dia-25` (dia 25 ~12:00 UTC).
 - Migration aniversário: `supabase/migrations/20260901100000_notify_aniversario.sql` (já aplicada no projeto remoto).
