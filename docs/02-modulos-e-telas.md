@@ -133,10 +133,10 @@ Price **não** fica mais no Administrador — só em **Fé Representações**.
 
 ### Janela e leitura do sino
 
-- O sino mostra só eventos dos **últimos 2 dias civis (BRT)**. Itens mais antigos **saem** da lista (não ficam acumulados).
-- Encartes no sino: só no **dia de início** da promoção (`dataPromocao = hoje`).
-- Tarefas no sino: só se `data_inicio` estiver na janela e a tarefa ainda estiver vigente.
-- Abrir o sino marca tudo como lido (badge zera); timestamps não ficam “no futuro” para forçar não-lido de novo.
+- O sino mostra eventos das **últimas 48 horas** (retenção rolante desde o horário do evento). Itens mais antigos **saem** da lista.
+- O **badge** (sinal vermelho) só aparece para itens **criados depois** da última abertura do sino. Abrir o sino zera o badge; os itens continuam na lista até completar 48h (já como lidos).
+- Encartes no sino: a partir do **dia/hora de início** da promoção; permanecem ~48h.
+- Tarefas no sino: a partir de `data_inicio`; só se ainda vigentes e dentro das 48h.
 
 ### Avisos (equipe interna)
 

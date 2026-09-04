@@ -7,8 +7,9 @@
 3. Usuário **externo** só vê Validades, Atividades, Sucesso do cliente e **Price**, em leitura (sem Vendas).
 4. Indústria externa: dados filtrados pela indústria vinculada (Validades, Atividades, Sucesso do cliente e Price).
 5. Cliente externo: dados filtrados pelo **grupo de nome de loja** (ex.: MATEUS) e afinidade de CNPJ (raiz do CNPJ de login); no Price/Atividades, o grupo MATEUS também casa bandeiras curtas (`Mix`, `Super Castanhal`).
-6. Notificações de externos: só Sucesso do cliente do próprio escopo (sem vendas gerais, financeiro nem avisos). No dia do aniversário, o próprio usuário (interno ou externo) vê mensagem de parabéns só no seu sino (preferência `notify_aniversario`, padrão ligada).
-8. **Promotor** e **Demonstradora**: no sino/push — **aniversário**, **avisos** (pagamento/salário, feriado e folha), **tarefas novas** (início recente) e **encartes no dia de início**. Não recebem lançamento de venda nem kanbans comerciais.
+6. Notificações de externos: Sucesso do cliente do próprio escopo + encartes recentes (sem avisos de RH). No dia do aniversário, o próprio usuário vê parabéns só no seu sino (preferência `notify_aniversario`, padrão ligada).
+7. **Sino:** itens ficam na lista por **48h** desde o horário do evento; o **badge** só marca não-lido na criação (até a próxima abertura do sino).
+8. **Promotor** e **Demonstradora**: no sino — **aniversário**, **avisos**, **tarefas novas** (início nas últimas 48h) e **encartes** (~48h após o início). Não recebem lançamento de venda nem kanbans comerciais.
 9. **Meta batida** (mensal ou anual, regionais MA/PI e PA): só cargos de liderança internos — Gerente, Supervisor, Analista admin, RH e Financeiro — no sino (preferência `notify_meta`).
 9. Promotor/Demonstradora têm até **7 lojas** em `usuario_lojas`. Em Atividades: check-in na loja (cidade/UF automáticos da tabela `lojas`, sem GPS), escolha de indústria e fotos antes/depois. Antes do envio, confirma com prévia das fotos + senha do dia — após confirmar é **irreversível**; a senha grava em `atividade_dia.senha_do_dia`.
 10. Balão **Fé Representações** concentra Price, Sucesso, Avisos (Gerente) e Vendas; no cadastro interno, Vendas pode ser liberada ou não por seção.

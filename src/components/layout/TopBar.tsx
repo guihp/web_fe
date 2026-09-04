@@ -215,8 +215,8 @@ export default function TopBar() {
     setMenuOpen(false);
     setInstallModalOpen(false);
     if (next) {
-      const items = await loadNotifications();
-      markNotificationsSeen(items);
+      await loadNotifications();
+      markNotificationsSeen();
       setUnread(0);
     }
   };

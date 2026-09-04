@@ -8,7 +8,7 @@ import {
 } from '../utils/externalAccess';
 import { toIndustriaPadrao } from '../utils/vendasDomain';
 import {
-  fetchEncartesDoDiaParaUsuario,
+  fetchEncartesRecentesParaUsuario,
   formatEncarteDateBr,
   lojaLabelForEncarte,
   produtoLabelForEncarte,
@@ -107,44 +107,42 @@ function todayKeyBRT(now = new Date()): string {
   }).format(now);
 }
 
-/** Soma/subtrai dias em YYYY-MM-DD (calendário, sem fuso). */
-function shiftDateKey(key: string, days: number): string {
-  const [y, m, d] = key.split('-').map(Number);
-  const dt = new Date(Date.UTC(y!, m! - 1, d! + days));
-  return dt.toISOString().slice(0, 10);
-}
-
-/** ISO em BRT para um dia civil (evita “sempre no futuro” e badge eterno). */
+/** ISO em BRT para um dia civil (horário estável, sem “fim do dia”). */
 function brtDayAt(key: string, hour = 9, minute = 0): string {
   const hh = String(hour).padStart(2, '0');
   const mm = String(minute).padStart(2, '0');
   return new Date(`${key}T${hh}:${mm}:00-03:00`).toISOString();
 }
 
-/**
- * Janela do sino: eventos dos últimos `days` dias civis BRT (inclui hoje).
- * Itens mais antigos saem da lista (não “ficam para sempre”).
- */
-const NOTIF_RETENTION_DAYS = 2;
-
-function notifWindowStartKey(now = new Date()): string {
-  return shiftDateKey(todayKeyBRT(now), -(NOTIF_RETENTION_DAYS - 1));
-}
+/** Lista do sino: retenção rolante de 48h a partir do horário do evento. */
+const NOTIF_RETENTION_MS = 48 * 60 * 60 * 1000;
 
 function notifWindowStartIso(now = new Date()): string {
-  return brtDayAt(notifWindowStartKey(now), 0, 0);
+  return new Date(now.getTime() - NOTIF_RETENTION_MS).toISOString();
 }
 
-function isIsoOnOrAfter(iso: string | null | undefined, minIso: string): boolean {
+/** YYYY-MM-DD BRT do início da janela de 48h (para filtros por data civil). */
+function notifWindowStartKey(now = new Date()): string {
+  return new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(now.getTime() - NOTIF_RETENTION_MS));
+}
+
+function isWithinRetention(iso: string | null | undefined, now = new Date()): boolean {
   if (!iso) return false;
   const t = new Date(iso).getTime();
   if (Number.isNaN(t)) return false;
-  return t >= new Date(minIso).getTime();
+  const n = now.getTime();
+  // Ainda não “caiu”: horário do evento no futuro → fora da lista/badge
+  if (t > n) return false;
+  return t >= n - NOTIF_RETENTION_MS;
 }
 
 function filterRecentNotifications(items: AppNotification[], now = new Date()): AppNotification[] {
-  const minIso = notifWindowStartIso(now);
-  return items.filter((item) => isIsoOnOrAfter(item.at, minIso));
+  return items.filter((item) => isWithinRetention(item.at, now));
 }
 
 function isBirthdayToday(dataNascimento: string | null | undefined, todayKey = todayKeyBRT()): boolean {
@@ -175,7 +173,7 @@ function birthdayNotification(scope?: NotificationViewerScope | null): AppNotifi
     kind: 'aniversario',
     title: 'Feliz aniversário!',
     detail: `Olá, ${firstName}! A equipe Fé Merchandising deseja a você um dia repleto de alegrias, saúde e conquistas. Parabéns!`,
-    at: new Date(`${today}T12:00:00-03:00`).toISOString(),
+    at: brtDayAt(today, 8, 0),
     href: '/',
   };
 }
@@ -206,7 +204,7 @@ function withBirthday(
 }
 
 function mapEncarteNotifications(
-  encartes: Awaited<ReturnType<typeof fetchEncartesDoDiaParaUsuario>>,
+  encartes: Awaited<ReturnType<typeof fetchEncartesRecentesParaUsuario>>,
 ): AppNotification[] {
   return encartes.map((e) => {
     const day = e.dataPromocao ?? todayKeyBRT();
@@ -221,11 +219,11 @@ function mapEncarteNotifications(
   });
 }
 
-async function safeEncartesDoDia(
+async function safeEncartesRecentes(
   scope?: NotificationViewerScope | null,
-): Promise<Awaited<ReturnType<typeof fetchEncartesDoDiaParaUsuario>>> {
+): Promise<Awaited<ReturnType<typeof fetchEncartesRecentesParaUsuario>>> {
   try {
-    return await fetchEncartesDoDiaParaUsuario({
+    return await fetchEncartesRecentesParaUsuario({
       tipo_usuario: scope?.tipo_usuario,
       cargo: scope?.cargo,
       industria_nome: scope?.industria_nome,
@@ -234,7 +232,7 @@ async function safeEncartesDoDia(
     });
   } catch (error) {
     console.warn(
-      '[notificações] Falha ao buscar encartes do dia:',
+      '[notificações] Falha ao buscar encartes recentes:',
       error instanceof Error ? error.message : error,
     );
     return [];
@@ -253,7 +251,7 @@ function formatAtividadePeriodo(inicio: string | null | undefined, fim: string |
   return a === b ? a : `${a} → ${b}`;
 }
 
-/** Tarefas novas (início nos últimos dias da janela) ainda vigentes. */
+/** Tarefas cujo início caiu nas últimas 48h e ainda estão vigentes. */
 async function fetchAtividadeNotificationsForUser(
   usuarioId: number | null | undefined,
   limit = 12,
@@ -271,6 +269,7 @@ async function fetchAtividadeNotificationsForUser(
 
     if (error) throw new Error(error.message);
 
+    const now = new Date();
     return (data ?? [])
       .filter((row) => {
         const status = String(row.status ?? '').toLowerCase();
@@ -278,10 +277,9 @@ async function fetchAtividadeNotificationsForUser(
         const inicio = String(row.data_inicio ?? '').slice(0, 10);
         const fim = String(row.data_fim ?? '').slice(0, 10);
         if (!inicio) return false;
-        // Só “nova tarefa” recente: início dentro da janela e ainda vigente hoje
         if (inicio < windowStart || inicio > today) return false;
         if (fim && fim < today) return false;
-        return true;
+        return isWithinRetention(brtDayAt(inicio, 8, 30), now);
       })
       .slice(0, limit)
       .map((row) => {
@@ -417,7 +415,7 @@ export async function fetchAppNotifications(
   if (externo) {
     const [pedidoItems, encartes] = await Promise.all([
       fetchExternalPedidoNotifications(limit, resolvedScope),
-      safeEncartesDoDia(resolvedScope),
+      safeEncartesRecentes(resolvedScope),
     ]);
     return withBirthday(
       filterRecentNotifications([...mapEncarteNotifications(encartes), ...pedidoItems]),
@@ -436,7 +434,7 @@ export async function fetchAppNotifications(
         .gte('created_at', sinceIso)
         .order('created_at', { ascending: false })
         .limit(limit),
-      safeEncartesDoDia(resolvedScope),
+      safeEncartesRecentes(resolvedScope),
       fetchAtividadeNotificationsForUser(resolvedScope?.usuario_id, limit),
     ]);
 
@@ -492,7 +490,7 @@ export async function fetchAppNotifications(
       .gte('created_at', sinceIso)
       .order('created_at', { ascending: false })
       .limit(12),
-    safeEncartesDoDia(resolvedScope),
+    safeEncartesRecentes(resolvedScope),
   ]);
 
   if (vendasRes.error) throw new Error(vendasRes.error.message);
@@ -673,31 +671,28 @@ export function getNotificationsSeenAt(): string | null {
   }
 }
 
-export function markNotificationsSeen(
-  atOrItems: string | AppNotification[] = new Date().toISOString(),
-) {
+export function markNotificationsSeen(at = new Date().toISOString()) {
   try {
-    let stamp: string;
-    if (typeof atOrItems === 'string') {
-      stamp = atOrItems;
-    } else {
-      const now = Date.now();
-      const maxAt = atOrItems.reduce((m, i) => {
-        const t = new Date(i.at).getTime();
-        return Number.isFinite(t) ? Math.max(m, t) : m;
-      }, now);
-      stamp = new Date(Math.max(now, maxAt)).toISOString();
-    }
-    localStorage.setItem(SEEN_KEY, stamp);
+    localStorage.setItem(SEEN_KEY, at);
   } catch {
     /* ignore */
   }
 }
 
-export function countUnread(items: AppNotification[], seenAt: string | null) {
-  if (!seenAt) return items.length;
+export function countUnread(items: AppNotification[], seenAt: string | null, now = new Date()) {
+  const nowMs = now.getTime();
+  if (!seenAt) {
+    return items.filter((item) => {
+      const t = new Date(item.at).getTime();
+      return Number.isFinite(t) && t <= nowMs;
+    }).length;
+  }
   const seen = new Date(seenAt).getTime();
-  return items.filter((item) => new Date(item.at).getTime() > seen).length;
+  return items.filter((item) => {
+    const t = new Date(item.at).getTime();
+    if (!Number.isFinite(t) || t > nowMs) return false;
+    return t > seen;
+  }).length;
 }
 
 export function formatNotificationTime(iso: string) {

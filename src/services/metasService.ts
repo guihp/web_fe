@@ -216,7 +216,7 @@ function sumRealizadoByRegiao(
  */
 export async function fetchMetaBatidaAlerts(now = new Date()): Promise<MetaBatidaAlert[]> {
   const { key, ano, mesStr, mesNome } = todayPartsBRT(now);
-  const at = new Date(`${key}T12:00:00-03:00`).toISOString();
+  const at = new Date(`${key}T08:00:00-03:00`).toISOString();
 
   const [metasDash, rowsAno] = await Promise.all([
     fetchMetasDashboard(ano),

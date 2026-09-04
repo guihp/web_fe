@@ -331,13 +331,35 @@ export async function fetchPromocoesAtivasParaUsuario(
   return list.filter((e) => encarteMatchesViewer(e, scope, userLojaIds, mateusIds, assaiIds));
 }
 
-/** Encartes cujo dataPromocao = hoje (para o sininho). */
+/** Encartes cujo início (dataPromocao) caiu nas últimas 48h — para o sininho. */
+export async function fetchEncartesRecentesParaUsuario(
+  scope: EncarteViewerScope,
+  now = new Date(),
+): Promise<EncarteAviso[]> {
+  const today = todayKeyBRT(now);
+  const windowStartKey = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).format(new Date(now.getTime() - 48 * 60 * 60 * 1000));
+
+  const ativas = await fetchPromocoesAtivasParaUsuario(scope);
+  return ativas.filter((e) => {
+    const start = e.dataPromocao ?? '';
+    if (!start) return false;
+    // Ainda no período ativo e início recente (cai no sino e fica ~48h)
+    if (start > today) return false;
+    if (start < windowStartKey) return false;
+    return true;
+  });
+}
+
+/** @deprecated Use fetchEncartesRecentesParaUsuario — mantido para compat. */
 export async function fetchEncartesDoDiaParaUsuario(
   scope: EncarteViewerScope,
 ): Promise<EncarteAviso[]> {
-  const today = todayKeyBRT();
-  const ativas = await fetchPromocoesAtivasParaUsuario(scope);
-  return ativas.filter((e) => e.dataPromocao === today);
+  return fetchEncartesRecentesParaUsuario(scope);
 }
 
 export function lojaLabelForEncarte(e: EncarteAviso): string {

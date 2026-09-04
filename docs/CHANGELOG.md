@@ -5,12 +5,11 @@ Formato: mais recente no topo.
 ## 2026-09-04
 
 ### App
-- **Sino:** itens antigos saem após **2 dias** (BRT); avisos/vendas/kanban filtrados na consulta; tarefas e encartes sem timestamp “fim do dia” (badge não ficava eternamente vermelho).
-- Abrir o sino marca como lido usando o horário mais recente da lista carregada.
+- **Sino:** lista com retenção rolante de **48h**; badge só na criação (não-lido se `at` > última abertura). Encartes permanecem no sino ~48h após o início. Timestamps estáveis (sem “fim do dia”).
 - Cards de promoção no Merchandising mais compactos no mobile; código do produto (`#codigo`) antes do nome no hub e no sino.
 
 ### Documentação
-- Janela e regras do sino em `02-modulos-e-telas.md` e `04-regras-de-negocio.md`.
+- Janela 48h + badge do sino em `02-modulos-e-telas.md` e `05-tecnologia-e-deploy.md`.
 
 ## 2026-09-03
 
