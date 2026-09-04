@@ -11,6 +11,7 @@ import {
   fetchEncartesDoDiaParaUsuario,
   formatEncarteDateBr,
   lojaLabelForEncarte,
+  produtoLabelForEncarte,
 } from './encarteService';
 import { fetchMetaBatidaAlerts } from './metasService';
 
@@ -171,7 +172,7 @@ function mapEncarteNotifications(
   return encartes.map((e) => ({
     id: `encarte-${e.id}`,
     kind: 'encarte' as const,
-    title: `Promoção: ${e.produto ?? 'Encarte'}`,
+    title: `Promoção: ${produtoLabelForEncarte(e, 'Encarte')}`,
     detail: `${e.marca ?? '—'} · ${lojaLabelForEncarte(e)} · até ${formatEncarteDateBr(e.dataFim)}`,
     at: new Date(`${today}T23:50:00-03:00`).toISOString(),
     href: '/merchandising',

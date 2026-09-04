@@ -55,6 +55,8 @@
   word-break: break-word;
   min-width: 0;
   flex: 1 1 160px;
+  font-size: 0.95rem;
+  line-height: 1.35;
 }
 
 .merch-promo-tipo {
@@ -81,16 +83,54 @@
 
 @media (max-width: 700px) {
   .merch-promos {
-    padding: 14px 16px;
-    margin-bottom: 18px;
+    padding: 12px 12px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+  }
+
+  .merch-promos-title {
+    font-size: 0.95rem;
+  }
+
+  .merch-promos-subtitle {
+    margin: 4px 0 10px;
+    font-size: 0.75rem;
+  }
+
+  .merch-promos-list {
+    gap: 8px;
+  }
+
+  .merch-promo-card {
+    padding: 8px 10px;
+    border-radius: 10px;
   }
 
   .merch-promo-top {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .merch-promo-top strong {
+    flex: 1 1 auto;
+    font-size: 0.84rem;
+    line-height: 1.3;
   }
 
   .merch-promo-tipo {
-    white-space: normal;
+    flex-shrink: 0;
+    font-size: 0.65rem;
+    padding: 2px 6px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--coral) 14%, transparent);
+    white-space: nowrap;
+  }
+
+  .merch-promo-meta,
+  .merch-promo-dates {
+    margin: 4px 0 0;
+    font-size: 0.74rem;
+    line-height: 1.35;
   }
 }

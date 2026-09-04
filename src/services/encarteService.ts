@@ -349,3 +349,13 @@ export function lojaLabelForEncarte(e: EncarteAviso): string {
   if (e.lojaNomes.length <= 2) return e.lojaNomes.join(', ');
   return `${e.lojaNomes[0]} +${e.lojaNomes.length - 1}`;
 }
+
+/** Código antes do nome — ex.: "#255927 TORRONE DACOLONIA…" */
+export function produtoLabelForEncarte(
+  e: Pick<EncarteAviso, 'codigo' | 'produto'>,
+  fallback = 'Promoção',
+): string {
+  const nome = e.produto?.trim() || fallback;
+  if (e.codigo == null || Number.isNaN(Number(e.codigo))) return nome;
+  return `#${e.codigo} ${nome}`;
+}

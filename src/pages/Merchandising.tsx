@@ -13,6 +13,7 @@ import {
   fetchPromocoesAtivasParaUsuario,
   formatEncarteDateBr,
   lojaLabelForEncarte,
+  produtoLabelForEncarte,
   type EncarteAviso,
 } from '../services/encarteService';
 import './Administrador.css';
@@ -170,7 +171,7 @@ export default function Merchandising() {
             {promos.map((p) => (
               <li key={p.id} className="merch-promo-card">
                 <div className="merch-promo-top">
-                  <strong>{p.produto ?? 'Promoção'}</strong>
+                  <strong>{produtoLabelForEncarte(p)}</strong>
                   <span className="merch-promo-tipo">{p.tipo}</span>
                 </div>
                 <p className="merch-promo-meta">
