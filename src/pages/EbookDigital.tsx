@@ -63,6 +63,15 @@ export default function EbookDigital() {
   const [pdfOpen, setPdfOpen] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
   const [pdfProgress, setPdfProgress] = useState<{ done: number; total: number } | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(true);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 780px)');
+    const sync = () => setFiltersOpen(!mq.matches);
+    sync();
+    mq.addEventListener('change', sync);
+    return () => mq.removeEventListener('change', sync);
+  }, []);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -310,8 +319,16 @@ export default function EbookDigital() {
         </section>
 
         <aside className="ebook-side">
-          <div className="ebook-panel">
-            <h3>Filtros</h3>
+          <div className="ebook-panel ebook-panel-filters">
+            <button
+              type="button"
+              className="ebook-filters-toggle"
+              aria-expanded={filtersOpen}
+              onClick={() => setFiltersOpen((v) => !v)}
+            >
+              <h3>Filtros</h3>
+              <span className="ebook-filters-toggle-hint">{filtersOpen ? 'Ocultar' : 'Mostrar'}</span>
+            </button>
             <input
               className="ebook-search"
               type="search"
@@ -319,6 +336,7 @@ export default function EbookDigital() {
               value={filters.search}
               onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
             />
+            <div className={`ebook-filters-body${filtersOpen ? ' is-open' : ''}`}>
             <div className="ebook-filters">
               <div className="ebook-field">
                 <label htmlFor="ebook-industria">Indústria</label>
@@ -412,9 +430,10 @@ export default function EbookDigital() {
             >
               Limpar filtros
             </button>
+            </div>
           </div>
 
-          <div className="ebook-panel">
+          <div className="ebook-panel ebook-panel-thumbs">
             <div className="ebook-thumbs-head">
               <h3>Miniaturas</h3>
               <span className="ebook-selec">{selected.size} selec.</span>

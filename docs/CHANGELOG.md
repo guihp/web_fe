@@ -7,6 +7,7 @@ Formato: mais recente no topo.
 ### App
 - **Ebook digital** (/merchandising/ebook): galeria de fotos dos promotores a partir de tividade_dia + Storage (tividade-fotos), com filtros, miniaturas selecionáveis e PDF das selecionadas. Acesso: Gerente, Supervisor, Analista admin e RH.
 - Ebook: senha do dia no viewer/PDF; PDF mais leve; dica de filtros (indústria/UF/DEPOIS); responsivo e tema claro/escuro no modal.
+- Ebook mobile: filtros recolhíveis, miniaturas alinhadas acima dos filtros e espaço para o FAB do menu.
 - Textos de UI: removido traço longo (—) de mensagens visíveis.
 
 ### Documentação
