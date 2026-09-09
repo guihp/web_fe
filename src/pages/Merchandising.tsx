@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import {
   canLancarEncartes,
   canLancarVencimentos,
+  canViewEbook,
   userHasSectionAccess,
 } from '../data/portalModules';
 import {
@@ -32,6 +33,7 @@ const MERCH_CARDS: {
   section?: string;
   internoOnly?: boolean;
   encartesOnly?: boolean;
+  ebookOnly?: boolean;
 }[] = [
   {
     id: 'treinamentos',
@@ -91,6 +93,16 @@ const MERCH_CARDS: {
     internoOnly: true,
   },
   {
+    id: 'ebook',
+    title: 'Ebook digital',
+    description: 'Galeria de fotos dos promotores (antes/depois) e geração de PDF.',
+    path: '/merchandising/ebook',
+    tone: 'sky',
+    icon: 'archive',
+    section: 'merchandising.ebook',
+    ebookOnly: true,
+  },
+  {
     id: 'catalogo-industrias',
     title: 'Catálogo das indústrias',
     description:
@@ -116,6 +128,7 @@ export default function Merchandising() {
   const cards = MERCH_CARDS.filter((card) => {
     if (card.internoOnly && !interno) return false;
     if (card.encartesOnly && !canLancarEncartes(user?.cargo)) return false;
+    if (card.ebookOnly && !canViewEbook(user?.cargo)) return false;
     if (!card.section) return true;
     return userHasSectionAccess(user?.cargo ?? '', user?.secoes_acesso, card.section);
   });

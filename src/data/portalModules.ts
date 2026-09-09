@@ -76,6 +76,12 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
         path: '/merchandising/pesquisas',
         icon: 'search',
       },
+      {
+        id: 'merchandising.ebook',
+        title: 'Ebook digital',
+        path: '/merchandising/ebook',
+        icon: 'archive',
+      },
     ],
   },
   {
@@ -255,6 +261,15 @@ export function canLancarEncartes(cargo: string | null | undefined): boolean {
   return ENCARTE_LANCAR_CARGOS.some((c) => normalizeCargoKey(c) === key);
 }
 
+/** Ebook digital (galeria de fotos): Gerente, Supervisor, Analista admin e RH. */
+export const EBOOK_VIEW_CARGOS = ['Gerente', 'Supervisor', 'Analista admin', 'RH'] as const;
+
+export function canViewEbook(cargo: string | null | undefined): boolean {
+  if (!cargo) return false;
+  const key = normalizeCargoKey(cargo);
+  return EBOOK_VIEW_CARGOS.some((c) => normalizeCargoKey(c) === key);
+}
+
 /** @deprecated Senha do dia é liberada para todos os usuários logados (internos e externos). */
 export function canViewSenhaDoDia(_cargo?: string | null): boolean {
   return true;
@@ -278,6 +293,7 @@ export function defaultSecoesForCargo(cargo: string): string[] {
     .filter((id) => {
       if (id === 'fe-representacoes.avisos') return false;
       if (id === 'merchandising.encartes') return canLancarEncartes(cargo);
+      if (id === 'merchandising.ebook') return canViewEbook(cargo);
       return true;
     });
 }
@@ -319,6 +335,9 @@ export function sanitizeSecoes(cargo: string, secoes: string[] | null | undefine
   }
   if (!canLancarEncartes(cargo)) {
     next = next.filter((id) => id !== 'merchandising.encartes');
+  }
+  if (!canViewEbook(cargo)) {
+    next = next.filter((id) => id !== 'merchandising.ebook');
   }
 
   // Sempre inclui módulos liberados para todos
@@ -572,6 +591,10 @@ export function userHasSectionAccess(
 
   if (sectionId === 'merchandising.encartes') {
     return canLancarEncartes(cargo);
+  }
+
+  if (sectionId === 'merchandising.ebook') {
+    return canViewEbook(cargo);
   }
 
   // Fazer pesquisa: liberado no hub para internos (gate de tipo_usuario na página/card)

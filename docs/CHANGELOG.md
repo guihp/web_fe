@@ -2,6 +2,14 @@
 
 Formato: mais recente no topo.
 
+## 2026-09-09
+
+### App
+- **Ebook digital** (/merchandising/ebook): galeria de fotos dos promotores a partir de tividade_dia + Storage (tividade-fotos), com filtros, miniaturas selecionáveis e PDF das selecionadas. Acesso: Gerente, Supervisor, Analista admin e RH.
+
+### Documentação
+- Módulos, regras e domínio atualizados para o Ebook digital.
+
 ## 2026-09-04
 
 ### App

@@ -14,6 +14,7 @@
 9. Promotor/Demonstradora têm até **7 lojas** em `usuario_lojas`. Em Atividades: check-in na loja (cidade/UF automáticos da tabela `lojas`, sem GPS), escolha de indústria e fotos antes/depois. Antes do envio, confirma com prévia das fotos + senha do dia — após confirmar é **irreversível**; a senha grava em `atividade_dia.senha_do_dia`.
 10. Balão **Fé Representações** concentra Price, Sucesso, Avisos (Gerente) e Vendas; no cadastro interno, Vendas pode ser liberada ou não por seção.
 11. Balão **Merchandising** inclui **Fazer pesquisa** para todos os usuários internos (não indústria/cliente).
+12. **Ebook digital** (/merchandising/ebook): só **Gerente**, **Supervisor**, **Analista admin** e **RH**. Fotos vêm de tividade_dia + URLs públicas do bucket tividade-fotos (sem webhook). PDF só das miniaturas selecionadas.
 
 ## Avisos
 

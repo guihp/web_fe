@@ -6,6 +6,7 @@ import {
   canLancarEncartes,
   canLancarVencimentos,
   canManageUsers,
+  canViewEbook,
   moduleIdFromSection,
   sectionIdForPath,
   userHasSectionAccess,
@@ -130,6 +131,10 @@ export default function Sidebar() {
       }
 
       if (section.id === 'merchandising.encartes' && !canLancarEncartes(cargo)) {
+        continue;
+      }
+
+      if (section.id === 'merchandising.ebook' && !canViewEbook(cargo)) {
         continue;
       }
 

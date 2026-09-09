@@ -79,7 +79,7 @@ No Price, o filtro de mês usa os valores existentes em `pesquisa.mes`: se houve
 | `perfil-fotos` | Foto de perfil do usuário |
 | `pdf_treinamento` | PDFs de treinamento |
 | `contrato-anexos` | Anexos de contratos |
-| `atividade-fotos` | Fotos de atividades (quando usado) |
+| `atividade-fotos` | Fotos de atividades (URLs em `atividade_dia.foto_antes_url` / `foto_depois_url`; galeria do Ebook digital) |
 
 ## Padronização de nomes
 
