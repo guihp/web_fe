@@ -66,7 +66,7 @@ const MERCH_CARDS: {
   {
     id: 'validades',
     title: 'Validades',
-    description: 'Controle de validades — liberado para todos os usuários.',
+    description: 'Controle de validades, liberado para todos os usuários.',
     path: '/validades',
     tone: 'orange',
     icon: 'calendar',
@@ -173,7 +173,7 @@ export default function Merchandising() {
       <section className="merch-promos" aria-label="Promoções ativas">
         <h2 className="merch-promos-title">Promoções ativas</h2>
         <p className="merch-promos-subtitle">
-          Avisos de encarte no período de promoção — somem automaticamente após a data fim.
+          Avisos de encarte no período de promoção, somem automaticamente após a data fim.
         </p>
         {promosLoading ? (
           <p className="merch-promos-empty">Carregando promoções...</p>

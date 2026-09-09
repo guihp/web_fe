@@ -1,6 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import html2canvas from 'html2canvas';
-import { jsPDF } from 'jspdf';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import BackToPortal from '../components/layout/BackToPortal';
 import AppIcon from '../components/icons/AppIcon';
@@ -15,6 +13,11 @@ import {
   uniqueSorted,
   type EbookPhoto,
 } from '../services/ebookService';
+import {
+  buildEbookPdf,
+  EBOOK_PDF_HARD_LIMIT,
+  EBOOK_PDF_SOFT_LIMIT,
+} from '../utils/ebookPdf';
 import './EbookDigital.css';
 
 type FilterState = {
@@ -37,6 +40,8 @@ const EMPTY_FILTERS: FilterState = {
   data: '',
 };
 
+const PREVIEW_MAX = 12;
+
 function todayStamp(): string {
   const d = new Date();
   const y = d.getFullYear();
@@ -57,7 +62,7 @@ export default function EbookDigital() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [pdfOpen, setPdfOpen] = useState(false);
   const [pdfBusy, setPdfBusy] = useState(false);
-  const printRootRef = useRef<HTMLDivElement>(null);
+  const [pdfProgress, setPdfProgress] = useState<{ done: number; total: number } | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -109,6 +114,11 @@ export default function EbookDigital() {
     [filtered, selected],
   );
 
+  const previewPhotos = useMemo(
+    () => selectedPhotos.slice(0, PREVIEW_MAX),
+    [selectedPhotos],
+  );
+
   const toggleSelect = (id: string) => {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -129,6 +139,12 @@ export default function EbookDigital() {
       showToast('Selecione ao menos uma miniatura para gerar o PDF.', 'error');
       return;
     }
+    if (selectedPhotos.length > EBOOK_PDF_SOFT_LIMIT) {
+      showToast(
+        `Você selecionou ${selectedPhotos.length} fotos. Use filtros (indústria, UF e tipo DEPOIS) para gerar ebooks menores e mais estáveis.`,
+        'error',
+      );
+    }
     setPdfOpen(true);
   };
 
@@ -137,38 +153,19 @@ export default function EbookDigital() {
       showToast('Selecione ao menos uma miniatura para gerar o PDF.', 'error');
       return;
     }
-    const root = printRootRef.current;
-    if (!root) return;
+    if (selectedPhotos.length > EBOOK_PDF_HARD_LIMIT) {
+      const ok = window.confirm(
+        `São ${selectedPhotos.length} fotos. O ideal é filtrar por indústria, UF e tipo DEPOIS (limite recomendado: ${EBOOK_PDF_SOFT_LIMIT}). Continuar mesmo assim?`,
+      );
+      if (!ok) return;
+    }
 
     setPdfBusy(true);
+    setPdfProgress({ done: 0, total: selectedPhotos.length });
     try {
-      const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const sheets = Array.from(root.querySelectorAll<HTMLElement>('.ebook-print-sheet'));
-
-      for (let i = 0; i < sheets.length; i += 1) {
-        const el = sheets[i];
-        const canvas = await html2canvas(el, {
-          scale: 2,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-        });
-        const imgData = canvas.toDataURL('image/jpeg', 0.92);
-        if (i > 0) pdf.addPage();
-        const margin = 6;
-        const maxW = pageW - margin * 2;
-        const maxH = pageH - margin * 2;
-        const ratio = Math.min(maxW / canvas.width, maxH / canvas.height);
-        const imgW = canvas.width * ratio;
-        const imgH = canvas.height * ratio;
-        const x = (pageW - imgW) / 2;
-        const y = (pageH - imgH) / 2;
-        pdf.addImage(imgData, 'JPEG', x, y, imgW, imgH);
-      }
-
+      const pdf = await buildEbookPdf(selectedPhotos, (done, total) => {
+        setPdfProgress({ done, total });
+      });
       pdf.save(`ebook-promotores-${todayStamp()}.pdf`);
       showToast('PDF baixado.', 'success');
       setPdfOpen(false);
@@ -176,6 +173,7 @@ export default function EbookDigital() {
       showToast(err instanceof Error ? err.message : 'Falha ao gerar PDF.', 'error');
     } finally {
       setPdfBusy(false);
+      setPdfProgress(null);
     }
   };
 
@@ -194,13 +192,20 @@ export default function EbookDigital() {
         </div>
       </header>
 
+      <aside className="ebook-tip" role="note">
+        <strong>Dica para gerar o ebook:</strong> use os filtros para reduzir a quantidade de
+        fotos, por exemplo <em>uma indústria</em>, <em>um estado (UF)</em> e, de preferência,
+        só o tipo <em>DEPOIS</em>. Assim o PDF fica bem menor e mais estável (ideal até cerca de{' '}
+        {EBOOK_PDF_SOFT_LIMIT} fotos por arquivo).
+      </aside>
+
       <div className="ebook-toolbar">
         <div>
           <h2>Galeria de Fotos</h2>
           <p className="ebook-count">
             {loading
               ? 'Carregando…'
-              : `${filtered.length} registro${filtered.length === 1 ? '' : 's'} (de ${photos.length})`}
+              : `${filtered.length} registro${filtered.length === 1 ? '' : 's'} (de ${photos.length}) · ${selected.size} selecionada${selected.size === 1 ? '' : 's'}`}
           </p>
         </div>
         <div className="ebook-actions">
@@ -254,6 +259,10 @@ export default function EbookDigital() {
                     <div className="ebook-meta-item">
                       <span>Tipo</span>
                       <strong>{ebookTipoLabel(current)}</strong>
+                    </div>
+                    <div className="ebook-meta-item ebook-meta-senha">
+                      <span>Senha do dia</span>
+                      <strong>{current.senhaDoDia || '—'}</strong>
                     </div>
                   </div>
                   <div className="ebook-viewer-footer">
@@ -418,6 +427,11 @@ export default function EbookDigital() {
                 Limpar
               </button>
             </div>
+            {selected.size > EBOOK_PDF_SOFT_LIMIT ? (
+              <p className="ebook-selec-warn">
+                Muitas fotos selecionadas ({selected.size}). Filtre antes de gerar o PDF.
+              </p>
+            ) : null}
             <div className="ebook-thumbs">
               {filtered.map((photo, i) => {
                 const isSelected = selected.has(photo.id);
@@ -469,7 +483,20 @@ export default function EbookDigital() {
               </button>
             </div>
             <div className="ebook-modal-body">
-              {selectedPhotos.map((photo, i) => (
+              {selectedPhotos.length > EBOOK_PDF_SOFT_LIMIT ? (
+                <p className="ebook-pdf-warn">
+                  {selectedPhotos.length} fotos selecionadas. O recomendado é filtrar por
+                  indústria + UF + tipo <strong>DEPOIS</strong> (cerca de {EBOOK_PDF_SOFT_LIMIT} por
+                  ebook) para evitar travamentos.
+                </p>
+              ) : null}
+              {selectedPhotos.length > PREVIEW_MAX ? (
+                <p className="ebook-pdf-note">
+                  Prévia das primeiras {PREVIEW_MAX} de {selectedPhotos.length}. O download inclui
+                  todas as selecionadas.
+                </p>
+              ) : null}
+              {previewPhotos.map((photo, i) => (
                 <div key={photo.id} className="ebook-pdf-page">
                   <div className="ebook-pdf-page-label">
                     Galeria de fotos · Página {i + 1}/{selectedPhotos.length}
@@ -494,11 +521,19 @@ export default function EbookDigital() {
                     <p>
                       <strong>Data:</strong> {formatEbookDateBr(photo.data)}
                     </p>
+                    <p>
+                      <strong>Senha do dia:</strong> {photo.senhaDoDia || '—'}
+                    </p>
                   </div>
                 </div>
               ))}
             </div>
             <div className="ebook-modal-actions">
+              {pdfProgress ? (
+                <span className="ebook-pdf-progress">
+                  Gerando {pdfProgress.done}/{pdfProgress.total}…
+                </span>
+              ) : null}
               <button type="button" className="ebook-btn" onClick={() => setPdfOpen(false)} disabled={pdfBusy}>
                 Cancelar
               </button>
@@ -508,49 +543,12 @@ export default function EbookDigital() {
                 onClick={downloadPdf}
                 disabled={pdfBusy}
               >
-                {pdfBusy ? 'Gerando…' : 'Baixar PDF'}
+                {pdfBusy ? 'Gerando…' : `Baixar PDF (${selectedPhotos.length})`}
               </button>
             </div>
           </div>
         </div>
       ) : null}
-
-      <div className="ebook-print-root" ref={printRootRef} aria-hidden>
-        {selectedPhotos.map((photo, i) => (
-          <div key={photo.id} className="ebook-print-sheet">
-            <div className="ebook-print-sheet-label">
-              Galeria de fotos · Página {i + 1}/{selectedPhotos.length}
-            </div>
-            <img src={photo.url} alt="" crossOrigin="anonymous" />
-            <div className="ebook-print-meta">
-              <h3>{photo.loja || 'Loja não informada'}</h3>
-              <dl>
-                <div>
-                  <dt>UF</dt>
-                  <dd>{photo.uf || '—'}</dd>
-                </div>
-                <div>
-                  <dt>Data</dt>
-                  <dd>{formatEbookDateBr(photo.data)}</dd>
-                </div>
-                <div>
-                  <dt>Indústria</dt>
-                  <dd>{photo.industria || '—'}</dd>
-                </div>
-                <div>
-                  <dt>Promotor</dt>
-                  <dd>{photo.promotor || '—'}</dd>
-                </div>
-                <div>
-                  <dt>Tipo</dt>
-                  <dd>{ebookTipoLabel(photo)}</dd>
-                </div>
-              </dl>
-            </div>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }
-

@@ -223,7 +223,7 @@ export function downloadClienteTemplate() {
     [''],
     ['1. Use a aba "Modelo" como referência (1 linha de exemplo completa).'],
     ['2. Mantenha os nomes das colunas exatamente iguais ao cabeçalho.'],
-    ['3. cdc: 4 dígitos (chave única — se já existir, o cadastro é atualizado).'],
+    ['3. cdc: 4 dígitos (chave única, se já existir, o cadastro é atualizado).'],
     ['4. cnpj: pode ir com ou sem pontuação (14 dígitos).'],
     ['5. estado: ex. MARANHAO, PIAUI, PARA (ou com acento).'],
     ['6. status: Ativo ou Inativo (padrão Ativo se vazio).'],
@@ -348,7 +348,7 @@ export function downloadVendaTemplate() {
     ['4. cdc: 4 dígitos do cliente (busca dados em baseCliente quando existir).'],
     ['5. valor: use número (1500.75) ou formato BR (1.500,75).'],
     ['6. vendedor: SOMENTE um destes: JOAO ANTONIO | PAULO FREITAS | GEREMIAS SOUSA'],
-    ['7. mes/ano: opcionais — se vazios, são calculados a partir da data.'],
+    ['7. mes/ano: opcionais, se vazios, são calculados a partir da data.'],
     ['8. Salve como .xlsx ou .csv e use "Importar Excel" na Base de Vendas.'],
     [''],
     ['Colunas (compatíveis com a tabela baseVendas no Supabase):'],
@@ -727,7 +727,7 @@ export function downloadEncarteTemplate() {
   XLSX.utils.book_append_sheet(wb, ws, 'Modelo');
 
   const instructions = XLSX.utils.aoa_to_sheet([
-    ['Instruções — Lançar promoções/encarte'],
+    ['Instruções: Lançar promoções/encarte'],
     [''],
     ['tipo: ENCARTE GERAL | ENCARTE INTERNO | UNICO'],
     ['escopo_cliente: TODOS | MATEUS | ASSAI | LISTA'],

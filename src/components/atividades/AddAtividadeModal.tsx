@@ -178,7 +178,7 @@ export default function AddAtividadeModal({ onClose, onSubmit, error }: AddAtivi
             <p className="atividade-industrias-hint">
               {selectedIndustrias.length === 0
                 ? 'Selecione uma ou mais indústrias'
-                : `${selectedIndustrias.length} indústria(s) selecionada(s) — será criada uma atividade para cada`}
+                : `${selectedIndustrias.length} indústria(s) selecionada(s), será criada uma atividade para cada`}
             </p>
           </div>
 

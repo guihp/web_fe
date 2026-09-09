@@ -58,7 +58,7 @@ function DiaDetailPanel({ item, tipo }: { item: DiaTimelineItem; tipo: string })
       )}
 
       {status === 'em_andamento' && !record && (
-        <p className="atividade-dia-empty">Atividade prevista para hoje — aguardando o promotor.</p>
+        <p className="atividade-dia-empty">Atividade prevista para hoje, aguardando o promotor.</p>
       )}
 
       {hasJustificativa && (

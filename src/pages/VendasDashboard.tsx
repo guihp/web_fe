@@ -144,7 +144,7 @@ export default function VendasDashboard() {
       },
       {
         id: 'mapi-mes',
-        title: `MA/PI — ${mes}`,
+        title: `MA/PI · ${mes}`,
         realizado: realizadoMapiMes,
         meta: metaMapi,
         percentLabel: pct(realizadoMapiMes, metaMapi),
@@ -152,7 +152,7 @@ export default function VendasDashboard() {
       },
       {
         id: 'pa-mes',
-        title: `PA — ${mes}`,
+        title: `PA · ${mes}`,
         realizado: realizadoPaMes,
         meta: metaPa,
         percentLabel: pct(realizadoPaMes, metaPa),
@@ -178,7 +178,7 @@ export default function VendasDashboard() {
       },
       {
         id: 'mapi-ano',
-        title: `MA/PI — Anual ${ano}`,
+        title: `MA/PI · Anual ${ano}`,
         realizado: totalMapi,
         meta: metaMapiAnual,
         percentLabel: pct(totalMapi, metaMapiAnual),
@@ -186,7 +186,7 @@ export default function VendasDashboard() {
       },
       {
         id: 'pa-ano',
-        title: `PA — Anual ${ano}`,
+        title: `PA · Anual ${ano}`,
         realizado: totalPa,
         meta: metaPaAnual,
         percentLabel: pct(totalPa, metaPaAnual),
@@ -340,7 +340,7 @@ export default function VendasDashboard() {
 
       <div className="vendas-dashboard-print-area" id="vendas-dashboard-print-area">
         <header className="vendas-print-title">
-          <h1>Dashboard de Vendas — {mes}/{ano}</h1>
+          <h1>Dashboard de Vendas · {mes}/{ano}</h1>
           <p>Acompanhamento Regional MA-PI-PA · Orientação paisagem</p>
         </header>
 
@@ -381,7 +381,7 @@ export default function VendasDashboard() {
         <div className="vendas-dashboard-charts" id="vendas-dashboard-charts">
           <section className="card vendas-section">
             <div className="vendas-section-head">
-              <h2 className="vendas-section-title">Comparativo Mensal por Região — {mes}</h2>
+              <h2 className="vendas-section-title">Comparativo Mensal por Região · {mes}</h2>
               <div className="vendas-view-toggle" role="group" aria-label="Tipo de gráfico">
                 <button
                   type="button"
@@ -404,22 +404,22 @@ export default function VendasDashboard() {
               {compareView === 'meta' ? (
                 <>
                   <div className="vendas-compare-block">
-                    <h3>Realizado x Meta Mensal ({mes}) — MA/PI</h3>
+                    <h3>Realizado x Meta Mensal ({mes}) · MA/PI</h3>
                     <DonutChart realizado={realizadoMapiMes} meta={metaMapi} color={CORAL} />
                   </div>
                   <div className="vendas-compare-block">
-                    <h3>Realizado x Meta Mensal ({mes}) — Pará</h3>
+                    <h3>Realizado x Meta Mensal ({mes}) · Pará</h3>
                     <DonutChart realizado={realizadoPaMes} meta={metaPa} color={BLUE} />
                   </div>
                 </>
               ) : (
                 <>
                   <div className="vendas-compare-block">
-                    <h3>Participação por Indústria ({mes}) — MA/PI</h3>
+                    <h3>Participação por Indústria ({mes}) · MA/PI</h3>
                     <PieChart data={mapiMesIndustria} />
                   </div>
                   <div className="vendas-compare-block">
-                    <h3>Participação por Indústria ({mes}) — Pará</h3>
+                    <h3>Participação por Indústria ({mes}) · Pará</h3>
                     <PieChart data={paMesIndustria} />
                   </div>
                 </>
@@ -428,7 +428,7 @@ export default function VendasDashboard() {
 
             <div className="vendas-charts-grid">
               <div className="vendas-chart-card">
-                <h3>Venda do Mês por Indústria — MA/PI</h3>
+                <h3>Venda do Mês por Indústria · MA/PI</h3>
                 <HorizontalBarChart
                   data={mapiMesIndustria.length ? mapiMesIndustria : [{ nome: 'Sem dados', valor: 0 }]}
                   color={CORAL}
@@ -436,7 +436,7 @@ export default function VendasDashboard() {
                 />
               </div>
               <div className="vendas-chart-card">
-                <h3>Venda do Mês por Indústria — Pará</h3>
+                <h3>Venda do Mês por Indústria · Pará</h3>
                 <HorizontalBarChart
                   data={paMesIndustria.length ? paMesIndustria : [{ nome: 'Sem dados', valor: 0 }]}
                   color={BLUE}
@@ -444,7 +444,7 @@ export default function VendasDashboard() {
                 />
               </div>
               <div className="vendas-chart-card">
-                <h3>Venda Anual por Indústria — MA/PI</h3>
+                <h3>Venda Anual por Indústria · MA/PI</h3>
                 <HorizontalBarChart
                   data={mapiAnualIndustria.length ? mapiAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]}
                   color={CORAL_DARK}
@@ -452,7 +452,7 @@ export default function VendasDashboard() {
                 />
               </div>
               <div className="vendas-chart-card">
-                <h3>Venda Anual por Indústria — Pará</h3>
+                <h3>Venda Anual por Indústria · Pará</h3>
                 <HorizontalBarChart
                   data={paAnualIndustria.length ? paAnualIndustria : [{ nome: 'Sem dados', valor: 0 }]}
                   color={BLUE}
@@ -464,7 +464,7 @@ export default function VendasDashboard() {
 
           <section className="vendas-monthly-grid">
             <article className="card vendas-monthly-card">
-              <h2>Mensal — MA/PI</h2>
+              <h2>Mensal · MA/PI</h2>
               <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaMapiMensal)}/mês</p>
               <div className="vendas-total-box">
                 <span>Total Realizado (Ano):</span>
@@ -474,7 +474,7 @@ export default function VendasDashboard() {
             </article>
 
             <article className="card vendas-monthly-card">
-              <h2>Mensal — Pará (PA)</h2>
+              <h2>Mensal · Pará (PA)</h2>
               <p className="vendas-monthly-meta">Meta: {formatBRLCompact(metaPaMensal)}/mês</p>
               <div className="vendas-total-box">
                 <span>Total Realizado (Ano):</span>

@@ -227,7 +227,7 @@ export default function Validades() {
       exportValidadesXlsx(all);
       showToast(
         all.length === 0
-          ? 'Planilha exportada (somente cabeçalhos — não há validades).'
+          ? 'Planilha exportada (somente cabeçalhos, não há validades).'
           : `${all.length} validades exportadas.`,
         'success',
       );
@@ -244,7 +244,7 @@ export default function Validades() {
     const updated = await registrarVendaValidade(vendaItem.id, opts);
     showToast(
       updated.todos_vendidos
-        ? 'Marcado como tudo vendido — saiu da listagem desta loja.'
+        ? 'Marcado como tudo vendido, saiu da listagem desta loja.'
         : `Quantidade atualizada para ${updated.qtde_unit ?? 0} un.`,
       'success',
     );
@@ -259,13 +259,13 @@ export default function Validades() {
       <header className="base-vendas-header">
         <h1 className="page-title">Validades</h1>
         <p className="base-vendas-subtitle">
-          Produtos próximos do vencimento — itens com menos de 1 mês ficam destacados
+          Produtos próximos do vencimento, itens com menos de 1 mês ficam destacados
         </p>
         {somenteLeitura && (
           <p className="base-vendas-subtitle" style={{ marginTop: 8 }}>
             Modo visualização
-            {scopeIndustria ? ` — indústria ${scopeIndustria}` : ''}
-            {scopeClienteGrupo ? ` — grupo ${scopeClienteGrupo}` : ''}.
+            {scopeIndustria ? `, indústria ${scopeIndustria}` : ''}
+            {scopeClienteGrupo ? `, grupo ${scopeClienteGrupo}` : ''}.
           </p>
         )}
       </header>

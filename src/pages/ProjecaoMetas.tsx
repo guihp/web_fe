@@ -349,17 +349,17 @@ export default function ProjecaoMetas({ adminMode = false }: ProjecaoMetasProps)
 
       <div className="projecao-summary-grid">
         <article className="projecao-summary card">
-          <span>Total MA/PI — {anoProjecao}</span>
+          <span>Total MA/PI · {anoProjecao}</span>
           <strong>{formatBRL(mapiTotals.projecaoAnual)}</strong>
           <small>Meta mensal: {formatBRL(mapiTotals.metaMensal)}</small>
         </article>
         <article className="projecao-summary card">
-          <span>Total PA — {anoProjecao}</span>
+          <span>Total PA · {anoProjecao}</span>
           <strong>{formatBRL(paTotals.projecaoAnual)}</strong>
           <small>Meta mensal: {formatBRL(paTotals.metaMensal)}</small>
         </article>
         <article className="projecao-summary card highlight">
-          <span>Total Geral — {anoProjecao}</span>
+          <span>Total Geral · {anoProjecao}</span>
           <strong>{formatBRL(geralTotals.projecaoAnual)}</strong>
           <small>Meta mensal: {formatBRL(geralTotals.metaMensal)}</small>
         </article>
@@ -368,7 +368,7 @@ export default function ProjecaoMetas({ adminMode = false }: ProjecaoMetasProps)
       <section className="card projecao-table-section">
         <div className="projecao-table-head">
           <div>
-            <h2>Projeção de Metas por Indústria — {anoProjecao}</h2>
+            <h2>Projeção de Metas por Indústria · {anoProjecao}</h2>
             <p>
               Baseado no desempenho de {anoBase} • Ative &quot;Manual&quot; para definir metas
               diretamente

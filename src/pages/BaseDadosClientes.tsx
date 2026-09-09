@@ -86,7 +86,7 @@ export default function BaseDadosClientes() {
       exportClientesXlsx(all);
       showToast(
         all.length === 0
-          ? 'Planilha exportada (somente cabeçalhos — não há clientes).'
+          ? 'Planilha exportada (somente cabeçalhos, não há clientes).'
           : `${all.length} clientes exportados.`,
         'success',
       );

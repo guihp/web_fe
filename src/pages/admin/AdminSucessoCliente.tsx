@@ -185,7 +185,7 @@ export default function AdminSucessoCliente() {
           <h1 className="page-title">Sucesso do cliente</h1>
           <p className="admin-subtitle">
             {somenteLeitura
-              ? `Visualização${scopeIndustria ? ` — ${scopeIndustria}` : ''}${scopeClienteGrupo ? ` — grupo ${scopeClienteGrupo}` : ''}. Sem alteração de status.`
+              ? `Visualização${scopeIndustria ? `, ${scopeIndustria}` : ''}${scopeClienteGrupo ? `, grupo ${scopeClienteGrupo}` : ''}. Sem alteração de status.`
               : 'Kanban de pedidos com base nas vendas lançadas. Arraste os cards entre as colunas.'}
           </p>
         </div>

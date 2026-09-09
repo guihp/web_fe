@@ -329,7 +329,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
       <div className="colab-modal-header">
         <h2>{isEdit ? 'Editar Usuário' : 'Novo Usuário'}</h2>
         <p>
-          Internos usam CPF. Externos: indústria (login pelo nome) ou cliente (login pelo CNPJ) —
+          Internos usam CPF. Externos: indústria (login pelo nome) ou cliente (login pelo CNPJ),
           Merchandising (Validades + Atividades) e Fé Representações (Price + Sucesso), em modo
           visualização, só da própria empresa.
         </p>
@@ -345,8 +345,8 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
               disabled={isEdit}
             >
               <option value="interno">Interno (equipe)</option>
-              <option value="industria">Externo — Indústria</option>
-              <option value="cliente">Externo — Cliente</option>
+              <option value="industria">Externo: Indústria</option>
+              <option value="cliente">Externo: Cliente</option>
             </select>
           </div>
         </label>
@@ -552,7 +552,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
               Em <strong>Fé Representações</strong>, abra <em>Seções</em> para liberar só Price e
               Sucesso, ou marcar telas de Vendas uma a uma. Externos (ao salvar como indústria/cliente)
               recebem automaticamente Merchandising (Validades + Atividades) e Fé Representações (Price
-              + Sucesso), somente leitura — sem Vendas.
+              + Sucesso), somente leitura, sem Vendas.
             </p>
             <div className="usuario-modulos-grid">
               {moduleOptions.map((mod) => {
@@ -639,7 +639,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
         {externo && (
           <p className="usuario-modulos-hint">
             Acesso fixo: <strong>Validades</strong> + <strong>Atividades</strong> (Merchandising) e{' '}
-            <strong>Price</strong> + <strong>Sucesso do cliente</strong> (Fé Representações) — somente
+            <strong>Price</strong> + <strong>Sucesso do cliente</strong> (Fé Representações), somente
             visualização do que for desta indústria/cliente.
           </p>
         )}

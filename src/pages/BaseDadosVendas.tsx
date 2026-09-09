@@ -129,7 +129,7 @@ export default function BaseDadosVendas() {
       exportVendasXlsx(all);
       showToast(
         all.length === 0
-          ? 'Planilha exportada (somente cabeçalhos — não há vendas).'
+          ? 'Planilha exportada (somente cabeçalhos, não há vendas).'
           : `${all.length} vendas exportadas.`,
         'success',
       );

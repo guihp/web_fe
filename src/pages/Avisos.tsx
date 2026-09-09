@@ -110,7 +110,7 @@ export default function Avisos() {
       </header>
 
       <p className="avisos-note">
-        O aviso de <strong>folha de ponto</strong> é enviado automaticamente todo dia 25 — não
+        O aviso de <strong>folha de ponto</strong> é enviado automaticamente todo dia 25, não
         precisa disparar manualmente.
       </p>
 

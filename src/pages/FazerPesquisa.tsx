@@ -124,7 +124,7 @@ export default function FazerPesquisa() {
         promotor: user?.nome ?? null,
       });
       showToast(
-        `Pesquisa ${tipo} iniciada (#${created.id}). Câmera/OCR em breve — contexto salvo no Price.`,
+        `Pesquisa ${tipo} iniciada (#${created.id}). Câmera/OCR em breve, contexto salvo no Price.`,
         'success',
       );
       setLojaId('');

@@ -15,6 +15,7 @@ export type EbookPhoto = {
   data: string;
   uf: string;
   kind: EbookPhotoKind;
+  senhaDoDia: string;
 };
 
 export type EbookPhotoFilters = {
@@ -33,6 +34,7 @@ type DiaRow = {
   data: string;
   foto_antes_url: string | null;
   foto_depois_url: string | null;
+  senha_do_dia: string | null;
 };
 
 type AtividadeLite = {
@@ -114,7 +116,7 @@ export async function fetchEbookPhotos(): Promise<EbookPhoto[]> {
   for (;;) {
     const { data, error } = await supabase
       .from('atividade_dia')
-      .select('id, atividade_id, data, foto_antes_url, foto_depois_url')
+      .select('id, atividade_id, data, foto_antes_url, foto_depois_url, senha_do_dia')
       .or('foto_antes_url.not.is.null,foto_depois_url.not.is.null')
       .order('data', { ascending: false })
       .order('id', { ascending: false })
@@ -177,6 +179,7 @@ export async function fetchEbookPhotos(): Promise<EbookPhoto[]> {
         : '—';
     const uf = resolveUf(loja, lojaMap);
     const data = (dia.data ?? '').slice(0, 10);
+    const senhaDoDia = (dia.senha_do_dia ?? '').trim();
 
     if (dia.foto_antes_url) {
       photos.push({
@@ -191,6 +194,7 @@ export async function fetchEbookPhotos(): Promise<EbookPhoto[]> {
         data,
         uf,
         kind: 'antes',
+        senhaDoDia,
       });
     }
     if (dia.foto_depois_url) {
@@ -206,6 +210,7 @@ export async function fetchEbookPhotos(): Promise<EbookPhoto[]> {
         data,
         uf,
         kind: 'depois',
+        senhaDoDia,
       });
     }
   }

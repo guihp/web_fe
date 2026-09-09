@@ -373,7 +373,7 @@ export default function LancarVencimentos() {
               )}
               {codeLookup === 'not_found' && (
                 <small className="lancar-venc-hint warn">
-                  Código não encontrado — preencha produto e indústria manualmente.
+                  Código não encontrado, preencha produto e indústria manualmente.
                 </small>
               )}
             </label>
@@ -443,7 +443,7 @@ export default function LancarVencimentos() {
                 </button>
               </div>
               <small className="lancar-venc-hint">
-                Máscara DD/MM/YYYY — digite ou use o calendário.
+                Máscara DD/MM/YYYY, digite ou use o calendário.
               </small>
             </div>
 

@@ -372,7 +372,7 @@ async function fetchMetaNotifications(): Promise<AppNotification[]> {
         id: alert.id,
         kind: 'meta' as const,
         title: alert.periodo === 'mensal' ? 'Meta mensal batida!' : 'Meta anual batida!',
-        detail: `${alert.regiao} — ${periodoLabel}: ${formatBRL(alert.realizado)} de ${formatBRL(alert.meta)} (${pct}%)`,
+        detail: `${alert.regiao}, ${periodoLabel}: ${formatBRL(alert.realizado)} de ${formatBRL(alert.meta)} (${pct}%)`,
         at: alert.at,
         href: '/fe-representacoes/vendas',
       };

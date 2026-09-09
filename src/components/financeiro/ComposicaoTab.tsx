@@ -620,7 +620,7 @@ function AddLojasMesModal({
     <div className="fin-modal-backdrop" role="presentation" onClick={onClose}>
       <div className="fin-modal card" role="dialog" onClick={(e) => e.stopPropagation()}>
         <header>
-          <h3>Adicionar lojas — {MESES[mes - 1]}/{ano}</h3>
+          <h3>Adicionar lojas · {MESES[mes - 1]}/{ano}</h3>
           <button type="button" onClick={onClose}>
             ×
           </button>
@@ -679,7 +679,7 @@ function AddLojasMesModal({
                 }}
               />
               <span>
-                {loja.codigo} — {loja.nome}
+                {loja.codigo} · {loja.nome}
               </span>
             </label>
           ))}

@@ -229,7 +229,7 @@ export default function PriceInternoChart({
     <div className="price-chart-layout">
       <div className="price-chart-main">
         <div className="price-chart-title-row">
-          <h3>Pesquisa interna — {selected}</h3>
+          <h3>Pesquisa interna · {selected}</h3>
           <div className="price-chart-legend">
             <span>
               <i style={{ background: COR_PV }} /> Preço Varejo

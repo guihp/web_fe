@@ -381,7 +381,7 @@ export default function Relatorios() {
 
       <section className="crescimento-real">
         <h3>
-          <AppIcon name="trend" size={18} /> Crescimento Real (YTD) — {anoBase} x {anoComp}
+          <AppIcon name="trend" size={18} /> Crescimento Real (YTD) · {anoBase} x {anoComp}
         </h3>
         <p className="crescimento-real-note">
           Comparação considerando apenas os meses já realizados em ambos os anos (até o mês atual).

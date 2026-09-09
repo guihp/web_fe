@@ -344,7 +344,7 @@ export async function fetchValidadesTopVencidos(
   return Array.from(map.values())
     .map((item) => ({
       ...item,
-      nome: [item.codigo, item.descricao].filter(Boolean).join(' — ') || '—',
+      nome: [item.codigo, item.descricao].filter(Boolean).join(' · ') || '—',
     }))
     .sort((a, b) => b.qtde - a.qtde || b.registros - a.registros)
     .filter((item) => item.qtde > 0)
