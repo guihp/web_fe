@@ -4,6 +4,10 @@
 FROM node:20-alpine AS build
 WORKDIR /app
 
+# Coolify/builders com pouca RAM matam o processo (exit 255) no vite/tsc.
+ENV NODE_OPTIONS="--max-old-space-size=4096" \
+    CI=true
+
 COPY package.json package-lock.json ./
 RUN npm ci
 
@@ -29,7 +33,8 @@ ENV EXPO_PUBLIC_SUPABASE_URL=$EXPO_PUBLIC_SUPABASE_URL \
     EXPO_PUBLIC_WEBHOOK_VENDAS=$EXPO_PUBLIC_WEBHOOK_VENDAS \
     VITE_VAPID_PUBLIC_KEY=$VITE_VAPID_PUBLIC_KEY
 
-RUN npm run build
+RUN echo "Building with NODE_OPTIONS=$NODE_OPTIONS" \
+ && npm run build
 
 # ---- runtime ----
 FROM nginx:1.27-alpine AS runtime

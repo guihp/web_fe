@@ -14,3 +14,6 @@ assets/lojas-frames
 assets/metas-frames
 scripts/validades-import.json
 scripts/validades-batch-*.sql
+.tmp-ebook-frames
+NUL.css
+public/ebook-mobile-preview.html

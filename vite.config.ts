@@ -14,9 +14,9 @@ export default defineConfig({
       injectRegister: false,
       manifest: {
         id: '/',
-        name: 'App Fé',
-        short_name: 'App Fé',
-        description: 'Portal gerencial Fé Merchandising',
+        name: 'App FÃ©',
+        short_name: 'App FÃ©',
+        description: 'Portal gerencial FÃ© Merchandising',
         lang: 'pt-BR',
         theme_color: '#ea6624',
         background_color: '#ffffff',
@@ -46,6 +46,10 @@ export default defineConfig({
   ],
   envDir: path.resolve(__dirname),
   envPrefix: ['VITE_', 'EXPO_PUBLIC_'],
+  build: {
+    sourcemap: false,
+    chunkSizeWarningLimit: 2000,
+  },
   server: {
     port: 5173,
     open: true,
