@@ -1713,6 +1713,7 @@ img {
   .page-back-link {
     width: 100%;
     justify-content: center;
+    min-height: 44px;
   }
 
   .header-inner,

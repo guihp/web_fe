@@ -27,17 +27,27 @@
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 1px 0 color-mix(in srgb, #1a1a1a 8%, transparent);
+  overflow: hidden;
+  -webkit-overflow-scrolling: touch;
 }
 
 @media (max-width: 780px) {
   .catalogo-page {
     gap: 8px;
-    min-height: calc(100dvh - 108px);
+    min-height: calc(100dvh - 100px);
+    /* leave room for bottom nav / safe area */
+    padding-bottom: max(0px, env(safe-area-inset-bottom));
   }
 
   .catalogo-frame {
-    min-height: calc(100dvh - 148px);
-    height: calc(100dvh - 148px);
+    min-height: calc(100dvh - 132px);
+    height: calc(100dvh - 132px);
     border-radius: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .catalogo-frame {
+    scroll-behavior: auto;
   }
 }
