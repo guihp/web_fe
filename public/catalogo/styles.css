@@ -1529,6 +1529,14 @@ img {
   font-weight: 700;
 }
 
+.footer-logo {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
+}
+
 .footer-symbol {
   width: 26px;
   height: 26px;

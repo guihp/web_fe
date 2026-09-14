@@ -808,7 +808,7 @@
     return (
       '<footer class="site-footer">' +
       '<div class="container footer-inner">' +
-      '<div class="footer-mark"><span class="footer-symbol" aria-hidden="true"></span>Fé Representações</div>' +
+      '<div class="footer-mark"><img class="footer-logo" src="assets/feisotipo.png" alt="" width="28" height="28" />Fé Representações</div>' +
       '<div class="footer-legal"><span>Catálogo digital de consulta de produtos.</span>' +
       '<a href="privacidade.html">Privacidade</a><a href="termos.html">Termos</a></div>' +
       "</div>" +
