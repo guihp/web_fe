@@ -69,6 +69,48 @@
     accessRole: sessionStorage.getItem("fe-access-role") || "master",
   };
 
+  var portalParams = new URLSearchParams(window.location.search);
+  var canShowGestaoUi = portalParams.get("gestao") === "1";
+  var scopedIndustrySlug = String(portalParams.get("industry") || "").trim();
+
+  function catalogHomeHash() {
+    if (scopedIndustrySlug) {
+      return "#/industria/" + encodeURIComponent(scopedIndustrySlug);
+    }
+    return "#/catalogo";
+  }
+
+  function getVisibleIndustries() {
+    if (!scopedIndustrySlug) {
+      return state.industries;
+    }
+    return state.industries.filter(function (industry) {
+      return industry.slug === scopedIndustrySlug;
+    });
+  }
+
+  function enforcePortalScope(route) {
+    if (route.name === "management" && !canShowGestaoUi) {
+      window.location.hash = catalogHomeHash();
+      return true;
+    }
+    if (
+      scopedIndustrySlug &&
+      route.name === "industry" &&
+      route.slug !== scopedIndustrySlug
+    ) {
+      window.location.hash =
+        "#/industria/" + encodeURIComponent(scopedIndustrySlug);
+      return true;
+    }
+    if (scopedIndustrySlug && route.name === "home") {
+      window.location.hash =
+        "#/industria/" + encodeURIComponent(scopedIndustrySlug);
+      return true;
+    }
+    return false;
+  }
+
   var MASTER_ACCOUNT_KEY = "fe-catalogo-master-account-v1";
   var INDUSTRIES_KEY = "fe-catalogo-industries-v1";
   var GOOGLE_CLIENT_ID =
@@ -780,24 +822,32 @@
     var catalogCurrent = active === "catalog" ? ' aria-current="page"' : "";
     var managementCurrent =
       active === "management" ? ' aria-current="page"' : "";
+    var homeHref = catalogHomeHash();
+    var managementLink = canShowGestaoUi
+      ? '<a class="nav-link nav-link-management" href="#/gestao"' +
+        managementCurrent +
+        ">" +
+        icons.settings +
+        "<span>Acesso master</span></a>"
+      : "";
 
     return (
       '<header class="site-header">' +
       '<div class="header-inner">' +
-      '<a class="brand-link" href="#/catalogo" aria-label="Fé Representações — Catálogo">' +
+      '<a class="brand-link" href="' +
+      homeHref +
+      '" aria-label="Fé Representações — Catálogo">' +
       '<img src="assets/logo-fe-representacoes.png" alt="Fé Representações — Excelência em Negócios" />' +
       "</a>" +
       '<nav class="site-nav" aria-label="Navegação principal">' +
-      '<a class="nav-link" href="#/catalogo"' +
+      '<a class="nav-link" href="' +
+      homeHref +
+      '"' +
       catalogCurrent +
       ">" +
       icons.catalog +
       "<span>Catálogo</span></a>" +
-      '<a class="nav-link nav-link-management" href="#/gestao"' +
-      managementCurrent +
-      ">" +
-      icons.settings +
-      "<span>Acesso master</span></a>" +
+      managementLink +
       "</nav>" +
       "</div>" +
       "</header>"
@@ -865,7 +915,7 @@
 
     var counts = getCountsByIndustry();
     var normalizedFilter = normalizeText(filterValue);
-    var matches = state.industries.filter(function (industry) {
+    var matches = getVisibleIndustries().filter(function (industry) {
       return normalizeText(industry.name).includes(normalizedFilter);
     });
 
@@ -1111,10 +1161,14 @@
       '<section class="page-hero">' +
       '<div class="container">' +
       '<div class="page-back-row">' +
-      '<a class="page-back-link" href="#/catalogo">' +
+      '<a class="page-back-link" href="' +
+      catalogHomeHash() +
+      '">' +
       icons.back +
       "<span>Voltar ao catálogo</span></a>" +
-      '<nav class="breadcrumb" aria-label="Navegação estrutural"><a href="#/catalogo">Catálogo</a><span aria-hidden="true">/</span><span>' +
+      '<nav class="breadcrumb" aria-label="Navegação estrutural"><a href="' +
+      catalogHomeHash() +
+      '">Catálogo</a><span aria-hidden="true">/</span><span>' +
       industry.name +
       "</span></nav>" +
       "</div>" +
@@ -1214,7 +1268,9 @@
       (isSetup ? "Criar acesso master" : "Entrar") +
       '</button></form>' +
       '<button id="editor-google-login" class="button button-secondary master-submit" type="button">Entrar como editor Google</button>' +
-      '<a class="master-back-link" href="#/catalogo">Voltar ao catálogo público</a>' +
+      '<a class="master-back-link" href="' +
+      catalogHomeHash() +
+      '">Voltar ao catálogo público</a>' +
       '</div></div></section>';
 
     renderShell(content, "management");
@@ -2309,7 +2365,9 @@
       emptyStateMarkup(
         "Página não encontrada",
         "A indústria ou a área solicitada não existe neste catálogo.",
-        '<a class="button button-dark" href="#/catalogo">Voltar ao catálogo</a>',
+        '<a class="button button-dark" href="' +
+        catalogHomeHash() +
+        '">Voltar ao catálogo</a>',
       ) +
       "</div></section>";
     renderShell(content, "catalog");
@@ -2335,6 +2393,9 @@
 
   function renderRoute() {
     var route = parseRoute();
+    if (enforcePortalScope(route)) {
+      return;
+    }
     if (route.name !== "management") {
       state.editingId = null;
       state.pendingImage = null;

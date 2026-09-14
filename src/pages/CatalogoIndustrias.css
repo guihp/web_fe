@@ -8,6 +8,16 @@
   box-sizing: border-box;
 }
 
+.catalogo-scope-note {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: color-mix(in srgb, #ea6624 10%, white);
+  color: #5c3a22;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
 .catalogo-frame {
   flex: 1 1 auto;
   width: 100%;

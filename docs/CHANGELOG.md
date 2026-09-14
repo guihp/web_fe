@@ -5,12 +5,13 @@ Formato: mais recente no topo.
 ## 2026-09-14
 
 ### App
-- **Catálogo das indústrias** interno em `/merchandising/catalogo` (iframe de `/catalogo/`), sem abrir site externo.
+- **Catálogo das indústrias** em `/merchandising/catalogo` (iframe de `/catalogo/`), sem site externo.
 - API do catálogo no Supabase (Edge Functions + tabela `catalogo_fe_kv`); nginx/Vite proxy same-origin em `/api/catalog` e `/api/product-image`.
+- Catálogo: **Acesso master** só Gerente / Supervisor / RH / Analista admin (internos). Externos sem gestão; indústria vê só o próprio catálogo; cliente vê todos.
 
 ### Documentação
 - Módulos e deploy: catálogo Coolify + checklist Google OAuth (`localhost:5173` e domínio de produção).
-
+- Regras de acesso do catálogo por cargo/tipo de usuário.
 ## 2026-09-09
 
 ### App

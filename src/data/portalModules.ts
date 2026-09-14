@@ -276,6 +276,15 @@ export function canViewEbook(cargo: string | null | undefined): boolean {
   return EBOOK_VIEW_CARGOS.some((c) => normalizeCargoKey(c) === key);
 }
 
+/** Gestão UI do catálogo (Acesso master): mesmos cargos do Ebook; só para internos na página. */
+export const CATALOGO_GESTAO_CARGOS = EBOOK_VIEW_CARGOS;
+
+export function canAccessCatalogoGestao(cargo: string | null | undefined): boolean {
+  if (!cargo) return false;
+  const key = normalizeCargoKey(cargo);
+  return CATALOGO_GESTAO_CARGOS.some((c) => normalizeCargoKey(c) === key);
+}
+
 /** @deprecated Senha do dia é liberada para todos os usuários logados (internos e externos). */
 export function canViewSenhaDoDia(_cargo?: string | null): boolean {
   return true;
@@ -608,7 +617,7 @@ export function userHasSectionAccess(
     return true;
   }
 
-  // Catálogo: section liberada; gate de interno fica no hub/página
+  // Catálogo: liberado no hub (interno + externo); gestão/filtro de indústria na página
   if (sectionId === 'merchandising.catalogo') {
     return true;
   }

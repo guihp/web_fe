@@ -32,7 +32,6 @@ const MERCH_CARDS: {
   internoOnly?: boolean;
   encartesOnly?: boolean;
   ebookOnly?: boolean;
-  catalogoOnly?: boolean;
 }[] = [
   {
     id: 'treinamentos',
@@ -105,13 +104,11 @@ const MERCH_CARDS: {
     id: 'catalogo-industrias',
     title: 'Catálogo das indústrias',
     description:
-      'Catálogo interno de produtos e indústrias. Gestão e Google Drive usam login Google separado (master/editor).',
+      'Consulta de produtos por indústria. Gestão (Google Drive) só para cargos admin internos.',
     path: '/merchandising/catalogo',
     tone: 'green',
     icon: 'factory',
     section: 'merchandising.catalogo',
-    internoOnly: true,
-    catalogoOnly: true,
   },
 ];
 
@@ -130,7 +127,6 @@ export default function Merchandising() {
     if (card.internoOnly && !interno) return false;
     if (card.encartesOnly && !canLancarEncartes(user?.cargo)) return false;
     if (card.ebookOnly && !canViewEbook(user?.cargo)) return false;
-    if (card.catalogoOnly && !interno) return false;
     if (!card.section) return true;
     return userHasSectionAccess(user?.cargo ?? '', user?.secoes_acesso, card.section);
   });
