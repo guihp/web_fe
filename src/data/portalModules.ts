@@ -82,6 +82,12 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
         path: '/merchandising/ebook',
         icon: 'archive',
       },
+      {
+        id: 'merchandising.catalogo',
+        title: 'Catálogo das indústrias',
+        path: '/merchandising/catalogo',
+        icon: 'factory',
+      },
     ],
   },
   {
@@ -599,6 +605,11 @@ export function userHasSectionAccess(
 
   // Fazer pesquisa: liberado no hub para internos (gate de tipo_usuario na página/card)
   if (sectionId === 'merchandising.pesquisas') {
+    return true;
+  }
+
+  // Catálogo: section liberada; gate de interno fica no hub/página
+  if (sectionId === 'merchandising.catalogo') {
     return true;
   }
 

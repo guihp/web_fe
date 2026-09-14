@@ -20,8 +20,6 @@ import {
 import './Administrador.css';
 import './Merchandising.css';
 
-const CATALOGO_INDUSTRIAS_URL = 'https://catalogo-fe.vercel.app/';
-
 const MERCH_CARDS: {
   id: string;
   title: string;
@@ -34,6 +32,7 @@ const MERCH_CARDS: {
   internoOnly?: boolean;
   encartesOnly?: boolean;
   ebookOnly?: boolean;
+  catalogoOnly?: boolean;
 }[] = [
   {
     id: 'treinamentos',
@@ -106,11 +105,13 @@ const MERCH_CARDS: {
     id: 'catalogo-industrias',
     title: 'Catálogo das indústrias',
     description:
-      'Abre o catálogo em nova aba (site próprio). O painel permanece logado; o catálogo pode pedir login separado.',
-    externalUrl: CATALOGO_INDUSTRIAS_URL,
+      'Catálogo interno de produtos e indústrias. Gestão e Google Drive usam login Google separado (master/editor).',
+    path: '/merchandising/catalogo',
     tone: 'green',
     icon: 'factory',
+    section: 'merchandising.catalogo',
     internoOnly: true,
+    catalogoOnly: true,
   },
 ];
 
@@ -129,6 +130,7 @@ export default function Merchandising() {
     if (card.internoOnly && !interno) return false;
     if (card.encartesOnly && !canLancarEncartes(user?.cargo)) return false;
     if (card.ebookOnly && !canViewEbook(user?.cargo)) return false;
+    if (card.catalogoOnly && !interno) return false;
     if (!card.section) return true;
     return userHasSectionAccess(user?.cargo ?? '', user?.secoes_acesso, card.section);
   });

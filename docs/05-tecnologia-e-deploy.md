@@ -52,7 +52,35 @@ Opcional (Web Push):
 4. Healthcheck: `GET /health` → `ok`.
 5. Definir as variáveis Supabase como build args / env de build.
 6. Para push notifications: incluir `VITE_VAPID_PUBLIC_KEY` no build.
-7. Redeploy: push em `main` dispara o Coolify se o app estiver com webhook GitHub. Sem migration nova nesta entrega (usa a tabela `pesquisa` já existente).
+7. Redeploy: push em `main` dispara o Coolify se o app estiver com webhook GitHub.
+
+### Catálogo das indústrias (interno)
+
+- Front estático: `public/catalogo/` → servido em `/catalogo/`.
+- Hub: `/merchandising/catalogo` (iframe).
+- API same-origin: nginx faz proxy de `/api/catalog` e `/api/product-image` para as Edge Functions `catalogo-catalog` e `catalogo-product-image`.
+- Dados: tabela `catalogo_fe_kv` (Postgres). Migration: `supabase/migrations/20260914180000_catalogo_fe_kv.sql`.
+- Local (`npm run dev`): Vite proxy em `vite.config.ts` aponta as mesmas rotas `/api/*` para o Supabase.
+
+#### Google OAuth (obrigatório para Drive / gestão)
+
+No [Google Cloud Console](https://console.cloud.google.com/apis/credentials) → Client ID do catálogo (`1084907924579-93i3dfhtnvckmhrh4mc7n2rtl4rmet5s...`):
+
+**Origens JavaScript autorizadas** (sem path, sem barra no final):
+
+- `http://localhost:5173` (dev Vite)
+- `https://SEU-DOMINIO-COOLIFY` (produção; use exatamente a URL pública do app)
+
+**URI de redirecionamento autorizados** (se o Console pedir):
+
+- `http://localhost:5173`
+- `https://SEU-DOMINIO-COOLIFY`
+
+Sem a origem de produção o login Google falha com `origin_mismatch` após o deploy.
+
+Visualizar imagens já gravadas no Drive (Ruppers / Tourinho / Precioso) **não** exige OAuth. OAuth é só para gestão/upload.
+
+Não há runtime Vercel no fluxo de produção do catálogo.
 
 ## PWA
 

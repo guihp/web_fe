@@ -18,6 +18,7 @@ import LancarVencimentos from './pages/LancarVencimentos';
 import LancarEncartes from './pages/LancarEncartes';
 import FazerPesquisa from './pages/FazerPesquisa';
 import EbookDigital from './pages/EbookDigital';
+import CatalogoIndustrias from './pages/CatalogoIndustrias';
 import Financeiro from './pages/Financeiro';
 import Administrador from './pages/Administrador';
 import AdminClientes from './pages/admin/AdminClientes';
@@ -49,6 +50,7 @@ export default function App() {
           <Route path="/merchandising/encartes" element={<LancarEncartes />} />
           <Route path="/merchandising/pesquisas" element={<FazerPesquisa />} />
           <Route path="/merchandising/ebook" element={<EbookDigital />} />
+          <Route path="/merchandising/catalogo" element={<CatalogoIndustrias />} />
           <Route path="/fe-representacoes" element={<FeRepresentacoes />} />
           <Route path="/fe-representacoes/price" element={<Price />} />
           <Route path="/fe-representacoes/sucesso-cliente" element={<AdminSucessoCliente />} />

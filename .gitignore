@@ -23,3 +23,16 @@ yarn-error.*
 # temp media / extracted frames
 assets/lojas-frames/
 assets/metas-frames/
+
+# local catalog/build scratch
+.tmp-*/
+.tmp-*.sql
+scripts/.catalogo-*
+scripts/.deploy-*
+scripts/catalogo-seed*
+scripts/catalogo-live-import.*
+scripts/catalogo-seed-batches/
+scripts/validades-*
+supabase/.temp/
+_UL.css
+

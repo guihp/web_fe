@@ -1,0 +1,33 @@
+.catalogo-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  min-height: calc(100dvh - 120px);
+  box-sizing: border-box;
+}
+
+.catalogo-frame {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: min(78dvh, 920px);
+  height: calc(100dvh - 160px);
+  border: 0;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 1px 0 color-mix(in srgb, #1a1a1a 8%, transparent);
+}
+
+@media (max-width: 780px) {
+  .catalogo-page {
+    gap: 8px;
+    min-height: calc(100dvh - 108px);
+  }
+
+  .catalogo-frame {
+    min-height: calc(100dvh - 148px);
+    height: calc(100dvh - 148px);
+    border-radius: 8px;
+  }
+}

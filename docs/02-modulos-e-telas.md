@@ -23,7 +23,7 @@ Hub: `/merchandising`
 | Lançar promoções/encarte | `/merchandising/encartes` | **Gerente / Supervisor / Analista admin:** importar Excel e lançar encartes na operação |
 | Fazer pesquisa | `/merchandising/pesquisas` | **Internos:** lançar pesquisa interna ou externa (mesma tabela `pesquisa` do Price). Promotor/Demonstradora escolhem só lojas cadastradas; demais internos, todas. Câmera/OCR fica para etapa seguinte. |
 | Ebook digital | `/merchandising/ebook` | **Gerente / Supervisor / Analista admin / RH:** galeria de fotos de `atividade_dia` (antes/depois no Storage), filtros, miniaturas e PDF das selecionadas. Sem webhook. |
-| Catálogo das indústrias | [catalogo-fe.vercel.app](https://catalogo-fe.vercel.app/) | **Só internos:** balão no hub Merchandising; abre em **nova aba**. O painel web continua com a sessão; o catálogo é outro site e pode exigir login próprio. |
+| Catálogo das indústrias | `/merchandising/catalogo` | **Só internos:** catálogo embutido (`/catalogo/`), API via nginx → Edge Functions Supabase. Gestão/Drive usam login Google separado (master/editor). |
 
 No hub **Merchandising**, **todos** os usuários logados (internos e externos) veem o bloco **Senha do dia** (tabela `senhas`, calendário de hoje em America/Sao_Paulo).
 

@@ -53,5 +53,18 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+    proxy: {
+      '/api/catalog': {
+        target: 'https://sjapbromslgohlxcndrj.supabase.co',
+        changeOrigin: true,
+        rewrite: () => '/functions/v1/catalogo-catalog',
+      },
+      '/api/product-image': {
+        target: 'https://sjapbromslgohlxcndrj.supabase.co',
+        changeOrigin: true,
+        rewrite: (path) =>
+          path.replace(/^\/api\/product-image/, '/functions/v1/catalogo-product-image'),
+      },
+    },
   },
 });
