@@ -414,6 +414,8 @@
       '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>',
     arrow:
       '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-5-5 5 5-5 5"/></svg>',
+    back:
+      '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M19 12H5m5-5-5 5 5 5"/></svg>',
     package:
       '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="m4 7 8-4 8 4-8 4-8-4Z"/><path d="m4 7 8 4 8-4v10l-8 4-8-4V7Z"/><path d="M12 11v10"/></svg>',
     print:
@@ -1108,9 +1110,14 @@
     var content =
       '<section class="page-hero">' +
       '<div class="container">' +
+      '<div class="page-back-row">' +
+      '<a class="page-back-link" href="#/catalogo">' +
+      icons.back +
+      "<span>Voltar ao catálogo</span></a>" +
       '<nav class="breadcrumb" aria-label="Navegação estrutural"><a href="#/catalogo">Catálogo</a><span aria-hidden="true">/</span><span>' +
       industry.name +
       "</span></nav>" +
+      "</div>" +
       '<div class="page-heading-card">' +
       '<div class="page-heading"><p class="eyebrow">Produtos por indústria</p><h1>' +
       industry.name +

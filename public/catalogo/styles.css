@@ -521,8 +521,49 @@ img {
   padding: 44px 0 22px;
 }
 
-.breadcrumb {
+.page-back-row {
   margin-bottom: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 18px;
+}
+
+.page-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 8px 14px;
+  border: 1px solid #e6e0d9;
+  border-radius: 999px;
+  background: #fff;
+  color: var(--ink);
+  font-size: 0.86rem;
+  font-weight: 650;
+  text-decoration: none;
+  box-shadow: var(--shadow-sm);
+  transition: background-color 160ms ease, border-color 160ms ease, color 160ms ease;
+}
+
+.page-back-link svg {
+  width: 18px;
+  height: 18px;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.page-back-link:hover {
+  border-color: color-mix(in srgb, var(--brand-orange) 35%, #e6e0d9);
+  color: var(--brand-orange-dark);
+  background: #fff8f2;
+}
+
+.breadcrumb {
+  margin: 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1655,6 +1696,17 @@ img {
 }
 
 @media (max-width: 700px) {
+  .page-back-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .page-back-link {
+    width: 100%;
+    justify-content: center;
+  }
+
   .header-inner,
   .container {
     width: min(calc(100% - 28px), var(--content-width));
@@ -1975,6 +2027,7 @@ img {
   .site-header,
   .site-footer,
   .breadcrumb,
+  .page-back-row,
   .product-toolbar,
   .button,
   .toast {
