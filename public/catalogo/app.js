@@ -80,6 +80,19 @@
     return "#/catalogo";
   }
 
+  /** Com escopo de indústria (externo), "voltar" sai do iframe para o hub Merchandising. */
+  function portalExitHref() {
+    return scopedIndustrySlug ? "/merchandising" : catalogHomeHash();
+  }
+
+  function portalExitLinkAttrs() {
+    return scopedIndustrySlug ? ' target="_parent" rel="noopener"' : "";
+  }
+
+  function portalBackLabel() {
+    return scopedIndustrySlug ? "Voltar ao Merchandising" : "Voltar ao catálogo";
+  }
+
   function getVisibleIndustries() {
     if (!scopedIndustrySlug) {
       return state.industries;
@@ -1162,13 +1175,19 @@
       '<div class="container">' +
       '<div class="page-back-row">' +
       '<a class="page-back-link" href="' +
-      catalogHomeHash() +
-      '">' +
+      portalExitHref() +
+      '"' +
+      portalExitLinkAttrs() +
+      ">" +
       icons.back +
-      "<span>Voltar ao catálogo</span></a>" +
+      "<span>" +
+      portalBackLabel() +
+      "</span></a>" +
       '<nav class="breadcrumb" aria-label="Navegação estrutural"><a href="' +
-      catalogHomeHash() +
-      '">Catálogo</a><span aria-hidden="true">/</span><span>' +
+      portalExitHref() +
+      '"' +
+      portalExitLinkAttrs() +
+      ">Catálogo</a><span aria-hidden=\"true\">/</span><span>" +
       industry.name +
       "</span></nav>" +
       "</div>" +
