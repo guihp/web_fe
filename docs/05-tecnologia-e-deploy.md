@@ -54,13 +54,16 @@ Opcional (Web Push):
 6. Para push notifications: incluir `VITE_VAPID_PUBLIC_KEY` no build.
 7. Redeploy: push em `main` dispara o Coolify se o app estiver com webhook GitHub.
 
-### Catálogo das indústrias (interno)
+### Catálogo das indústrias (interno ao App)
+
+**Produto / crédito:** desenhado por **Matheus Lucas** (Analista de Marketing); 1ª versão com apoio de **Helry Araujo Rodrigues**. Produção atual: **dentro do painel** (Coolify), sem runtime Vercel.
 
 - Front estático: `public/catalogo/` → servido em `/catalogo/`.
-- Hub: `/merchandising/catalogo` (iframe).
+- Hub: `/merchandising/catalogo` (iframe same-origin).
 - API same-origin: nginx faz proxy de `/api/catalog` e `/api/product-image` para as Edge Functions `catalogo-catalog` e `catalogo-product-image`.
 - Dados: tabela `catalogo_fe_kv` (Postgres). Migration: `supabase/migrations/20260914180000_catalogo_fe_kv.sql`.
 - Local (`npm run dev`): Vite proxy em `vite.config.ts` aponta as mesmas rotas `/api/*` para o Supabase.
+- Escopo de UI: query `?gestao=1` / `?industry=slug` conforme cargo e tipo de usuário (portal).
 
 #### Google OAuth (obrigatório para Drive / gestão)
 

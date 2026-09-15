@@ -14,7 +14,8 @@
 9. Promotor/Demonstradora têm até **7 lojas** em `usuario_lojas`. Em Atividades: check-in na loja (cidade/UF automáticos da tabela `lojas`, sem GPS), escolha de indústria e fotos antes/depois. Antes do envio, confirma com prévia das fotos + senha do dia — após confirmar é **irreversível**; a senha grava em `atividade_dia.senha_do_dia`.
 10. Balão **Fé Representações** concentra Price, Sucesso, Avisos (Gerente) e Vendas; no cadastro interno, Vendas pode ser liberada ou não por seção.
 11. Balão **Merchandising** inclui **Fazer pesquisa** para todos os usuários internos (não indústria/cliente).
-12. **Ebook digital** (/merchandising/ebook): só **Gerente**, **Supervisor**, **Analista admin** e **RH**. Fotos vêm de tividade_dia + URLs públicas do bucket tividade-fotos (sem webhook). PDF só das miniaturas selecionadas.
+12. **Ebook digital** (/merchandising/ebook): só **Gerente**, **Supervisor**, **Analista admin** e **RH**. Fotos vêm de `atividade_dia` + URLs públicas do bucket `atividade-fotos` (sem webhook). PDF só das miniaturas selecionadas.
+13. **Catálogo das indústrias** (`/merchandising/catalogo`): consulta no App para internos e externos. **Acesso master** (gestão/Drive) só Gerente / Supervisor / RH / Analista admin internos. Externo indústria = só o próprio catálogo; externo cliente = todos. Sem gestão para externos.
 
 ## Avisos
 
@@ -41,10 +42,11 @@
 
 1. Listagem paginada com filtros (UF, indústria, mês de vencimento, status, ordenação).
 2. Status “menos de 1 mês” = vence nos próximos 30 dias; “já vencido” = data anterior a hoje.
-3. Exportação XLSX: só usuários internos (não externos).
+3. Exportação XLSX: só usuários internos (não externos); coluna loja no formato `código - nome`.
 4. Para cliente externo, o vínculo é pelo **texto do campo loja** contendo o grupo (não há CNPJ na tabela de validades).
 5. **Registrar venda** só **Gerente**, **Supervisor** e **Analista admin**: parcial reduz `qtde_unit`; total marca `todos_vendidos` (some da lista daquela loja). Gráfico agrega por produto no mês — some do gráfico só se zerar em todas as lojas.
 6. Registros com `todos_vendidos = true` (ou qtde 0) não aparecem na lista/gráfico/exportação ativa.
+7. Exibição da loja na lista/modal/Excel: `código - nome` (cadastro `lojas`), no mesmo padrão do Lançar vencimentos.
 ## Sucesso do cliente
 
 1. Cards nascem das vendas (`baseVendas`).

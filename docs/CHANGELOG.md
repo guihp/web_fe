@@ -2,6 +2,17 @@
 
 Formato: mais recente no topo.
 
+## 2026-09-15
+
+### App
+- **Validades:** coluna Loja (lista, modal de venda e exportação Excel) no formato `código - nome` (igual ao Lançar vencimentos), cruzando com o cadastro `lojas`.
+- **Catálogo das indústrias:** roda embutido no App (`/merchandising/catalogo` → `/catalogo/`); sem Vercel. Ajustes de navegação “voltar”, branding (isotipo Fé), layout mobile e escopo de acesso.
+- Catálogo — acesso: **Acesso master** só Gerente / Supervisor / RH / Analista admin (internos). Externo **indústria** vê só a própria; externo **cliente** vê todas; externos sem gestão/Drive.
+
+### Documentação
+- Créditos do catálogo: desenhado por **Matheus Lucas** (Analista de Marketing); 1ª versão com apoio de **Helry Araujo Rodrigues**; hoje integrado ao painel.
+- Atualizados `README`, `00`, `01`, `02`, `04`, `05` e este changelog para o estado atual (catálogo interno + Validades com código de loja).
+
 ## 2026-09-14
 
 ### App
@@ -12,10 +23,11 @@ Formato: mais recente no topo.
 ### Documentação
 - Módulos e deploy: catálogo Coolify + checklist Google OAuth (`localhost:5173` e domínio de produção).
 - Regras de acesso do catálogo por cargo/tipo de usuário.
+
 ## 2026-09-09
 
 ### App
-- **Ebook digital** (/merchandising/ebook): galeria de fotos dos promotores a partir de tividade_dia + Storage (tividade-fotos), com filtros, miniaturas selecionáveis e PDF das selecionadas. Acesso: Gerente, Supervisor, Analista admin e RH.
+- **Ebook digital** (/merchandising/ebook): galeria de fotos dos promotores a partir de `atividade_dia` + Storage (`atividade-fotos`), com filtros, miniaturas selecionáveis e PDF das selecionadas. Acesso: Gerente, Supervisor, Analista admin e RH.
 - Ebook: senha do dia no viewer/PDF; PDF mais leve; dica de filtros (indústria/UF/DEPOIS); responsivo e tema claro/escuro no modal.
 - Ebook mobile: filtros recolhíveis, miniaturas alinhadas acima dos filtros e espaço para o FAB do menu.
 - Textos de UI: removido traço longo (—) de mensagens visíveis.

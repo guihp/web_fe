@@ -13,7 +13,12 @@ Todos abaixo são colaboradores da **IAFE TECH**.
 | Papel | Nome |
 |-------|------|
 | Autores do projeto | **Helry Araujo Rodrigues**, **Guilherme Barros** |
+| Catálogo das indústrias (design / 1ª versão) | **Matheus Lucas** (Analista de Marketing), com apoio de **Helry Araujo Rodrigues** |
 | Colaborador (Assistente IA) | **Cursor** |
+
+### Catálogo das indústrias — origem
+
+O **Catálogo das indústrias** foi desenhado pelo analista de marketing **Matheus Lucas**. Ele criou a **primeira versão** com a ajuda de **Helry Araujo Rodrigues**. Hoje o catálogo **roda dentro do App** (Merchandising → Catálogo das indústrias), servido pelo mesmo deploy Coolify — sem site Vercel separado.
 
 ## Como usar
 

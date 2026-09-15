@@ -47,7 +47,8 @@ Cada usuário interno tem um JSON de acesso (`nivel_acesso`) com:
 Regras importantes:
 
 - **Validades** fica liberada para usuários internos autenticados (seção sempre disponível).
-- Externos **não** escolhem seções: recebem fixo Validades + Atividades + Sucesso do cliente + **Price** (sem Vendas).
+- **Catálogo das indústrias** (`/merchandising/catalogo`): consulta liberada a internos e externos no hub Merchandising. **Acesso master** (gestão) só Gerente / Supervisor / RH / Analista admin (internos).
+- Externos **não** escolhem seções: recebem fixo Validades + Atividades + Sucesso do cliente + **Price** (sem Vendas); catálogo conforme escopo abaixo.
 - Externos entram em **modo somente leitura** (`somente_leitura`).
 - No card **Fé Representações**, o Gerente libera Price/Sucesso e pode **marcar ou não** as telas de Vendas por usuário.
 
@@ -59,12 +60,14 @@ Regras importantes:
 - Vê **atividades** dos promotores dessa indústria (somente leitura).
 - Vê pedidos do Sucesso do cliente dessa indústria.
 - Vê **Price** (internas e externas) só com produtos da **própria indústria** (campo `industria`).
+- No **Catálogo das indústrias**, vê **somente o catálogo da própria indústria** (sem Acesso master).
 - Não exporta planilha de validades/price; não edita custos.
 - Não arrasta status no kanban; não cria/edita atividades.
 
 ### Cliente
 
 - **Grupo** (ex.: `MATEUS`): filtra validades pelo **nome da loja** contendo o grupo.
+- No **Catálogo das indústrias**, vê **todos** os catálogos (consulta; sem acesso master).
 - No Sucesso do cliente: pedidos cujo **cliente** contém o grupo e/ou **CNPJ** com a mesma raiz do CNPJ de login.
 - No **Price**: lojas do grupo — para **MATEUS**, inclui nomes curtos das bandeiras (`Mix …`, `Super Castanhal`, etc.), não só o texto “MATEUS”.
 - Nas **Atividades**: só lojas do grupo (mesmos tokens de bandeira quando aplicável).

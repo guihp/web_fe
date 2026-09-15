@@ -4,7 +4,7 @@
 
 O **Painel Web da Fé Merchandising** é o sistema usado pela operação e gestão para acompanhar:
 
-- Merchandising em loja (treinamentos, atividades, pesquisa, validades)
+- Merchandising em loja (treinamentos, atividades, pesquisa, validades, **catálogo das indústrias**)
 - Representações / comercial (Price, Sucesso do cliente, vendas)
 - Financeiro (contratos, composição, comissões)
 - Administração (usuários, indústrias, filiais, regionais, etc.)
@@ -41,3 +41,5 @@ Há também um **aplicativo mobile** separado para alguns perfis de campo; este 
 ## Créditos (só documentação)
 
 O painel foi criado pela **IAFE TECH**. Autores e colaboração (todos colaboradores da IAFE TECH) estão listados em [`docs/README.md`](./README.md). Essa informação **não é exibida** nas telas do aplicativo.
+
+O **Catálogo das indústrias** foi desenhado por **Matheus Lucas** (Analista de Marketing); a primeira versão foi feita com a ajuda de **Helry Araujo Rodrigues**. Hoje o catálogo **roda dentro do App** (Merchandising), no mesmo deploy Coolify.

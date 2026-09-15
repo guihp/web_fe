@@ -19,21 +19,29 @@ Hub: `/merchandising`
 | Treinamentos | `/treinamento` | Materiais e PDFs de capacitação |
 | Atividades | `/atividades` | Gestores: visitas enviadas aos promotores. **Promotor/Demonstradora:** Meu roteiro (lojas vinculadas → check-in → indústria → fotos antes/depois; sem GPS). Antes de enviar, confirma com prévia das fotos + senha do dia (irreversível). |
 | Lançar vencimentos | `/atividades/lancar-vencimentos` | Formulário de validade (internos); código reduzido preenche produto/indústria via `codigos`; envia ao webhook n8n `comercial1` |
-| Validades | `/validades` | Lista + gráfico dos produtos que mais venceram no mês; filtros UF, indústria, mês, status e ordenação; exportação (internos); externos só o próprio escopo |
+| Validades | `/validades` | Lista + gráfico dos produtos que mais venceram no mês; filtros UF, indústria, mês, status e ordenação; loja no formato `código - nome`; exportação (internos); externos só o próprio escopo |
 | Lançar promoções/encarte | `/merchandising/encartes` | **Gerente / Supervisor / Analista admin:** importar Excel e lançar encartes na operação |
 | Fazer pesquisa | `/merchandising/pesquisas` | **Internos:** lançar pesquisa interna ou externa (mesma tabela `pesquisa` do Price). Promotor/Demonstradora escolhem só lojas cadastradas; demais internos, todas. Câmera/OCR fica para etapa seguinte. |
 | Ebook digital | `/merchandising/ebook` | **Gerente / Supervisor / Analista admin / RH:** galeria de fotos de `atividade_dia` (antes/depois no Storage), filtros, miniaturas e PDF das selecionadas. Sem webhook. |
-| Catálogo das indústrias | `/merchandising/catalogo` | Consulta para internos e externos. **Acesso master** só Gerente / Supervisor / RH / Analista admin (internos). Externo **indústria** vê só a própria; externo **cliente** vê todas. Gestão/Drive usam login Google separado. |
+| Catálogo das indústrias | `/merchandising/catalogo` | Consulta **dentro do App** (iframe de `/catalogo/`). **Acesso master** só Gerente / Supervisor / RH / Analista admin (internos). Externo **indústria** vê só a própria; externo **cliente** vê todas. Gestão/Drive usam login Google separado. |
 
 No hub **Merchandising**, **todos** os usuários logados (internos e externos) veem o bloco **Senha do dia** (tabela `senhas`, calendário de hoje em America/Sao_Paulo).
+
+### Catálogo das indústrias — detalhes
+
+- **Origem:** desenhado pelo analista de marketing **Matheus Lucas**; primeira versão criada com apoio de **Helry Araujo Rodrigues**. Hoje roda **embutido no painel** (mesmo domínio / Coolify), não em site externo.
+- Hub abre `/merchandising/catalogo`; assets em `public/catalogo/`; API same-origin (`/api/catalog`, `/api/product-image`) via Edge Functions Supabase.
+- Botão voltar retorna ao Merchandising (`target="_parent"` quando em iframe).
+- Externos não veem **Acesso master** / gestão; escopo por tipo (indústria vs cliente) conforme regras de acesso.
 
 ### Validades — detalhes
 
 - Destaca itens a vencer em menos de 30 dias e itens já vencidos.
+- Coluna **Loja** (e Excel / modal de venda): formato `código - nome` (ex.: `1 - MATEUS SUPERMERCADOS S.A. - BALSAS`), alinhado ao Lançar vencimentos; resolve pelo cadastro `lojas`.
 - Ordenação: **vencimento** (padrão), **últimas lançadas → primeiras** ou **primeiras → últimas** (campo `created_at`).
 - Toggle **Lista / Gráfico**: ranking dos produtos que **mais venceram** no mês (soma de `qtde_unit`), top 12; filtros UF/indústria/mês; externos só veem o próprio escopo.
 - **Registrar venda** (só **Gerente**, **Supervisor**, **Analista admin**): venda parcial reduz `qtde_unit`; **tudo vendido** marca `todos_vendidos` e some da lista **daquela loja**. No gráfico, a quantidade do produto cai; o produto só some do gráfico do mês se zerar em **todas** as lojas.
-- Exportar dados: disponível para internos; bloqueado para externos.
+- Exportar dados: disponível para internos; bloqueado para externos; Excel inclui o código da loja no mesmo formato da tela.
 - Externos só veem o recorte da indústria ou do grupo de lojas.
 
 ### Atividades — detalhes (externos)
