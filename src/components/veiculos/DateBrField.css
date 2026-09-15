@@ -1,0 +1,73 @@
+.gv-date-br {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.gv-date-br-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.gv-date-br-wrap {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  width: 100%;
+  min-width: 0;
+}
+
+.gv-date-br-wrap input[type='text'] {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-family: inherit;
+  background: var(--input-bg);
+  color: var(--text);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.gv-date-br-wrap input[type='text']:focus {
+  border-color: #0f766e;
+}
+
+.gv-date-br-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gv-date-br-cal {
+  flex: 0 0 48px;
+  width: 48px;
+  min-height: 48px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2, var(--surface));
+  color: var(--text);
+  cursor: pointer;
+  padding: 0;
+  font-size: 1.1rem;
+}
+
+.gv-date-br-cal:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

@@ -1066,16 +1066,15 @@ export async function acaoAprovacao(
     await supabase
       .from('veiculo_responsabilidades')
       .update({
-        status: input.acao === 'confirmar_debito' ? 'finalizado' : 'entregue',
+        status: 'finalizado',
         updated_at: new Date().toISOString(),
       })
       .eq('id', entrega.responsabilidade_id);
-    if (input.acao === 'confirmar_debito') {
-      await supabase
-        .from('veiculos')
-        .update({ situacao: 'disponivel', updated_at: new Date().toISOString() })
-        .eq('id', entrega.veiculo_id);
-    }
+    // Veículo já foi entregue fisicamente; aprovação libera a frota
+    await supabase
+      .from('veiculos')
+      .update({ situacao: 'disponivel', updated_at: new Date().toISOString() })
+      .eq('id', entrega.veiculo_id);
   }
 
   await audit({

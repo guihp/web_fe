@@ -4,6 +4,7 @@ import BackToPortal from '../components/layout/BackToPortal';
 import HodometroFotoField from '../components/veiculos/HodometroFotoField';
 import ExcluirVeiculoModal from '../components/veiculos/ExcluirVeiculoModal';
 import VeiculoFilePicker from '../components/veiculos/VeiculoFilePicker';
+import DateBrField from '../components/veiculos/DateBrField';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import {
@@ -62,6 +63,35 @@ type TabId =
   | 'config'
   | 'historico'
   | 'relatorios';
+
+function labelStatusEntrega(status: string): string {
+  const map: Record<string, string> = {
+    rascunho: 'Rascunho',
+    veiculo_retirado: 'Veículo retirado',
+    aguardando_aprovacao: 'Aguardando aprovação',
+    correcao_solicitada: 'Correção solicitada',
+    rejeitado: 'Rejeitado',
+    aprovado: 'Aprovado',
+    finalizado: 'Finalizado',
+  };
+  return map[status] ?? status;
+}
+
+function toneStatusEntrega(status: string): 'ok' | 'warn' | 'err' | 'info' | 'muted' {
+  if (status === 'aprovado' || status === 'finalizado') return 'ok';
+  if (status === 'rejeitado') return 'err';
+  if (status === 'correcao_solicitada' || status === 'aguardando_aprovacao') return 'warn';
+  if (status === 'veiculo_retirado') return 'info';
+  return 'muted';
+}
+
+function StatusEntregaBadge({ status }: { status: string }) {
+  return (
+    <span className={`gv-status-badge gv-status-${toneStatusEntrega(status)}`}>
+      {labelStatusEntrega(status)}
+    </span>
+  );
+}
 
 function emptyVeiculo(): VeiculoInput {
   return {
@@ -667,12 +697,13 @@ function MeusVeiculosPanel({
               {entregasUser.map((e) => (
                 <li key={e.id}>
                   <div>
-                    <strong>
-                      {e.veiculos?.placa} · {e.status}
-                    </strong>
-                    <span className="gv-muted">
-                      {formatDateBR(e.entrega_em)} · {formatMoneyBR(e.total_estimado)}
-                    </span>
+                    <strong>{e.veiculos?.placa}</strong>
+                    <div className="gv-list-meta">
+                      <StatusEntregaBadge status={e.status} />
+                      <span className="gv-muted">
+                        {formatDateBR(e.entrega_em)} · {formatMoneyBR(e.total_estimado)}
+                      </span>
+                    </div>
                     {e.status === 'aprovado' && (
                       <p className="gv-ok">
                         Prestação de contas aprovada. Os dados e valores da entrega foram confirmados.
@@ -768,6 +799,16 @@ function MeusVeiculosPanel({
             onKmChange={setKmIni}
             kmIa={kmIniIa}
           />
+          {!fotoIni && (
+            <p className="gv-warn">
+              É obrigatório anexar a foto do hodômetro para confirmar a retirada. O envio da foto já
+              funciona; só a leitura automática por IA ainda não.
+            </p>
+          )}
+          <p className="gv-muted">
+            Comprovantes de abastecimento, lavagem ou notas fiscais entram na etapa de{' '}
+            <strong>entrega</strong> do veículo (depois da retirada), não nesta tela.
+          </p>
           <label>
             Nível inicial de combustível
             <select value={combIni} onChange={(e) => setCombIni(e.target.value)}>
@@ -795,7 +836,18 @@ function MeusVeiculosPanel({
             <button type="button" className="gv-btn" onClick={() => setMode('list')}>
               Voltar
             </button>
-            <button type="submit" className="gv-btn primary" disabled={!fotoIni || !kmIni}>
+            <button
+              type="submit"
+              className="gv-btn primary"
+              disabled={!fotoIni || !kmIni}
+              title={
+                !fotoIni
+                  ? 'Anexe a foto do hodômetro para continuar'
+                  : !kmIni
+                    ? 'Informe a quilometragem'
+                    : undefined
+              }
+            >
               Confirmar retirada
             </button>
           </div>
@@ -872,14 +924,11 @@ function MeusVeiculosPanel({
                       onChange={(e) => setLavagemValor(e.target.value)}
                     />
                   </label>
-                  <label>
-                    Data
-                    <input
-                      type="date"
-                      value={lavagemData}
-                      onChange={(e) => setLavagemData(e.target.value)}
-                    />
-                  </label>
+                  <DateBrField
+                    label="Data"
+                    valueIso={lavagemData}
+                    onChangeIso={setLavagemData}
+                  />
                   <label>
                     Estabelecimento
                     <input value={lavagemEst} onChange={(e) => setLavagemEst(e.target.value)} />
@@ -1034,7 +1083,7 @@ function AbastecimentoForm({
   const [nota, setNota] = useState('');
   return (
     <div className="gv-abast-form">
-      <input type="date" value={data} onChange={(e) => setData(e.target.value)} />
+      <DateBrField valueIso={data} onChangeIso={setData} />
       <input
         type="number"
         placeholder="Valor"
@@ -1101,6 +1150,7 @@ function AprovacaoPanel({
   const [rows, setRows] = useState<VeiculoEntrega[]>([]);
   const [filtro, setFiltro] = useState('');
   const [detailId, setDetailId] = useState<string | null>(null);
+  const [detailVersion, setDetailVersion] = useState(0);
   const [just, setJust] = useState('');
   const [valorNovo, setValorNovo] = useState('');
 
@@ -1127,7 +1177,8 @@ function AprovacaoPanel({
     return (
       (r.veiculos?.placa ?? '').toLowerCase().includes(q) ||
       String(r.usuario_id).includes(q) ||
-      r.status.includes(q)
+      r.status.includes(q) ||
+      labelStatusEntrega(r.status).toLowerCase().includes(q)
     );
   });
 
@@ -1148,9 +1199,12 @@ function AprovacaoPanel({
                 <strong>
                   {e.veiculos?.placa} · {formatMoneyBR(e.total_estimado)}
                 </strong>
-                <span className="gv-muted">
-                  {e.status} · {formatDateBR(e.entrega_em)} · user #{e.usuario_id}
-                </span>
+                <div className="gv-list-meta">
+                  <StatusEntregaBadge status={e.status} />
+                  <span className="gv-muted">
+                    {formatDateBR(e.entrega_em)} · user #{e.usuario_id}
+                  </span>
+                </div>
               </div>
               <button type="button" className="gv-btn" onClick={() => setDetailId(e.id)}>
                 Abrir
@@ -1162,6 +1216,7 @@ function AprovacaoPanel({
       {detailId && (
         <AprovacaoDetalhe
           id={detailId}
+          refreshKey={detailVersion}
           just={just}
           setJust={setJust}
           valorNovo={valorNovo}
@@ -1178,10 +1233,14 @@ function AprovacaoPanel({
                 },
                 actor,
               );
-              onToast('Ação registrada.', 'success');
+              const msg =
+                acao === 'aprovar'
+                  ? 'Prestação aprovada. Veículo liberado na frota.'
+                  : 'Ação registrada.';
+              onToast(msg, 'success');
               setJust('');
-              setDetailId(null);
               await load();
+              setDetailVersion((n) => n + 1);
             } catch (err) {
               onToast(err instanceof Error ? err.message : 'Erro.', 'error');
             }
@@ -1194,6 +1253,7 @@ function AprovacaoPanel({
 
 function AprovacaoDetalhe({
   id,
+  refreshKey,
   just,
   setJust,
   valorNovo,
@@ -1202,6 +1262,7 @@ function AprovacaoDetalhe({
   onAction,
 }: {
   id: string;
+  refreshKey: number;
   just: string;
   setJust: (s: string) => void;
   valorNovo: string;
@@ -1211,15 +1272,34 @@ function AprovacaoDetalhe({
 }) {
   const [data, setData] = useState<Awaited<ReturnType<typeof fetchEntregaDetalhe>> | null>(null);
   useEffect(() => {
+    setData(null);
     void fetchEntregaDetalhe(id).then(setData);
-  }, [id]);
+  }, [id, refreshKey]);
+
   if (!data) return <div className="gv-card">Carregando…</div>;
   const { entrega, retirada } = data;
+  const encerrada = entrega.status === 'aprovado' || entrega.status === 'finalizado';
+  const podeDecidir =
+    entrega.status === 'aguardando_aprovacao' ||
+    entrega.status === 'correcao_solicitada' ||
+    entrega.status === 'rejeitado';
+
   return (
     <div className="gv-card">
-      <h2>Prestação — {entrega.veiculos?.placa}</h2>
+      <div className="gv-aprov-head">
+        <h2>Prestação — {entrega.veiculos?.placa}</h2>
+        <StatusEntregaBadge status={entrega.status} />
+      </div>
+      {encerrada && (
+        <p className="gv-ok">
+          Prestação {labelStatusEntrega(entrega.status).toLowerCase()}. O veículo já foi liberado e
+          aparece como disponível na frota.
+        </p>
+      )}
       <ul className="gv-resumo">
-        <li>Status: {entrega.status}</li>
+        <li>
+          Status: <StatusEntregaBadge status={entrega.status} />
+        </li>
         <li>Km ini: {retirada?.km_confirmado} → fim: {entrega.km_confirmado}</li>
         <li>Rodados: {entrega.km_rodados}</li>
         <li>Combustível calc.: {formatMoneyBR(entrega.valor_combustivel_calculado)}</li>
@@ -1230,30 +1310,40 @@ function AprovacaoDetalhe({
         {retirada?.foto_hodometro_url && <img src={retirada.foto_hodometro_url} alt="Ini" />}
         <img src={entrega.foto_hodometro_url} alt="Fim" />
       </div>
-      <label>
-        Justificativa (obrigatória para rejeitar/corrigir/ajustar)
-        <textarea value={just} onChange={(e) => setJust(e.target.value)} rows={2} />
-      </label>
-      <label>
-        Novo total (ajuste)
-        <input value={valorNovo} onChange={(e) => setValorNovo(e.target.value)} type="number" />
-      </label>
+      {podeDecidir && (
+        <>
+          <label>
+            Justificativa (obrigatória para rejeitar/corrigir/ajustar)
+            <textarea value={just} onChange={(e) => setJust(e.target.value)} rows={2} />
+          </label>
+          <label>
+            Novo total (ajuste)
+            <input value={valorNovo} onChange={(e) => setValorNovo(e.target.value)} type="number" />
+          </label>
+        </>
+      )}
       <div className="gv-actions wrap">
-        <button type="button" className="gv-btn primary" onClick={() => onAction('aprovar')}>
-          Aprovar
-        </button>
-        <button type="button" className="gv-btn danger" onClick={() => onAction('rejeitar')}>
-          Rejeitar
-        </button>
-        <button type="button" className="gv-btn" onClick={() => onAction('solicitar_correcao')}>
-          Solicitar correção
-        </button>
-        <button type="button" className="gv-btn" onClick={() => onAction('ajustar_valor')}>
-          Ajustar valor
-        </button>
-        <button type="button" className="gv-btn" onClick={() => onAction('confirmar_debito')}>
-          Confirmar débito
-        </button>
+        {podeDecidir && (
+          <>
+            <button type="button" className="gv-btn primary" onClick={() => onAction('aprovar')}>
+              Aprovar
+            </button>
+            <button type="button" className="gv-btn danger" onClick={() => onAction('rejeitar')}>
+              Rejeitar
+            </button>
+            <button type="button" className="gv-btn" onClick={() => onAction('solicitar_correcao')}>
+              Solicitar correção
+            </button>
+            <button type="button" className="gv-btn" onClick={() => onAction('ajustar_valor')}>
+              Ajustar valor
+            </button>
+          </>
+        )}
+        {entrega.status === 'aprovado' && (
+          <button type="button" className="gv-btn" onClick={() => onAction('confirmar_debito')}>
+            Confirmar débito
+          </button>
+        )}
         <button type="button" className="gv-btn" onClick={onClose}>
           Fechar
         </button>
