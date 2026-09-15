@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { formatNumberBr, maskNumberBrInput, parseNumberBr } from '../../lib/numberBr';
 import { uploadVeiculoAnexo } from '../../services/veiculosService';
 import VeiculoFilePicker from './VeiculoFilePicker';
 
@@ -6,6 +7,7 @@ type Props = {
   label: string;
   usuarioId: number;
   required?: boolean;
+  /** Valor exibido (máscara BR, ex.: 200.000,00). */
   kmValue: string;
   onKmChange: (v: string) => void;
   kmIa?: number | null;
@@ -13,8 +15,8 @@ type Props = {
 };
 
 /**
- * Upload do hodômetro + confirmação de km.
- * OCR real fica para etapa 2 (Edge Function); UI já exige confirmação humana.
+ * Upload do hodômetro + confirmação manual do km (formato BR).
+ * OCR/IA é opcional depois; o cálculo da entrega usa o valor confirmado.
  */
 export default function HodometroFotoField({
   label,
@@ -51,27 +53,34 @@ export default function HodometroFotoField({
       />
       {preview && <img src={preview} alt="Hodômetro" className="gv-thumb" />}
       <p className="gv-muted">
-        A leitura automática por IA será ligada depois. Por enquanto, digite a quilometragem
-        vista na foto.
+        Anexe a foto e digite a quilometragem exatamente como aparece no painel. A foto fica
+        guardada para conferência; o cálculo na entrega usa este valor confirmado.
       </p>
-      <button type="button" className="gv-btn" disabled title="OCR em breve">
-        Ler quilometragem na imagem (em breve)
-      </button>
       {kmIa != null && (
         <p className="gv-info">
-          Identificamos {kmIa} km nesta imagem. Confirme ou corrija a quilometragem.
+          Sugestão da imagem: {formatNumberBr(kmIa)} km. Confira com a foto e ajuste se
+          necessário.
         </p>
       )}
       <label>
         Quilometragem confirmada (km)
         <input
-          type="number"
+          type="text"
           inputMode="decimal"
-          step="0.1"
           required={required}
           value={kmValue}
-          onChange={(e) => onKmChange(e.target.value)}
-          placeholder="Ex.: 120"
+          onChange={(e) => onKmChange(maskNumberBrInput(e.target.value))}
+          onPaste={(e) => {
+            e.preventDefault();
+            onKmChange(maskNumberBrInput(e.clipboardData.getData('text')));
+          }}
+          onBlur={() => {
+            const n = parseNumberBr(kmValue);
+            if (n != null) onKmChange(formatNumberBr(n));
+          }}
+          placeholder="Ex.: 200.000,00"
+          title="Formato brasileiro: 200.000,00"
+          autoComplete="off"
         />
       </label>
       {err && <p className="gv-err">{err}</p>}

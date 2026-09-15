@@ -7,6 +7,7 @@ import VeiculoFilePicker from '../components/veiculos/VeiculoFilePicker';
 import DateBrField from '../components/veiculos/DateBrField';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { formatNumberBr, parseNumberBr } from '../lib/numberBr';
 import {
   canAccessGestaoVeiculos,
   canApproveVeiculoPrestacao,
@@ -652,8 +653,9 @@ function MeusVeiculosPanel({
     setMode(existing ? 'entrega' : 'retirada');
   };
 
+  const kmFimNum = parseNumberBr(kmFim);
   const kmRodados =
-    kmFim && kmIniNum >= 0 ? Math.max(0, Number(kmFim) - kmIniNum) : 0;
+    kmFimNum != null && kmIniNum >= 0 ? Math.max(0, kmFimNum - kmIniNum) : 0;
   const valorComb = calcCombustivel({
     kmRodados,
     preco: Number(precoComb) || 0,
@@ -747,11 +749,13 @@ function MeusVeiculosPanel({
           onSubmit={async (e) => {
             e.preventDefault();
             try {
+              const km = parseNumberBr(kmIni);
+              if (km == null) throw new Error('Informe a quilometragem no formato brasileiro.');
               await registrarRetirada(
                 {
                   responsabilidade_id: selected.id,
                   foto_hodometro_url: fotoIni,
-                  km_confirmado: Number(kmIni),
+                  km_confirmado: km,
                   km_ia: kmIniIa,
                   combustivel_nivel: combIni,
                   conservacao: conserv,
@@ -761,7 +765,7 @@ function MeusVeiculosPanel({
                 actor,
               );
               onToast('Retirada registrada.', 'success');
-              setKmIniNum(Number(kmIni));
+              setKmIniNum(km);
               setRetiradaDone(true);
               setMode('entrega');
               await load();
@@ -792,7 +796,7 @@ function MeusVeiculosPanel({
               setFotoIni(url);
               if (km != null) {
                 setKmIniIa(km);
-                setKmIni(String(km));
+                setKmIni(formatNumberBr(km));
               }
             }}
             kmValue={kmIni}
@@ -801,8 +805,8 @@ function MeusVeiculosPanel({
           />
           {!fotoIni && (
             <p className="gv-warn">
-              É obrigatório anexar a foto do hodômetro para confirmar a retirada. O envio da foto já
-              funciona; só a leitura automática por IA ainda não.
+              É obrigatório anexar a foto do hodômetro. Digite o km da foto no formato brasileiro
+              (ex.: 200.000,00).
             </p>
           )}
           <p className="gv-muted">
@@ -839,12 +843,12 @@ function MeusVeiculosPanel({
             <button
               type="submit"
               className="gv-btn primary"
-              disabled={!fotoIni || !kmIni}
+              disabled={!fotoIni || parseNumberBr(kmIni) == null}
               title={
                 !fotoIni
                   ? 'Anexe a foto do hodômetro para continuar'
-                  : !kmIni
-                    ? 'Informe a quilometragem'
+                  : parseNumberBr(kmIni) == null
+                    ? 'Informe a quilometragem (ex.: 200.000,00)'
                     : undefined
               }
             >
@@ -858,7 +862,7 @@ function MeusVeiculosPanel({
         <div className="gv-card">
           <h2>{mode === 'resumo' ? 'Conferência da entrega' : 'Entrega'}</h2>
           <p className="gv-muted">
-            {selected.veiculos?.placa} · km inicial {kmIniNum}
+            {selected.veiculos?.placa} · km inicial {formatNumberBr(kmIniNum)}
           </p>
           {mode === 'entrega' && (
             <>
@@ -870,15 +874,21 @@ function MeusVeiculosPanel({
                   setFotoFim(url);
                   if (km != null) {
                     setKmFimIa(km);
-                    setKmFim(String(km));
+                    setKmFim(formatNumberBr(km));
                   }
                 }}
                 kmValue={kmFim}
                 onKmChange={setKmFim}
                 kmIa={kmFimIa}
               />
-              {kmFim && Number(kmFim) < kmIniNum && (
+              {kmFimNum != null && kmFimNum < kmIniNum && (
                 <p className="gv-err">A quilometragem final não pode ser menor que a inicial.</p>
+              )}
+              {kmFimNum != null && kmFimNum >= kmIniNum && (
+                <p className="gv-ok">
+                  Km rodados: {formatNumberBr(kmRodados)} · combustível estimado:{' '}
+                  {formatMoneyBR(valorComb)}
+                </p>
               )}
               <label>
                 Nível final de combustível
@@ -982,7 +992,9 @@ function MeusVeiculosPanel({
                 <button
                   type="button"
                   className="gv-btn primary"
-                  disabled={!fotoFim || !kmFim || Number(kmFim) < kmIniNum}
+                  disabled={
+                    !fotoFim || kmFimNum == null || kmFimNum < kmIniNum
+                  }
                   onClick={() => setMode('resumo')}
                 >
                   Revisar e enviar
@@ -998,9 +1010,9 @@ function MeusVeiculosPanel({
                   Veículo: {selected.veiculos?.marca} {selected.veiculos?.modelo}
                 </li>
                 <li>Placa: {selected.veiculos?.placa}</li>
-                <li>Km inicial: {kmIniNum}</li>
-                <li>Km final: {kmFim}</li>
-                <li>Km rodados: {kmRodados}</li>
+                <li>Km inicial: {formatNumberBr(kmIniNum)}</li>
+                <li>Km final: {kmFim || formatNumberBr(kmFimNum)}</li>
+                <li>Km rodados: {formatNumberBr(kmRodados)}</li>
                 <li>Preço combustível: {formatMoneyBR(Number(precoComb))}</li>
                 <li>Valor combustível: {formatMoneyBR(valorComb)}</li>
                 <li>Abastecido com nota: {formatMoneyBR(valorAbast)}</li>
@@ -1023,11 +1035,17 @@ function MeusVeiculosPanel({
                   onClick={async () => {
                     if (!confirm('Confirma o envio para aprovação?')) return;
                     try {
+                      if (kmFimNum == null) {
+                        throw new Error('Informe a quilometragem final no formato brasileiro.');
+                      }
+                      if (kmFimNum < kmIniNum) {
+                        throw new Error('A quilometragem final não pode ser menor que a inicial.');
+                      }
                       await registrarEntrega(
                         {
                           responsabilidade_id: selected.id,
                           foto_hodometro_url: fotoFim,
-                          km_confirmado: Number(kmFim),
+                          km_confirmado: kmFimNum,
                           km_ia: kmFimIa,
                           combustivel_nivel: combFim,
                           lavado,
@@ -1300,8 +1318,11 @@ function AprovacaoDetalhe({
         <li>
           Status: <StatusEntregaBadge status={entrega.status} />
         </li>
-        <li>Km ini: {retirada?.km_confirmado} → fim: {entrega.km_confirmado}</li>
-        <li>Rodados: {entrega.km_rodados}</li>
+        <li>
+          Km ini: {formatNumberBr(retirada?.km_confirmado)} → fim:{' '}
+          {formatNumberBr(entrega.km_confirmado)}
+        </li>
+        <li>Rodados: {formatNumberBr(entrega.km_rodados)}</li>
         <li>Combustível calc.: {formatMoneyBR(entrega.valor_combustivel_calculado)}</li>
         <li>Lavagem: {formatMoneyBR(entrega.valor_lavagem)}</li>
         <li>Total: {formatMoneyBR(entrega.total_estimado)}</li>
