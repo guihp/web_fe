@@ -20,6 +20,11 @@ import {
   type ValidadeStatusFilter,
   type ValidadeTopProduto,
 } from '../services/validadeService';
+import {
+  buildLojaLabelLookup,
+  fetchLojas,
+  formatLojaLabelFromStored,
+} from '../services/lojasService';
 import { exportValidadesXlsx } from '../utils/xlsxIO';
 import './BaseDadosVendas.css';
 import './Validades.css';
@@ -79,6 +84,23 @@ export default function Validades() {
   const [chartRows, setChartRows] = useState<ValidadeTopProduto[]>([]);
   const [chartLoading, setChartLoading] = useState(false);
   const [vendaItem, setVendaItem] = useState<Validade | null>(null);
+  const [lojaLabelLookup, setLojaLabelLookup] = useState<Map<string, string>>(
+    () => new Map(),
+  );
+
+  useEffect(() => {
+    let cancelled = false;
+    fetchLojas()
+      .then((lojas) => {
+        if (!cancelled) setLojaLabelLookup(buildLojaLabelLookup(lojas));
+      })
+      .catch(() => {
+        /* rótulo cai no nome bruto */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (scopeIndustria) setIndustria(scopeIndustria);
@@ -224,7 +246,12 @@ export default function Validades() {
     }
     try {
       const all = await fetchAllValidades({ scopeIndustria, scopeClienteGrupo });
-      exportValidadesXlsx(all);
+      exportValidadesXlsx(
+        all.map((v) => ({
+          ...v,
+          lojas: formatLojaLabelFromStored(v.lojas, lojaLabelLookup),
+        })),
+      );
       showToast(
         all.length === 0
           ? 'Planilha exportada (somente cabeçalhos, não há validades).'
@@ -478,7 +505,7 @@ export default function Validades() {
                               {formatData(item.data_vencimento)}
                             </td>
                             <td className={soon ? 'col-emphasis' : undefined}>
-                              {item.lojas ?? '—'}
+                              {formatLojaLabelFromStored(item.lojas, lojaLabelLookup)}
                             </td>
                             <td>{item.uf ?? '—'}</td>
                             <td>{item.industria ?? '—'}</td>
@@ -539,6 +566,7 @@ export default function Validades() {
       {vendaItem && (
         <ValidadeVendaModal
           item={vendaItem}
+          lojaLabel={formatLojaLabelFromStored(vendaItem.lojas, lojaLabelLookup)}
           onClose={() => setVendaItem(null)}
           onConfirm={handleRegistrarVenda}
         />

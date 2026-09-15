@@ -5,16 +5,23 @@ import './ValidadeVendaModal.css';
 
 type ValidadeVendaModalProps = {
   item: Validade;
+  lojaLabel?: string;
   onClose: () => void;
   onConfirm: (opts: { qtdeVendida?: number; tudoVendido?: boolean }) => Promise<void>;
 };
 
-export default function ValidadeVendaModal({ item, onClose, onConfirm }: ValidadeVendaModalProps) {
+export default function ValidadeVendaModal({
+  item,
+  lojaLabel,
+  onClose,
+  onConfirm,
+}: ValidadeVendaModalProps) {
   const disponivel = item.qtde_unit;
   const [modo, setModo] = useState<'parcial' | 'total'>('parcial');
   const [qtde, setQtde] = useState('');
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const lojaText = lojaLabel || item.lojas;
 
   const handleSubmit = async () => {
     setError(null);
@@ -47,7 +54,7 @@ export default function ValidadeVendaModal({ item, onClose, onConfirm }: Validad
         <p>
           {item.descricao ?? 'Produto'}
           {item.codigo ? ` · cód. ${item.codigo}` : ''}
-          {item.lojas ? ` · ${item.lojas}` : ''}
+          {lojaText ? ` · ${lojaText}` : ''}
         </p>
       </div>
 

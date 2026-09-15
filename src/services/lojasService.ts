@@ -46,6 +46,61 @@ export function formatLojaNome(loja: Pick<Loja, 'Nome' | 'codigo'>): string {
   return loja.Nome;
 }
 
+/** Chave estável para cruzar nome gravado em validade.lojas com cadastro de lojas. */
+export function normalizeLojaNomeKey(nome: string): string {
+  return nome
+    .normalize('NFD')
+    .replace(/\p{M}/gu, '')
+    .toUpperCase()
+    .replace(/[^A-Z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+/** Mapa nome normalizado / código → rótulo "codigo - Nome". */
+export function buildLojaLabelLookup(lojas: Loja[]): Map<string, string> {
+  const map = new Map<string, string>();
+  for (const loja of lojas) {
+    const label = formatLojaNome(loja);
+    const nomeKey = normalizeLojaNomeKey(loja.Nome);
+    if (nomeKey) map.set(nomeKey, label);
+    if (loja.codigo != null) {
+      map.set(String(loja.codigo), label);
+      map.set(normalizeLojaNomeKey(`${loja.codigo} ${loja.Nome}`), label);
+    }
+  }
+  return map;
+}
+
+/**
+ * Exibe loja no formato do lançamento (ex.: "1 - MATEUS SUPERMERCADOS S.A. - BALSAS").
+ * Aceita nome puro ou código gravado em `validade.lojas`.
+ */
+export function formatLojaLabelFromStored(
+  stored: string | null | undefined,
+  lookup: Map<string, string>,
+): string {
+  const raw = (stored ?? '').trim();
+  if (!raw) return '—';
+  if (/^\d+\s*-/.test(raw)) return raw;
+
+  const byExactCode = lookup.get(raw);
+  if (byExactCode) return byExactCode;
+
+  const key = normalizeLojaNomeKey(raw);
+  const byName = lookup.get(key);
+  if (byName) return byName;
+
+  // Match parcial: nome cadastrado contido no gravado (ou o contrário)
+  for (const [mapKey, label] of lookup) {
+    if (!/^\d+$/.test(mapKey) && (key.includes(mapKey) || mapKey.includes(key))) {
+      return label;
+    }
+  }
+
+  return raw;
+}
+
 function buildLojaPayload(input: LojaFormInput, options?: { keepStatus?: string | null }) {
   const nome = input.nome.trim();
   if (!nome) throw new Error('Informe o nome da filial.');
