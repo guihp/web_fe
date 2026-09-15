@@ -5,12 +5,14 @@ Formato: mais recente no topo.
 ## 2026-09-15
 
 ### App
+- **Gestão de Veículos:** frota no Administrador (Gerente) e uso/aprovação na Fé Representações. CRUD de veículos para Gerente e Financeiro. Supervisor/RH/Analista admin/Vendedor montam retirada/entrega; só Gerente/Financeiro aprovam valores. Abas Manutenção e “Quem está com o veículo”. OCR do hodômetro só UI (confirmação manual).
 - **Validades:** coluna Loja (lista, modal de venda e exportação Excel) no formato `código - nome` (igual ao Lançar vencimentos), cruzando com o cadastro `lojas`.
 - **Catálogo das indústrias:** roda embutido no App (`/merchandising/catalogo` → `/catalogo/`); sem Vercel. Ajustes de navegação “voltar”, branding (isotipo Fé), layout mobile e escopo de acesso.
 - Catálogo — acesso: **Acesso master** só Gerente / Supervisor / RH / Analista admin (internos). Externo **indústria** vê só a própria; externo **cliente** vê todas; externos sem gestão/Drive.
 
 ### Documentação
 - Créditos do catálogo: desenhado por **Matheus Lucas** (Analista de Marketing); 1ª versão com apoio de **Helry Araujo Rodrigues**; hoje integrado ao painel.
+- Gestão de Veículos documentada em módulos, acesso, domínio e regras.
 - Atualizados `README`, `00`, `01`, `02`, `04`, `05` e este changelog para o estado atual (catálogo interno + Validades com código de loja).
 
 ## 2026-09-14

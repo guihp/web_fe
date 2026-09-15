@@ -23,7 +23,8 @@ export type NotificationKind =
   | 'aniversario'
   | 'meta'
   | 'encarte'
-  | 'atividade';
+  | 'atividade'
+  | 'veiculo';
 
 export type AppNotification = {
   id: string;
@@ -181,9 +182,126 @@ function birthdayNotification(scope?: NotificationViewerScope | null): AppNotifi
 function priorityRank(kind: NotificationKind): number {
   if (kind === 'aniversario') return 0;
   if (kind === 'atividade') return 1;
+  if (kind === 'veiculo') return 1;
   if (kind === 'encarte') return 2;
   if (kind === 'meta') return 3;
   return 4;
+}
+
+async function fetchVeiculoNotificationsForUser(
+  usuarioId: number | null | undefined,
+  isApprover: boolean,
+  limit: number,
+): Promise<AppNotification[]> {
+  if (!usuarioId && !isApprover) return [];
+  const sinceIso = notifWindowStartIso();
+  const items: AppNotification[] = [];
+
+  if (usuarioId) {
+    const { data: resps } = await supabase
+      .from('veiculo_responsabilidades')
+      .select('id, status, inicio_em, devolucao_prevista_em, veiculos(placa)')
+      .eq('usuario_id', usuarioId)
+      .gte('created_at', sinceIso)
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    for (const r of resps ?? []) {
+      const placa = (r.veiculos as { placa?: string } | null)?.placa ?? 'veículo';
+      items.push({
+        id: `veiculo-resp-${r.id}`,
+        kind: 'veiculo',
+        title: `Veículo atribuído: ${placa}`,
+        detail: `Status ${r.status}. Confira em Gestão de Veículos.`,
+        at: toIso(String(r.inicio_em ?? new Date().toISOString())),
+        href: '/fe-representacoes/veiculos?tab=meus',
+      });
+      if (r.devolucao_prevista_em) {
+        const due = new Date(String(r.devolucao_prevista_em)).getTime();
+        const in48h = due - Date.now() < 48 * 3600 * 1000 && due >= Date.now();
+        if (in48h) {
+          items.push({
+            id: `veiculo-prazo-${r.id}`,
+            kind: 'veiculo',
+            title: `Prazo de devolução próximo: ${placa}`,
+            detail: 'Entregue o veículo e envie a prestação a tempo.',
+            at: toIso(String(r.devolucao_prevista_em)),
+            href: '/fe-representacoes/veiculos?tab=meus',
+          });
+        }
+      }
+    }
+
+    const { data: ents } = await supabase
+      .from('veiculo_entregas')
+      .select('id, status, updated_at, motivo_correcao, veiculos(placa)')
+      .eq('usuario_id', usuarioId)
+      .gte('updated_at', sinceIso)
+      .order('updated_at', { ascending: false })
+      .limit(limit);
+    for (const e of ents ?? []) {
+      const placa = (e.veiculos as { placa?: string } | null)?.placa ?? 'veículo';
+      if (e.status === 'aguardando_aprovacao') {
+        items.push({
+          id: `veiculo-env-${e.id}`,
+          kind: 'veiculo',
+          title: `Prestação enviada: ${placa}`,
+          detail: 'Aguardando aprovação do Gerente/Financeiro.',
+          at: toIso(String(e.updated_at)),
+          href: '/fe-representacoes/veiculos?tab=meus',
+        });
+      } else if (e.status === 'correcao_solicitada') {
+        items.push({
+          id: `veiculo-corr-${e.id}`,
+          kind: 'veiculo',
+          title: `Correção solicitada: ${placa}`,
+          detail: String(e.motivo_correcao ?? 'Ajuste a prestação e reenvie.'),
+          at: toIso(String(e.updated_at)),
+          href: '/fe-representacoes/veiculos?tab=meus',
+        });
+      } else if (e.status === 'rejeitado') {
+        items.push({
+          id: `veiculo-rej-${e.id}`,
+          kind: 'veiculo',
+          title: `Prestação rejeitada: ${placa}`,
+          detail: String(e.motivo_correcao ?? 'Verifique o motivo e corrija.'),
+          at: toIso(String(e.updated_at)),
+          href: '/fe-representacoes/veiculos?tab=meus',
+        });
+      } else if (e.status === 'aprovado' || e.status === 'finalizado') {
+        items.push({
+          id: `veiculo-apr-${e.id}`,
+          kind: 'veiculo',
+          title: `Prestação aprovada: ${placa}`,
+          detail: 'Os dados e valores da entrega foram confirmados.',
+          at: toIso(String(e.updated_at)),
+          href: '/fe-representacoes/veiculos?tab=meus',
+        });
+      }
+    }
+  }
+
+  if (isApprover) {
+    const { data: fila } = await supabase
+      .from('veiculo_entregas')
+      .select('id, status, updated_at, veiculos(placa)')
+      .eq('status', 'aguardando_aprovacao')
+      .gte('updated_at', sinceIso)
+      .order('updated_at', { ascending: false })
+      .limit(limit);
+    for (const e of fila ?? []) {
+      const placa = (e.veiculos as { placa?: string } | null)?.placa ?? 'veículo';
+      items.push({
+        id: `veiculo-fila-${e.id}`,
+        kind: 'veiculo',
+        title: `Prestação aguardando aprovação: ${placa}`,
+        detail: 'Abra a fila de aprovação em Gestão de Veículos.',
+        at: toIso(String(e.updated_at)),
+        href: '/fe-representacoes/veiculos?tab=aprovacao',
+      });
+    }
+  }
+
+  return items;
 }
 
 function withBirthday(
@@ -465,7 +583,7 @@ export async function fetchAppNotifications(
     );
   }
 
-  const [vendasRes, pedidosRes, fatRes, avisosRes, encartes] = await Promise.all([
+  const [vendasRes, pedidosRes, fatRes, avisosRes, encartes, veiculoItems] = await Promise.all([
     supabase
       .from('baseVendas')
       .select('id, numero_pedido, cliente, industria, valor, vendedor, created_at')
@@ -491,6 +609,12 @@ export async function fetchAppNotifications(
       .order('created_at', { ascending: false })
       .limit(12),
     safeEncartesRecentes(resolvedScope),
+    fetchVeiculoNotificationsForUser(
+      resolvedScope?.usuario_id,
+      isLiderancaNotifCargo(resolvedScope?.cargo) ||
+        normalizeCargoKey(String(resolvedScope?.cargo ?? '')) === 'financeiro',
+      limit,
+    ),
   ]);
 
   if (vendasRes.error) throw new Error(vendasRes.error.message);
@@ -516,7 +640,7 @@ export async function fetchAppNotifications(
     }
   }
 
-  const items: AppNotification[] = [];
+  const items: AppNotification[] = [...veiculoItems];
 
   for (const row of vendasRes.data ?? []) {
     const pedido = String(row.numero_pedido ?? '—');

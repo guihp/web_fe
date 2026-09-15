@@ -123,6 +123,12 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
         icon: 'bell',
       },
       {
+        id: 'fe-representacoes.veiculos',
+        title: 'Gestão de Veículos',
+        path: '/fe-representacoes/veiculos',
+        icon: 'cart',
+      },
+      {
         id: 'vendas.relatorios',
         title: 'Relatórios',
         path: '/fe-representacoes/relatorios',
@@ -206,6 +212,12 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
       },
       { id: 'administrador.metas', title: 'Metas', path: '/administrador/metas', icon: 'target' },
       {
+        id: 'administrador.veiculos',
+        title: 'Gestão de Veículos',
+        path: '/administrador/veiculos',
+        icon: 'store',
+      },
+      {
         id: 'administrador.colaboradores',
         title: 'Colaboradores',
         path: '/colaboradores',
@@ -285,6 +297,39 @@ export function canAccessCatalogoGestao(cargo: string | null | undefined): boole
   return CATALOGO_GESTAO_CARGOS.some((c) => normalizeCargoKey(c) === key);
 }
 
+/** Cargos que podem usar frota (retirada/entrega) — não inclui externos nem campo. */
+export const VEICULO_GESTAO_CARGOS = [
+  'Gerente',
+  'Supervisor',
+  'Financeiro',
+  'RH',
+  'Analista admin',
+  'Vendedor',
+] as const;
+
+/** Só Gerente e Financeiro aprovam/rejeitam valores e fazem CRUD da frota. */
+export const VEICULO_APROVACAO_CARGOS = ['Gerente', 'Financeiro'] as const;
+
+export function canAccessGestaoVeiculos(
+  cargo: string | null | undefined,
+  tipoUsuario?: string | null,
+): boolean {
+  if (!cargo) return false;
+  if (tipoUsuario && tipoUsuario !== 'interno') return false;
+  const key = normalizeCargoKey(cargo);
+  return VEICULO_GESTAO_CARGOS.some((c) => normalizeCargoKey(c) === key);
+}
+
+export function canApproveVeiculoPrestacao(cargo: string | null | undefined): boolean {
+  if (!cargo) return false;
+  const key = normalizeCargoKey(cargo);
+  return VEICULO_APROVACAO_CARGOS.some((c) => normalizeCargoKey(c) === key);
+}
+
+export function canManageVeiculoFrota(cargo: string | null | undefined): boolean {
+  return canApproveVeiculoPrestacao(cargo);
+}
+
 /** @deprecated Senha do dia é liberada para todos os usuários logados (internos e externos). */
 export function canViewSenhaDoDia(_cargo?: string | null): boolean {
   return true;
@@ -307,6 +352,7 @@ export function defaultSecoesForCargo(cargo: string): string[] {
     .flatMap((m) => m.sections.map((s) => s.id))
     .filter((id) => {
       if (id === 'fe-representacoes.avisos') return false;
+      if (id === 'fe-representacoes.veiculos') return canAccessGestaoVeiculos(cargo, 'interno');
       if (id === 'merchandising.encartes') return canLancarEncartes(cargo);
       if (id === 'merchandising.ebook') return canViewEbook(cargo);
       return true;
@@ -353,6 +399,14 @@ export function sanitizeSecoes(cargo: string, secoes: string[] | null | undefine
   }
   if (!canViewEbook(cargo)) {
     next = next.filter((id) => id !== 'merchandising.ebook');
+  }
+  if (!canAccessGestaoVeiculos(cargo, 'interno')) {
+    next = next.filter((id) => id !== 'fe-representacoes.veiculos');
+  } else if (!next.includes('fe-representacoes.veiculos')) {
+    next = [...next, 'fe-representacoes.veiculos'];
+  }
+  if (canManageUsers(cargo) && !next.includes('administrador.veiculos')) {
+    next = [...next, 'administrador.veiculos'];
   }
 
   // Sempre inclui módulos liberados para todos
@@ -610,6 +664,14 @@ export function userHasSectionAccess(
 
   if (sectionId === 'merchandising.ebook') {
     return canViewEbook(cargo);
+  }
+
+  if (sectionId === 'fe-representacoes.veiculos') {
+    return canAccessGestaoVeiculos(cargo, 'interno') && resolved.includes(sectionId);
+  }
+
+  if (sectionId === 'administrador.veiculos') {
+    return canManageUsers(cargo) && resolved.includes(sectionId);
   }
 
   // Fazer pesquisa: liberado no hub para internos (gate de tipo_usuario na página/card)

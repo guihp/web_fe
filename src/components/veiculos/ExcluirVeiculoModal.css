@@ -1,0 +1,108 @@
+.gv-confirm-modal {
+  width: min(440px, calc(100vw - 28px));
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+}
+
+.gv-confirm-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.gv-confirm-header h2 {
+  margin: 0 0 8px;
+  font-size: 1.15rem;
+  color: var(--text);
+}
+
+.gv-confirm-header p {
+  margin: 0 0 8px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.gv-confirm-header strong {
+  color: var(--text);
+}
+
+.gv-confirm-warn {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--danger-bg, color-mix(in srgb, #ef4444 12%, var(--surface)));
+  border: 1px solid var(--danger, #ef4444);
+  color: var(--danger, #b91c1c) !important;
+}
+
+[data-theme='dark'] .gv-confirm-warn {
+  color: #fecaca !important;
+  background: color-mix(in srgb, #ef4444 18%, var(--surface));
+}
+
+.gv-confirm-close {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface-2, var(--surface));
+  color: var(--text);
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.gv-confirm-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.gv-confirm-cancel,
+.gv-confirm-danger {
+  min-height: 44px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.gv-confirm-cancel {
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.gv-confirm-danger {
+  border: none;
+  background: #ef4444;
+  color: #fff;
+}
+
+.gv-confirm-danger:hover:not(:disabled) {
+  background: #dc2626;
+}
+
+.gv-confirm-cancel:disabled,
+.gv-confirm-danger:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+
+@media (max-width: 640px) {
+  .gv-confirm-actions {
+    flex-direction: column-reverse;
+  }
+
+  .gv-confirm-cancel,
+  .gv-confirm-danger {
+    width: 100%;
+  }
+}

@@ -1,0 +1,479 @@
+.gestao-veiculos-page {
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 12px 88px;
+  box-sizing: border-box;
+  color: var(--text);
+}
+
+.gestao-veiculos-header {
+  margin-bottom: 14px;
+}
+
+.gestao-veiculos-sub {
+  color: var(--text-muted);
+  margin: 6px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.45;
+}
+
+.gestao-veiculos-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 2px 12px;
+  margin: 0 -4px 14px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  background: var(--bg, var(--surface));
+}
+
+.gestao-veiculos-tabs button {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 10px 14px;
+  min-height: 40px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  white-space: nowrap;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.gestao-veiculos-tabs button.is-active {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #fff;
+}
+
+.gestao-veiculos-body {
+  min-width: 0;
+}
+
+.gv-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: var(--shadow);
+  box-sizing: border-box;
+  min-width: 0;
+}
+
+.gv-card h2,
+.gv-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.gv-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 0;
+}
+
+.gv-card input,
+.gv-card select,
+.gv-card textarea,
+.gv-abast-form input,
+.gv-hodometro input {
+  width: 100%;
+  max-width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 16px;
+  font-family: inherit;
+  background: var(--input-bg);
+  color: var(--text);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.gv-card input:focus,
+.gv-card select:focus,
+.gv-card textarea:focus,
+.gv-abast-form input:focus,
+.gv-hodometro input:focus {
+  border-color: #0f766e;
+}
+
+.gv-card textarea {
+  resize: vertical;
+  min-height: 72px;
+}
+
+.gv-grid-2 {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 860px) {
+  .gv-grid-2 {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
+
+.gv-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.gv-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.gv-list li {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.gv-list li:last-child {
+  border-bottom: none;
+  padding-bottom: 0;
+}
+
+.gv-list li:first-child {
+  padding-top: 0;
+}
+
+.gv-list li > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1 1 180px;
+}
+
+.gv-list li > div strong {
+  word-break: break-word;
+}
+
+.gv-muted {
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.gv-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.gv-actions.wrap {
+  gap: 8px;
+}
+
+.gv-btn {
+  border: 1px solid var(--border);
+  background: var(--surface-2, var(--surface));
+  color: var(--text);
+  border-radius: 10px;
+  padding: 11px 14px;
+  min-height: 44px;
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.gv-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.gv-btn.primary {
+  background: #0f766e;
+  border-color: #0f766e;
+  color: #fff;
+}
+
+.gv-btn.danger {
+  border-color: #b91c1c;
+  color: #b91c1c;
+  background: transparent;
+}
+
+.gv-btn.block,
+.gv-actions > .gv-btn.primary {
+  flex: 1 1 140px;
+}
+
+@media (max-width: 640px) {
+  .gestao-veiculos-page {
+    padding-left: 10px;
+    padding-right: 10px;
+    padding-bottom: 100px;
+  }
+
+  .gv-card {
+    padding: 14px;
+  }
+
+  .gv-list li {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gv-list li .gv-actions,
+  .gv-list li > .gv-btn {
+    width: 100%;
+  }
+
+  .gv-list li .gv-actions .gv-btn,
+  .gv-list li > .gv-btn {
+    width: 100%;
+    flex: 1 1 auto;
+  }
+
+  .gv-actions {
+    width: 100%;
+  }
+
+  .gv-actions .gv-btn {
+    flex: 1 1 calc(50% - 8px);
+    text-align: center;
+  }
+
+  .gv-actions .gv-btn.primary {
+    flex: 1 1 100%;
+  }
+
+  .gv-thumbs img {
+    width: calc(50% - 4px);
+    height: auto;
+    aspect-ratio: 1;
+  }
+
+  .gv-abast-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .gv-abast-form input,
+  .gv-abast-form .gv-btn {
+    width: 100%;
+    min-width: 0;
+    flex: none;
+  }
+}
+
+.gv-thumb {
+  width: 100%;
+  max-width: 320px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid var(--border);
+}
+
+.gv-thumbs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.gv-thumbs img {
+  width: 140px;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.gv-fieldset {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  margin: 0;
+}
+
+.gv-fieldset legend {
+  padding: 0 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.gv-inline {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 8px !important;
+  margin-right: 12px;
+  font-weight: 500 !important;
+}
+
+.gv-nested {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 10px;
+  background: var(--surface-2, color-mix(in srgb, var(--text) 4%, transparent));
+  border: 1px solid var(--border);
+}
+
+.gv-abast,
+.gv-abast-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.gv-abast {
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--border);
+}
+
+.gv-abast-form input {
+  min-width: 6rem;
+  flex: 1 1 6rem;
+}
+
+.gv-resumo {
+  margin: 0;
+  padding-left: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
+
+.gv-err {
+  color: #b91c1c;
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.gv-ok {
+  color: #047857;
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.gv-warn {
+  color: #b45309;
+  margin: 4px 0 0;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+.gv-info {
+  color: #0369a1;
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 500;
+}
+
+[data-theme='dark'] .gv-err {
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .gv-ok {
+  color: #6ee7b7;
+}
+
+[data-theme='dark'] .gv-warn {
+  color: #fcd34d;
+}
+
+[data-theme='dark'] .gv-info {
+  color: #7dd3fc;
+}
+
+[data-theme='dark'] .gestao-veiculos-tabs button.is-active,
+[data-theme='dark'] .gv-btn.primary {
+  background: #14b8a6;
+  border-color: #14b8a6;
+  color: #042f2e;
+}
+
+.gv-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 720px) {
+  .gv-kpis {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.gv-kpi {
+  border-radius: 12px;
+  padding: 14px;
+  background: color-mix(in srgb, #0f766e 10%, var(--surface));
+  border: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.gv-kpi span {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.gv-kpi strong {
+  font-size: 1.1rem;
+  word-break: break-word;
+}
+
+.gv-hodometro {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px dashed var(--border);
+  background: var(--surface-2, transparent);
+}
+
+.gv-hodometro .gv-btn {
+  width: 100%;
+}
+
+.gv-filter {
+  width: 100%;
+  margin-bottom: 4px;
+}

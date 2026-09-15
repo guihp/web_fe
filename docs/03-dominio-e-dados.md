@@ -72,6 +72,20 @@ No Price, o filtro de mês usa os valores existentes em `pesquisa.mes`: se houve
 | Histórico | `contrato_historico` | Eventos |
 | Comissão mensal contrato | `contrato_comissao_mes` | Quando aplicável |
 
+## Gestão de Veículos
+
+| Conceito | Tabela | Uso |
+|----------|--------|-----|
+| Veículo | `veiculos` | Frota (placa única); situacao disponivel/em_uso/manutencao/inativo |
+| Responsabilidade | `veiculo_responsabilidades` | Vínculo semanal usuário ↔ veículo |
+| Manutenção | `veiculo_manutencoes` | Aberta/concluída; bloqueia atribuição |
+| Retirada / Entrega | `veiculo_retiradas` / `veiculo_entregas` | Hodômetro, km, status da prestação |
+| Gastos | `veiculo_abastecimentos`, `veiculo_lavagens`, `veiculo_despesas` | Comprovantes |
+| Aprovação / auditoria | `veiculo_aprovacoes`, `veiculo_auditoria` | Log permanente |
+| Config | `veiculo_config` | Fórmula combustível (padrão km × preço) |
+
+Storage: bucket `veiculo-anexos`.
+
 ## Arquivos (Storage)
 
 | Bucket | Conteúdo típico |

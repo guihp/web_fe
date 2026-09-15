@@ -149,6 +149,15 @@ const ADMIN_MODULES: AdminModule[] = [
     icon: <IconTarget />,
     section: 'administrador.metas',
   },
+  {
+    id: 'veiculos',
+    title: 'Gestão de Veículos',
+    description: 'Frota, responsabilidades semanais, manutenção e dashboard',
+    path: '/administrador/veiculos',
+    tone: 'teal',
+    icon: <IconStore />,
+    section: 'administrador.veiculos',
+  },
 ];
 
 export default function Administrador() {

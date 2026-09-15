@@ -60,6 +60,7 @@ Hub: `/fe-representacoes`
 | Price | `/fe-representacoes/price` | Internas/externas por **mês**; export/import de custos; markup/margem + gráfico; externos em leitura com escopo; internos têm atalho **Fazer pesquisa** |
 | Sucesso do cliente | `/fe-representacoes/sucesso-cliente` | Kanban de pedidos a partir das vendas lançadas; status arrastável (internos) |
 | Avisos | `/fe-representacoes/avisos` | **Só Gerente:** enviar aviso de salário ou feriado (modelos editáveis); confirmação com prévia da mensagem antes do envio (irreversível); folha de ponto automática no dia 25 |
+| Gestão de Veículos | `/fe-representacoes/veiculos` | Frota (CRUD Gerente/Financeiro), meus veículos, retirada/entrega, aprovação de valores (só Gerente/Financeiro), manutenção, quem está com o veículo. Cargos: Gerente, Supervisor, Financeiro, RH, Analista admin, Vendedor. |
 | Relatórios | `/fe-representacoes/relatorios` | Relatórios comerciais |
 | Projeção de metas | `/fe-representacoes/projecao-metas` | Metas vs realizado |
 | Vendas (dashboard) | `/fe-representacoes/vendas` | KPIs (com % MA/PI e PA), realizado x meta, barras/pizza por indústria |
@@ -126,6 +127,7 @@ Hub: `/administrador` (somente **Gerente**)
 | Indústrias | `/administrador/industrias` | Indústrias parceiras |
 | Clientes | `/administrador/clientes` | Clientes admin |
 | Metas | `/administrador/metas` | Metas |
+| Gestão de Veículos | `/administrador/veiculos` | Frota, responsabilidades, manutenção, quem está com o veículo, dashboard, config e auditoria (Gerente) |
 | Colaboradores | `/colaboradores` | Gestão de colaboradores |
 
 Price **não** fica mais no Administrador — só em **Fé Representações**.

@@ -1,0 +1,96 @@
+.gv-file-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.gv-file-picker-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.gv-file-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface-2, var(--input-bg, var(--surface)));
+}
+
+.gv-file-picker-native {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.gv-file-picker-btn {
+  flex: 0 0 auto;
+  min-height: 40px;
+  padding: 0 14px;
+  border: none;
+  border-radius: 10px;
+  background: #0f766e;
+  color: #fff;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.gv-file-picker-btn:hover:not(:disabled) {
+  background: #0d9488;
+}
+
+.gv-file-picker-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+[data-theme='dark'] .gv-file-picker-btn {
+  background: #14b8a6;
+  color: #042f2e;
+}
+
+.gv-file-picker-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-size: 0.86rem;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gv-file-picker-name.has-file {
+  color: var(--text);
+  font-weight: 500;
+}
+
+@media (max-width: 640px) {
+  .gv-file-picker-row {
+    flex-wrap: wrap;
+  }
+
+  .gv-file-picker-btn {
+    width: 100%;
+  }
+
+  .gv-file-picker-name {
+    width: 100%;
+    text-align: center;
+  }
+}

@@ -42,6 +42,15 @@ const FE_CARDS: {
     section: 'fe-representacoes.avisos',
   },
   {
+    id: 'veiculos',
+    title: 'Gestão de Veículos',
+    description: 'Meus veículos, retirada/entrega, frota e aprovação de prestações.',
+    path: '/fe-representacoes/veiculos',
+    tone: 'green',
+    icon: 'cart',
+    section: 'fe-representacoes.veiculos',
+  },
+  {
     id: 'vendas',
     title: 'Vendas',
     description: 'Dashboard de realizado x meta por região e indústria.',
@@ -119,7 +128,7 @@ export default function FeRepresentacoes() {
       <header className="admin-header">
         <h1 className="page-title">Fé Representações</h1>
         <p className="admin-subtitle">
-          Price, Sucesso do cliente e gestão comercial de vendas.
+          Price, Sucesso do cliente, gestão comercial e veículos da empresa.
         </p>
       </header>
 

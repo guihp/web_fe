@@ -34,6 +34,7 @@ import Validades from './pages/Validades';
 import Merchandising from './pages/Merchandising';
 import FeRepresentacoes from './pages/FeRepresentacoes';
 import Price from './pages/Price';
+import GestaoVeiculos from './pages/GestaoVeiculos';
 import Avisos from './pages/Avisos';
 
 export default function App() {
@@ -55,6 +56,10 @@ export default function App() {
           <Route path="/fe-representacoes/price" element={<Price />} />
           <Route path="/fe-representacoes/sucesso-cliente" element={<AdminSucessoCliente />} />
           <Route path="/fe-representacoes/avisos" element={<Avisos />} />
+          <Route
+            path="/fe-representacoes/veiculos"
+            element={<GestaoVeiculos variant="fe" />}
+          />
 
           {/* Legado → Fé Representações */}
           <Route
@@ -92,6 +97,10 @@ export default function App() {
           <Route path="/administrador/industrias" element={<AdminIndustrias />} />
           <Route path="/administrador/clientes" element={<AdminClientes />} />
           <Route path="/administrador/metas" element={<AdminMetas />} />
+          <Route
+            path="/administrador/veiculos"
+            element={<GestaoVeiculos variant="admin" />}
+          />
           <Route path="/administrador/:section" element={<AdminSectionPlaceholder />} />
 
           <Route element={<VendasModuleLayout />}>
