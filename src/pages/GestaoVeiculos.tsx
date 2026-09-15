@@ -5,6 +5,7 @@ import HodometroFotoField from '../components/veiculos/HodometroFotoField';
 import ExcluirVeiculoModal from '../components/veiculos/ExcluirVeiculoModal';
 import VeiculoFilePicker from '../components/veiculos/VeiculoFilePicker';
 import DateBrField from '../components/veiculos/DateBrField';
+import VeiculoFotoThumbs from '../components/veiculos/VeiculoFotoThumbs';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { formatNumberBr, parseNumberBr } from '../lib/numberBr';
@@ -628,6 +629,10 @@ function MeusVeiculosPanel({
   const [formula, setFormula] = useState<'km_x_preco' | 'km_div_consumo_x_litro'>('km_x_preco');
   const [kmIniNum, setKmIniNum] = useState(0);
   const [entregasUser, setEntregasUser] = useState<VeiculoEntrega[]>([]);
+  const [verFotosId, setVerFotosId] = useState<string | null>(null);
+  const [fotosDetalhe, setFotosDetalhe] = useState<
+    Awaited<ReturnType<typeof fetchEntregaDetalhe>> | null
+  >(null);
 
   const load = async () => {
     const [r, cfg, ents] = await Promise.all([
@@ -723,19 +728,71 @@ function MeusVeiculosPanel({
                         Correção solicitada: {e.motivo_correcao || '—'}
                       </p>
                     )}
+                    {verFotosId === e.id && fotosDetalhe?.entrega.id === e.id && (
+                      <div className="gv-prestacao-fotos">
+                        <VeiculoFotoThumbs
+                          items={[
+                            {
+                              url: fotosDetalhe.retirada?.foto_hodometro_url ?? '',
+                              label: 'Hodômetro inicial',
+                            },
+                            {
+                              url: fotosDetalhe.entrega.foto_hodometro_url ?? '',
+                              label: 'Hodômetro final',
+                            },
+                            ...(fotosDetalhe.lavagem?.comprovante_url
+                              ? [
+                                  {
+                                    url: String(fotosDetalhe.lavagem.comprovante_url),
+                                    label: 'Comprovante de lavagem',
+                                  },
+                                ]
+                              : []),
+                            ...fotosDetalhe.abastecimentos
+                              .filter((a) => a.nota_url)
+                              .map((a, i) => ({
+                                url: String(a.nota_url),
+                                label: `Nota abastecimento ${i + 1}`,
+                              })),
+                          ]}
+                        />
+                      </div>
+                    )}
                   </div>
-                  {(e.status === 'correcao_solicitada' || e.status === 'rejeitado') && (
+                  <div className="gv-actions wrap">
                     <button
                       type="button"
-                      className="gv-btn primary"
+                      className="gv-btn"
                       onClick={async () => {
-                        const resp = rows.find((r) => r.id === e.responsabilidade_id);
-                        if (resp) await openRetirada(resp);
+                        if (verFotosId === e.id) {
+                          setVerFotosId(null);
+                          setFotosDetalhe(null);
+                          return;
+                        }
+                        try {
+                          const det = await fetchEntregaDetalhe(e.id);
+                          setFotosDetalhe(det);
+                          setVerFotosId(e.id);
+                        } catch (err) {
+                          onToast(err instanceof Error ? err.message : 'Erro ao carregar fotos.', 'error');
+                        }
                       }}
                     >
-                      Corrigir prestação de contas
+                      {verFotosId === e.id ? 'Ocultar fotos' : 'Ver fotos'}
                     </button>
-                  )}
+                    {(e.status === 'correcao_solicitada' || e.status === 'rejeitado') && (
+                      <button
+                        type="button"
+                        className="gv-btn primary"
+                        onClick={async () => {
+                          const resp = rows.find((r) => r.id === e.responsabilidade_id);
+                          if (resp) await openRetirada(resp);
+                        }}
+                      >
+                        Corrigir prestação de contas
+                      </button>
+                    )}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -1021,10 +1078,21 @@ function MeusVeiculosPanel({
                   <strong>Total estimado a debitar: {formatMoneyBR(total)}</strong>
                 </li>
               </ul>
-              <div className="gv-thumbs">
-                {fotoIni && <img src={fotoIni} alt="Hodômetro inicial" />}
-                {fotoFim && <img src={fotoFim} alt="Hodômetro final" />}
-              </div>
+              <VeiculoFotoThumbs
+                items={[
+                  { url: fotoIni, label: 'Hodômetro inicial' },
+                  { url: fotoFim, label: 'Hodômetro final' },
+                  ...(lavado && lavagemComp
+                    ? [{ url: lavagemComp, label: 'Comprovante de lavagem' }]
+                    : []),
+                  ...abasts
+                    .filter((a) => a.nota_url)
+                    .map((a, i) => ({
+                      url: String(a.nota_url),
+                      label: `Nota abastecimento ${i + 1}`,
+                    })),
+                ]}
+              />
               <div className="gv-actions">
                 <button type="button" className="gv-btn" onClick={() => setMode('entrega')}>
                   Voltar
@@ -1295,12 +1363,26 @@ function AprovacaoDetalhe({
   }, [id, refreshKey]);
 
   if (!data) return <div className="gv-card">Carregando…</div>;
-  const { entrega, retirada } = data;
+  const { entrega, retirada, abastecimentos, lavagem } = data;
   const encerrada = entrega.status === 'aprovado' || entrega.status === 'finalizado';
   const podeDecidir =
     entrega.status === 'aguardando_aprovacao' ||
     entrega.status === 'correcao_solicitada' ||
     entrega.status === 'rejeitado';
+
+  const fotos = [
+    { url: retirada?.foto_hodometro_url ?? '', label: 'Hodômetro inicial' },
+    { url: entrega.foto_hodometro_url ?? '', label: 'Hodômetro final' },
+    ...(lavagem?.comprovante_url
+      ? [{ url: String(lavagem.comprovante_url), label: 'Comprovante de lavagem' }]
+      : []),
+    ...abastecimentos
+      .filter((a) => a.nota_url)
+      .map((a, i) => ({
+        url: String(a.nota_url),
+        label: `Nota abastecimento ${i + 1}`,
+      })),
+  ];
 
   return (
     <div className="gv-card">
@@ -1327,10 +1409,8 @@ function AprovacaoDetalhe({
         <li>Lavagem: {formatMoneyBR(entrega.valor_lavagem)}</li>
         <li>Total: {formatMoneyBR(entrega.total_estimado)}</li>
       </ul>
-      <div className="gv-thumbs">
-        {retirada?.foto_hodometro_url && <img src={retirada.foto_hodometro_url} alt="Ini" />}
-        <img src={entrega.foto_hodometro_url} alt="Fim" />
-      </div>
+      <h3>Fotos e comprovantes</h3>
+      <VeiculoFotoThumbs items={fotos} />
       {podeDecidir && (
         <>
           <label>
