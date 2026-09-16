@@ -19,6 +19,7 @@ import {
   acaoAprovacao,
   abrirManutencao,
   calcCombustivel,
+  litrosConsumidos,
   concluirManutencao,
   createResponsabilidade,
   createVeiculo,
@@ -334,10 +335,12 @@ function FrotaPanel({
           <input value={form.cor ?? ''} onChange={(e) => setForm({ ...form, cor: e.target.value })} />
         </label>
         <label>
-          Consumo médio (km/l)
+          Autonomia (km por litro)
           <input
             type="number"
             step="0.1"
+            min="0.1"
+            required
             value={form.consumo_medio_km_l ?? ''}
             onChange={(e) =>
               setForm({
@@ -345,8 +348,14 @@ function FrotaPanel({
                 consumo_medio_km_l: e.target.value ? Number(e.target.value) : null,
               })
             }
+            placeholder="Ex.: 12"
+            title="Quantos km o veículo faz com 1 litro"
           />
         </label>
+        <p className="gv-muted">
+          Informe quantos km o veículo faz com 1 L. Esse valor entra no cálculo do combustível na
+          entrega: (km rodados ÷ autonomia) × preço do litro.
+        </p>
         <label>
           Situação
           <select
@@ -404,6 +413,9 @@ function FrotaPanel({
                   <span className="gv-muted">
                     {v.tipo} · {v.situacao}
                     {v.ano ? ` · ${v.ano}` : ''}
+                    {v.consumo_medio_km_l != null
+                      ? ` · autonomia ${Number(v.consumo_medio_km_l).toLocaleString('pt-BR')} km/L`
+                      : ' · autonomia não cadastrada'}
                   </span>
                 </div>
                 <div className="gv-actions">
@@ -626,7 +638,6 @@ function MeusVeiculosPanel({
   const [lavagemEst, setLavagemEst] = useState('');
   const [lavagemComp, setLavagemComp] = useState('');
   const [abasts, setAbasts] = useState<VeiculoAbastecimento[]>([]);
-  const [formula, setFormula] = useState<'km_x_preco' | 'km_div_consumo_x_litro'>('km_x_preco');
   const [kmIniNum, setKmIniNum] = useState(0);
   const [entregasUser, setEntregasUser] = useState<VeiculoEntrega[]>([]);
   const [verFotosId, setVerFotosId] = useState<string | null>(null);
@@ -641,7 +652,6 @@ function MeusVeiculosPanel({
       fetchEntregas({ usuarioId: actor.id }),
     ]);
     setRows(r);
-    setFormula(cfg.formula_combustivel);
     if (cfg.preco_padrao) setPrecoComb(String(cfg.preco_padrao));
     setEntregasUser(ents);
   };
@@ -661,12 +671,16 @@ function MeusVeiculosPanel({
   const kmFimNum = parseNumberBr(kmFim);
   const kmRodados =
     kmFimNum != null && kmIniNum >= 0 ? Math.max(0, kmFimNum - kmIniNum) : 0;
-  const valorComb = calcCombustivel({
-    kmRodados,
-    preco: Number(precoComb) || 0,
-    formula,
-    consumoMedio: selected?.veiculos?.consumo_medio_km_l,
-  });
+  const autonomia = selected?.veiculos?.consumo_medio_km_l ?? null;
+  const temAutonomia = autonomia != null && Number(autonomia) > 0;
+  const litros = temAutonomia ? litrosConsumidos(kmRodados, autonomia) : 0;
+  const valorComb = temAutonomia
+    ? calcCombustivel({
+        kmRodados,
+        preco: Number(precoComb) || 0,
+        consumoMedio: autonomia,
+      })
+    : 0;
   const valorLav = lavado ? Number(lavagemValor) || 0 : 0;
   const valorAbast = abasts.reduce((s, a) => s + Number(a.valor || 0), 0);
   const total = valorComb + valorLav;
@@ -942,9 +956,20 @@ function MeusVeiculosPanel({
                 <p className="gv-err">A quilometragem final não pode ser menor que a inicial.</p>
               )}
               {kmFimNum != null && kmFimNum >= kmIniNum && (
-                <p className="gv-ok">
-                  Km rodados: {formatNumberBr(kmRodados)} · combustível estimado:{' '}
-                  {formatMoneyBR(valorComb)}
+                <p className={temAutonomia ? 'gv-ok' : 'gv-err'}>
+                  {temAutonomia ? (
+                    <>
+                      Km rodados: {formatNumberBr(kmRodados)} ÷ autonomia{' '}
+                      {formatNumberBr(Number(autonomia))} km/L = {formatNumberBr(litros)} L ×{' '}
+                      {formatMoneyBR(Number(precoComb) || 0)} ={' '}
+                      <strong>{formatMoneyBR(valorComb)}</strong>
+                    </>
+                  ) : (
+                    <>
+                      Este veículo está sem autonomia (km/L). Peça ao Gerente para cadastrar na
+                      frota.
+                    </>
+                  )}
                 </p>
               )}
               <label>
@@ -1050,7 +1075,7 @@ function MeusVeiculosPanel({
                   type="button"
                   className="gv-btn primary"
                   disabled={
-                    !fotoFim || kmFimNum == null || kmFimNum < kmIniNum
+                    !fotoFim || kmFimNum == null || kmFimNum < kmIniNum || !temAutonomia
                   }
                   onClick={() => setMode('resumo')}
                 >
@@ -1070,8 +1095,16 @@ function MeusVeiculosPanel({
                 <li>Km inicial: {formatNumberBr(kmIniNum)}</li>
                 <li>Km final: {kmFim || formatNumberBr(kmFimNum)}</li>
                 <li>Km rodados: {formatNumberBr(kmRodados)}</li>
+                <li>
+                  Autonomia: {temAutonomia ? `${formatNumberBr(Number(autonomia))} km/L` : '—'}
+                </li>
+                <li>Litros estimados: {temAutonomia ? formatNumberBr(litros) : '—'}</li>
                 <li>Preço combustível: {formatMoneyBR(Number(precoComb))}</li>
-                <li>Valor combustível: {formatMoneyBR(valorComb)}</li>
+                <li>
+                  Combustível ({formatNumberBr(kmRodados)} km ÷{' '}
+                  {temAutonomia ? formatNumberBr(Number(autonomia)) : '—'} km/L ×{' '}
+                  {formatMoneyBR(Number(precoComb))}): {formatMoneyBR(valorComb)}
+                </li>
                 <li>Abastecido com nota: {formatMoneyBR(valorAbast)}</li>
                 <li>Lavagem: {formatMoneyBR(valorLav)}</li>
                 <li>
@@ -1384,6 +1417,11 @@ function AprovacaoDetalhe({
       })),
   ];
 
+  const autonomia = entrega.veiculos?.consumo_medio_km_l ?? null;
+  const kmRod = Number(entrega.km_rodados || 0);
+  const litros =
+    autonomia != null && Number(autonomia) > 0 ? litrosConsumidos(kmRod, autonomia) : null;
+
   return (
     <div className="gv-card">
       <div className="gv-aprov-head">
@@ -1405,7 +1443,23 @@ function AprovacaoDetalhe({
           {formatNumberBr(entrega.km_confirmado)}
         </li>
         <li>Rodados: {formatNumberBr(entrega.km_rodados)}</li>
-        <li>Combustível calc.: {formatMoneyBR(entrega.valor_combustivel_calculado)}</li>
+        <li>
+          Autonomia:{' '}
+          {autonomia != null ? `${formatNumberBr(Number(autonomia))} km/L` : 'não cadastrada'}
+        </li>
+        <li>
+          Litros estimados:{' '}
+          {litros != null ? formatNumberBr(litros) : '—'}
+          {litros != null && autonomia != null
+            ? ` (${formatNumberBr(kmRod)} ÷ ${formatNumberBr(Number(autonomia))})`
+            : ''}
+        </li>
+        <li>
+          Combustível calc.: {formatMoneyBR(entrega.valor_combustivel_calculado)}
+          {litros != null
+            ? ` · ${formatNumberBr(litros)} L × ${formatMoneyBR(entrega.preco_combustivel)}`
+            : ''}
+        </li>
         <li>Lavagem: {formatMoneyBR(entrega.valor_lavagem)}</li>
         <li>Total: {formatMoneyBR(entrega.total_estimado)}</li>
       </ul>
@@ -1678,11 +1732,9 @@ function ConfigPanel({
   actor: { id: number; cargo: string };
   onToast: (m: string, t?: 'success' | 'error' | 'info') => void;
 }) {
-  const [formula, setFormula] = useState<'km_x_preco' | 'km_div_consumo_x_litro'>('km_x_preco');
   const [preco, setPreco] = useState('');
   useEffect(() => {
     void fetchConfigVeiculo().then((c) => {
-      setFormula(c.formula_combustivel);
       setPreco(c.preco_padrao != null ? String(c.preco_padrao) : '');
     });
   }, []);
@@ -1694,7 +1746,7 @@ function ConfigPanel({
         try {
           await updateConfigVeiculo(
             {
-              formula_combustivel: formula,
+              formula_combustivel: 'km_div_consumo_x_litro',
               preco_padrao: preco ? Number(preco) : null,
             },
             actor,
@@ -1705,23 +1757,13 @@ function ConfigPanel({
         }
       }}
     >
-      <h2>Fórmula de combustível</h2>
+      <h2>Cálculo de combustível</h2>
+      <p className="gv-muted">
+        Fórmula oficial: <strong>(km rodados ÷ autonomia km/L) × preço do litro</strong>. A
+        autonomia é cadastrada em cada veículo na frota.
+      </p>
       <label>
-        Método
-        <select
-          value={formula}
-          onChange={(e) =>
-            setFormula(e.target.value as 'km_x_preco' | 'km_div_consumo_x_litro')
-          }
-        >
-          <option value="km_x_preco">Km rodados × preço informado (padrão)</option>
-          <option value="km_div_consumo_x_litro">
-            Km ÷ consumo médio × preço por litro
-          </option>
-        </select>
-      </label>
-      <label>
-        Preço padrão sugerido
+        Preço padrão sugerido (R$/L)
         <input type="number" step="0.01" value={preco} onChange={(e) => setPreco(e.target.value)} />
       </label>
       <button type="submit" className="gv-btn primary">

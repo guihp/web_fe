@@ -224,6 +224,9 @@ export async function createVeiculo(
   if (!input.marca.trim() || !input.modelo.trim()) {
     throw new Error('Marca e modelo são obrigatórios.');
   }
+  if (!(input.consumo_medio_km_l != null && Number(input.consumo_medio_km_l) > 0)) {
+    throw new Error('Informe a autonomia do veículo (km por litro).');
+  }
   const row = {
     tipo: input.tipo,
     marca: input.marca.trim(),
@@ -617,7 +620,7 @@ export async function fetchConfigVeiculo(): Promise<VeiculoConfig> {
   return (
     (data as VeiculoConfig) ?? {
       id: 1,
-      formula_combustivel: 'km_x_preco',
+      formula_combustivel: 'km_div_consumo_x_litro',
       preco_padrao: null,
     }
   );
@@ -633,6 +636,8 @@ export async function updateConfigVeiculo(
     .upsert({
       id: 1,
       ...patch,
+      // Cálculo oficial sempre usa autonomia do veículo
+      formula_combustivel: patch.formula_combustivel ?? 'km_div_consumo_x_litro',
       updated_at: new Date().toISOString(),
       updated_by: actor.id,
     })
@@ -649,19 +654,31 @@ export async function updateConfigVeiculo(
   return data as VeiculoConfig;
 }
 
+/**
+ * Valor a repor = (km rodados ÷ autonomia km/L) × preço do litro.
+ * Ex.: (13 ÷ 30) × 6 = R$ 2,60
+ */
 export function calcCombustivel(opts: {
   kmRodados: number;
   preco: number;
-  formula: VeiculoConfig['formula_combustivel'];
+  formula?: VeiculoConfig['formula_combustivel'];
   consumoMedio?: number | null;
 }): number {
   if (opts.kmRodados < 0 || opts.preco < 0) return 0;
-  if (opts.formula === 'km_div_consumo_x_litro') {
-    const cons = opts.consumoMedio && opts.consumoMedio > 0 ? opts.consumoMedio : 0;
-    if (!cons) return opts.kmRodados * opts.preco;
-    return (opts.kmRodados / cons) * opts.preco;
+  const autonomia = opts.consumoMedio != null ? Number(opts.consumoMedio) : 0;
+  if (!(autonomia > 0)) {
+    throw new Error(
+      'Veículo sem autonomia (km/L) cadastrada. Cadastre a autonomia na frota antes de calcular o combustível.',
+    );
   }
-  return opts.kmRodados * opts.preco;
+  // Sempre usa autonomia — fórmula antiga km×preço foi descontinuada
+  return (opts.kmRodados / autonomia) * opts.preco;
+}
+
+export function litrosConsumidos(kmRodados: number, autonomiaKmL: number | null | undefined): number {
+  const a = Number(autonomiaKmL);
+  if (!(kmRodados >= 0) || !(a > 0)) return 0;
+  return kmRodados / a;
 }
 
 export async function registrarRetirada(
@@ -814,13 +831,18 @@ export async function registrarEntrega(
     throw new Error('Já existe entrega registrada para esta retirada.');
   }
 
-  const config = await fetchConfigVeiculo();
   const kmRodados = Number(input.km_confirmado) - Number(retirada.km_confirmado);
+  const autonomia = (resp.veiculos as Veiculo | null)?.consumo_medio_km_l;
+  if (!(autonomia != null && Number(autonomia) > 0)) {
+    throw new Error(
+      'Este veículo está sem autonomia (km/L). Peça ao Gerente para cadastrar na frota antes da entrega.',
+    );
+  }
   const valorComb = calcCombustivel({
     kmRodados,
     preco: input.preco_combustivel,
-    formula: config.formula_combustivel,
-    consumoMedio: (resp.veiculos as Veiculo | null)?.consumo_medio_km_l,
+    formula: 'km_div_consumo_x_litro',
+    consumoMedio: autonomia,
   });
   const abasts = input.abastecimentos ?? [];
   const valorAbast = abasts.reduce((s, a) => s + Number(a.valor || 0), 0);
