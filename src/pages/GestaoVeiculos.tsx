@@ -1316,11 +1316,17 @@ function AprovacaoPanel({
             <li key={e.id}>
               <div>
                 <strong>
-                  {e.veiculos?.placa} · {formatMoneyBR(e.total_estimado)}
+                  {e.veiculos?.placa}
+                  {e.veiculos?.marca || e.veiculos?.modelo
+                    ? ` · ${[e.veiculos?.marca, e.veiculos?.modelo].filter(Boolean).join(' ')}`
+                    : ''}{' '}
+                  · {formatMoneyBR(e.total_estimado)}
                 </strong>
                 <div className="gv-list-meta">
                   <StatusEntregaBadge status={e.status} />
                   <span className="gv-muted">
+                    {e.veiculos?.tipo === 'moto' ? 'Moto' : e.veiculos?.tipo === 'carro' ? 'Carro' : ''}
+                    {e.veiculos?.tipo ? ' · ' : ''}
                     {formatDateBR(e.entrega_em)} · user #{e.usuario_id}
                   </span>
                 </div>
@@ -1422,10 +1428,23 @@ function AprovacaoDetalhe({
   const litros =
     autonomia != null && Number(autonomia) > 0 ? litrosConsumidos(kmRod, autonomia) : null;
 
+  const veiculoNome = [entrega.veiculos?.marca, entrega.veiculos?.modelo]
+    .filter(Boolean)
+    .join(' ');
+  const veiculoTipo =
+    entrega.veiculos?.tipo === 'moto'
+      ? 'Moto'
+      : entrega.veiculos?.tipo === 'carro'
+        ? 'Carro'
+        : entrega.veiculos?.tipo || '';
+
   return (
     <div className="gv-card">
       <div className="gv-aprov-head">
-        <h2>Prestação — {entrega.veiculos?.placa}</h2>
+        <h2>
+          Prestação — {entrega.veiculos?.placa}
+          {veiculoNome ? ` · ${veiculoNome}` : ''}
+        </h2>
         <StatusEntregaBadge status={entrega.status} />
       </div>
       {encerrada && (
@@ -1437,6 +1456,10 @@ function AprovacaoDetalhe({
       <ul className="gv-resumo">
         <li>
           Status: <StatusEntregaBadge status={entrega.status} />
+        </li>
+        <li>
+          Veículo:{' '}
+          {[veiculoTipo, veiculoNome, entrega.veiculos?.placa].filter(Boolean).join(' · ') || '—'}
         </li>
         <li>
           Km ini: {formatNumberBr(retirada?.km_confirmado)} → fim:{' '}

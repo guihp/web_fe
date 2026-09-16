@@ -89,11 +89,14 @@ Não há runtime Vercel no fluxo de produção do catálogo.
 
 - Service worker customizado em `src/sw.ts` (precache + push).
 - Atualização de versão: banner “Nova versão disponível” via `PwaUpdateProvider`.
-- Notificações do sino: retenção rolante de **48h** desde o `at` do evento; badge só para itens com `at` posterior a `seen_at` (localStorage); queries de `avisos` / `baseVendas` / `pedido_kanban` / `contrato_faturamento` com `.gte` na janela de 48h; encartes recentes via `fetchEncartesRecentesParaUsuario`.
+- Notificações do sino: retenção rolante de **48h** desde o `at` do evento; badge só para itens com `at` posterior a `seen_at` (localStorage); queries de `avisos` / `baseVendas` / `pedido_kanban` / `contrato_faturamento` com `.gte` na janela de 48h; encartes recentes via `fetchEncartesRecentesParaUsuario`; **veículos** via `fetchVeiculoNotificationsForUser` (inclui lembrete 7 dias após retirada enquanto `em_uso`).
 - Preferências: `notification_preferences` (`notify_venda`, `notify_kanban_*`, `notify_aviso`, `notify_aniversario`, `notify_meta`). Aniversário e meta batida são avisos no sino (não web-push em massa).
 - Avisos: tabela `avisos`, RPC `enviar_aviso`, Edge Function `send-web-push` (`kind = aviso`, só internos), cron `aviso-folha-dia-25` (dia 25 ~12:00 UTC).
+- Realtime do sino também em `veiculo_retiradas`, `veiculo_entregas` e `veiculo_responsabilidades`.
 - Migration aniversário: `supabase/migrations/20260901100000_notify_aniversario.sql` (já aplicada no projeto remoto).
 - Migration meta: `supabase/migrations/20260901110000_notify_meta.sql` (já aplicada no projeto remoto).
+- Gestão de Veículos: bucket Storage `veiculo-anexos`; service `src/services/veiculosService.ts`; página `src/pages/GestaoVeiculos.tsx`.
+
 ## Estrutura útil do código (para quem mantém)
 
 | Pasta / arquivo | Papel |

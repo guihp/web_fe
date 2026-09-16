@@ -76,15 +76,23 @@ No Price, o filtro de mês usa os valores existentes em `pesquisa.mes`: se houve
 
 | Conceito | Tabela | Uso |
 |----------|--------|-----|
-| Veículo | `veiculos` | Frota (placa única); situacao disponivel/em_uso/manutencao/inativo |
-| Responsabilidade | `veiculo_responsabilidades` | Vínculo semanal usuário ↔ veículo |
+| Veículo | `veiculos` | Frota (placa única); `consumo_medio_km_l` = **autonomia (km/L)** obrigatória no cadastro; situacao disponivel/em_uso/manutencao/inativo |
+| Responsabilidade | `veiculo_responsabilidades` | Vínculo usuário ↔ veículo (`programado` → `em_uso` → `aguardando_aprovacao` → `finalizado`) |
 | Manutenção | `veiculo_manutencoes` | Aberta/concluída; bloqueia atribuição |
-| Retirada / Entrega | `veiculo_retiradas` / `veiculo_entregas` | Hodômetro, km, status da prestação |
-| Gastos | `veiculo_abastecimentos`, `veiculo_lavagens`, `veiculo_despesas` | Comprovantes |
+| Retirada / Entrega | `veiculo_retiradas` / `veiculo_entregas` | Foto do hodômetro, km (máscara BR), status da prestação |
+| Gastos | `veiculo_abastecimentos`, `veiculo_lavagens`, `veiculo_despesas` | Comprovantes (URLs no Storage) |
 | Aprovação / auditoria | `veiculo_aprovacoes`, `veiculo_auditoria` | Log permanente |
-| Config | `veiculo_config` | Fórmula combustível (padrão km × preço) |
+| Config | `veiculo_config` | Preço padrão sugerido do litro; fórmula oficial sempre por autonomia |
 
-Storage: bucket `veiculo-anexos`.
+**Cálculo de combustível (oficial):**  
+`(km_rodados ÷ autonomia_km_l) × preco_combustivel`  
+Ex.: 13 km ÷ 30 km/L × R$ 5,99 ≈ R$ 2,60.
+
+**Fluxo:** retirada (foto + km) → uso → entrega (foto + km + lavagem/abastecimentos) → aprovação. Ao **aprovar** (ou confirmar débito), a responsabilidade fica `finalizado` e o veículo volta a `disponivel`.
+
+Storage: bucket `veiculo-anexos` (público; fotos de hodômetro/comprovantes/frota).
+
+Migrations relevantes: `20260915180000_gestao_veiculos.sql`, `20260916140000_veiculos_autonomia_km_l.sql`, `20260916143000_combustivel_por_autonomia.sql`, `20260916150000_veiculos_notif_realtime.sql`.
 
 ## Arquivos (Storage)
 
@@ -94,6 +102,7 @@ Storage: bucket `veiculo-anexos`.
 | `pdf_treinamento` | PDFs de treinamento |
 | `contrato-anexos` | Anexos de contratos |
 | `atividade-fotos` | Fotos de atividades (URLs em `atividade_dia.foto_antes_url` / `foto_depois_url`; galeria do Ebook digital) |
+| `veiculo-anexos` | Fotos de hodômetro, comprovantes e frota (Gestão de Veículos) |
 
 ## Padronização de nomes
 

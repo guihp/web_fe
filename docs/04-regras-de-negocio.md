@@ -17,6 +17,9 @@
 12. **Ebook digital** (/merchandising/ebook): só **Gerente**, **Supervisor**, **Analista admin** e **RH**. Fotos vêm de `atividade_dia` + URLs públicas do bucket `atividade-fotos` (sem webhook). PDF só das miniaturas selecionadas.
 13. **Catálogo das indústrias** (`/merchandising/catalogo`): consulta no App para internos e externos. **Acesso master** (gestão/Drive) só Gerente / Supervisor / RH / Analista admin internos. Externo indústria = só o próprio catálogo; externo cliente = todos. Sem gestão para externos.
 14. **Gestão de Veículos:** uso em Fé Representações para Gerente, Supervisor, Financeiro, RH, Analista admin e Vendedor. **Aprovar/rejeitar valores e CRUD da frota:** só Gerente e Financeiro. Externos, Promotor e Demonstradora sem acesso. Sem tela em Merchandising.
+15. **Veículos — autonomia e débito:** cada veículo deve ter **autonomia (km/L)** cadastrada. Valor a debitar de combustível = `(km rodados ÷ autonomia) × preço do litro`. Datas e km na UI usam formato brasileiro (DD/MM/AAAA e `200.000,00`).
+16. **Veículos — aprovação libera frota:** ao aprovar a prestação (ou confirmar débito), o veículo volta a **disponível** e a responsabilidade a **finalizado**. Na tela de aprovação exibe placa + marca/modelo (ex.: HONDA POP 110I).
+17. **Veículos — lembrete 7 dias:** se o usuário retirou o veículo e a responsabilidade ainda está `em_uso` após 7 dias (sem enviar a prestação), o **sino** mostra lembrete diário para informar km/valores. Realtime em `veiculo_retiradas` / `veiculo_entregas` / `veiculo_responsabilidades`.
 
 ## Avisos
 

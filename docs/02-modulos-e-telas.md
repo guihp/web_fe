@@ -60,7 +60,7 @@ Hub: `/fe-representacoes`
 | Price | `/fe-representacoes/price` | Internas/externas por **mês**; export/import de custos; markup/margem + gráfico; externos em leitura com escopo; internos têm atalho **Fazer pesquisa** |
 | Sucesso do cliente | `/fe-representacoes/sucesso-cliente` | Kanban de pedidos a partir das vendas lançadas; status arrastável (internos) |
 | Avisos | `/fe-representacoes/avisos` | **Só Gerente:** enviar aviso de salário ou feriado (modelos editáveis); confirmação com prévia da mensagem antes do envio (irreversível); folha de ponto automática no dia 25 |
-| Gestão de Veículos | `/fe-representacoes/veiculos` | Frota (CRUD Gerente/Financeiro), meus veículos, retirada/entrega, aprovação de valores (só Gerente/Financeiro), manutenção, quem está com o veículo. Cargos: Gerente, Supervisor, Financeiro, RH, Analista admin, Vendedor. |
+| Gestão de Veículos | `/fe-representacoes/veiculos` | Frota (CRUD + autonomia km/L: Gerente/Financeiro), meus veículos (retirada/entrega com foto de hodômetro, máscaras BR de data/km), aprovação (placa + marca/modelo; só Gerente/Financeiro), manutenção, quem está com o veículo, relatórios. Cargos: Gerente, Supervisor, Financeiro, RH, Analista admin, Vendedor. |
 | Relatórios | `/fe-representacoes/relatorios` | Relatórios comerciais |
 | Projeção de metas | `/fe-representacoes/projecao-metas` | Metas vs realizado |
 | Vendas (dashboard) | `/fe-representacoes/vendas` | KPIs (com % MA/PI e PA), realizado x meta, barras/pizza por indústria |
@@ -127,7 +127,7 @@ Hub: `/administrador` (somente **Gerente**)
 | Indústrias | `/administrador/industrias` | Indústrias parceiras |
 | Clientes | `/administrador/clientes` | Clientes admin |
 | Metas | `/administrador/metas` | Metas |
-| Gestão de Veículos | `/administrador/veiculos` | Frota, responsabilidades, manutenção, quem está com o veículo, dashboard, config e auditoria (Gerente) |
+| Gestão de Veículos | `/administrador/veiculos` | Frota, responsabilidades, manutenção, quem está com o veículo, dashboard, config (preço sugerido do litro) e auditoria (Gerente) |
 | Colaboradores | `/colaboradores` | Gestão de colaboradores |
 
 Price **não** fica mais no Administrador — só em **Fé Representações**.
@@ -136,8 +136,8 @@ Price **não** fica mais no Administrador — só em **Fé Representações**.
 
 ## Notificações
 
-- **Internos (demais cargos):** lançamentos de vendas, Sucesso do cliente, kanban financeiro e **avisos** (salário / feriado / folha).
-- **Liderança (Gerente, Supervisor, Analista admin, RH, Financeiro):** além do acima, avisos de **meta mensal/anual batida** por regional (MA/PI e PA), com preferência `notify_meta` no modal Instalar app e notificações.
+- **Internos (demais cargos):** lançamentos de vendas, Sucesso do cliente, kanban financeiro, **avisos** (salário / feriado / folha) e, quando aplicável, **veículos** (atribuição, prestação, lembrete 7 dias após retirada).
+- **Liderança (Gerente, Supervisor, Analista admin, RH, Financeiro):** além do acima, avisos de **meta mensal/anual batida** por regional (MA/PI e PA), com preferência `notify_meta` no modal Instalar app e notificações; Gerente/Financeiro também veem a **fila de aprovação** de veículos.
 - **Promotor / Demonstradora:** **avisos** (pagamento, feriado, folha), **tarefas** novas, **encartes do dia de início**, **aniversário**.
 - **Externos (indústria/cliente):** Sucesso do cliente do próprio escopo + **encartes do dia de início** (marca/loja no escopo). Externos **não** recebem avisos de RH.
 - **Aniversário (todos):** no dia do aniversário, só o próprio usuário vê “Feliz aniversário!” no sino. Preferência `notify_aniversario` (padrão ligado) no modal Instalar app e notificações, para interno e externo.

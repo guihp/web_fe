@@ -2,6 +2,15 @@
 
 Formato: mais recente no topo.
 
+## 2026-09-16
+
+### App
+- **Gestão de Veículos:** combustível por autonomia `(km ÷ km/L) × preço`; autonomia obrigatória na frota; aprovação libera o veículo; máscaras BR de data/km; fotos mobile (galeria); lembrete no sino 7 dias após a retirada; detalhe de aprovação com marca/modelo (ex.: POP / Strada).
+- **Catálogo:** carregamento de imagens mais leve (lazy + thumb Drive menor + proxy externo); Vale Fértil com filtros Linha regular / Linha food (≥ 1 kg = food).
+
+### Documentação
+- Atualizados `02`, `03`, `04` e este changelog com o estado atual da Gestão de Veículos (cálculo, storage, notificações e fluxo de aprovação).
+
 ## 2026-09-15
 
 ### App
