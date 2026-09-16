@@ -4,6 +4,7 @@ const ALLOWED_HOSTS = new Set([
   'gerenciadorpd.com.br',
   'www.gerenciadorpd.com.br',
   'valefertil.com.br',
+  'www.valefertil.com.br',
   'cdn.awsli.com.br',
 ]);
 

@@ -799,6 +799,26 @@ img {
   margin: auto;
   object-fit: contain;
   object-position: center center;
+  opacity: 1;
+  transition: opacity 180ms ease;
+  background: transparent;
+}
+
+.product-image-wrap img.is-loading {
+  opacity: 0.25;
+}
+
+.product-image-wrap img.is-loaded {
+  opacity: 1;
+}
+
+.product-image-wrap img.image-load-error {
+  opacity: 0.45;
+  filter: grayscale(1);
+}
+
+.product-row-image img.is-loading {
+  opacity: 0.3;
 }
 
 .product-info {

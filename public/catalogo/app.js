@@ -451,7 +451,7 @@
       url:
         "https://drive.google.com/thumbnail?id=" +
         encodeURIComponent(uploaded.id) +
-        "&sz=w1600",
+        "&sz=w800",
     };
   }
 
@@ -1014,7 +1014,7 @@
     );
   }
 
-  function createProductCard(product) {
+  function createProductCard(product, options) {
     var article = document.createElement("article");
     article.className = "product-card";
     article.innerHTML =
@@ -1030,7 +1030,10 @@
       "</div></div>";
 
     var image = article.querySelector("img");
-    setProductImageSource(image, product);
+    setProductImageSource(image, product, {
+      size: "w480",
+      eager: Boolean(options && options.eager),
+    });
     image.alt = product.name + ", " + product.weight;
     article.querySelector(".product-name").textContent = product.name;
     article.querySelector(".product-weight").textContent = product.weight;
@@ -1052,35 +1055,140 @@
     return match ? decodeURIComponent(match[1]) : "";
   }
 
-  function setProductImageSource(imageElement, product) {
-    var fileId = getProductDriveFileId(product);
+  var PRODUCT_IMAGE_PROXY_HOSTS = {
+    "gerenciadorpd.com.br": true,
+    "www.gerenciadorpd.com.br": true,
+    "valefertil.com.br": true,
+    "www.valefertil.com.br": true,
+    "cdn.awsli.com.br": true,
+  };
+
+  function isLocalCatalogAsset(url) {
+    if (!url || typeof url !== "string") return false;
+    return (
+      url.indexOf("assets/") === 0 ||
+      url.indexOf("./assets/") === 0 ||
+      url.indexOf("/catalogo/assets/") === 0
+    );
+  }
+
+  function withDriveThumbnailSize(url, size) {
+    if (!url || typeof url !== "string") return url;
+    if (!/drive\.google\.com\/(thumbnail|uc)/i.test(url)) return url;
+    if (/[?&]sz=/i.test(url)) {
+      return url.replace(/([?&]sz=)[^&]*/i, "$1" + size);
+    }
+    return url + (url.indexOf("?") >= 0 ? "&" : "?") + "sz=" + size;
+  }
+
+  function proxiedCatalogImageUrl(url) {
+    try {
+      var parsed = new URL(url, window.location.href);
+      if (parsed.protocol !== "https:") return url;
+      var host = parsed.hostname.toLowerCase();
+      if (!PRODUCT_IMAGE_PROXY_HOSTS[host]) return url;
+      return "/api/product-image?url=" + encodeURIComponent(parsed.href);
+    } catch (error) {
+      return url;
+    }
+  }
+
+  function pushUniqueSource(sources, value) {
+    if (!value || typeof value !== "string") return;
+    if (sources.indexOf(value) === -1) sources.push(value);
+  }
+
+  function buildProductImageSources(product, size) {
     var sources = [];
+    var fileId = getProductDriveFileId(product);
+    var image = typeof product.image === "string" ? product.image.trim() : "";
+    var thumbSize = size || "w480";
+
+    // 1) Arquivos locais do site (mais rápidos)
+    if (isLocalCatalogAsset(image)) {
+      pushUniqueSource(sources, image);
+      if (/\.png$/i.test(image)) {
+        pushUniqueSource(sources, image.replace(/\.png$/i, ".avif"));
+        pushUniqueSource(sources, image.replace(/\.png$/i, ".webp"));
+      } else if (/\.webp$/i.test(image)) {
+        pushUniqueSource(sources, image.replace(/\.webp$/i, ".avif"));
+      }
+    }
+
+    // 2) Links externos via proxy (GerenciadorPD / Vale Fértil / AWS LI)
+    if (/^https:\/\//i.test(image) && !/drive\.google\.com/i.test(image)) {
+      var proxied = proxiedCatalogImageUrl(image);
+      pushUniqueSource(sources, proxied);
+      if (proxied !== image) pushUniqueSource(sources, image);
+    }
+
+    // 3) Google Drive em tamanho de card (não w1600)
     if (fileId) {
-      sources.push(
+      pushUniqueSource(
+        sources,
         "https://drive.google.com/thumbnail?id=" +
           encodeURIComponent(fileId) +
-          "&sz=w1600",
+          "&sz=" +
+          thumbSize,
       );
-      sources.push(
-        "https://lh3.googleusercontent.com/d/" + encodeURIComponent(fileId),
+      pushUniqueSource(
+        sources,
+        "https://lh3.googleusercontent.com/d/" +
+          encodeURIComponent(fileId) +
+          "=w" +
+          String(thumbSize).replace(/^w/i, ""),
       );
+    } else if (/drive\.google\.com/i.test(image)) {
+      pushUniqueSource(sources, withDriveThumbnailSize(image, thumbSize));
     }
-    if (product.image && !sources.includes(product.image)) {
-      sources.push(product.image);
-    }
-    sources.push("assets/favicon.svg");
 
+    // 4) Qualquer image restante
+    if (image) {
+      if (/drive\.google\.com/i.test(image)) {
+        pushUniqueSource(sources, withDriveThumbnailSize(image, thumbSize));
+      } else if (!isLocalCatalogAsset(image)) {
+        pushUniqueSource(sources, image);
+      }
+    }
+
+    pushUniqueSource(sources, "assets/favicon.svg");
+    return sources;
+  }
+
+  function setProductImageSource(imageElement, product, options) {
+    var opts = options || {};
+    var sources = buildProductImageSources(product, opts.size || "w480");
     var sourceIndex = 0;
+    var eager = Boolean(opts.eager);
+
+    imageElement.classList.remove("image-load-error", "is-loaded");
+    imageElement.classList.add("is-loading");
+    imageElement.decoding = "async";
+    imageElement.loading = eager ? "eager" : "lazy";
     imageElement.referrerPolicy = "no-referrer";
-    imageElement.addEventListener("error", function () {
+    if (eager) {
+      imageElement.fetchPriority = "high";
+    } else {
+      imageElement.fetchPriority = "low";
+    }
+
+    imageElement.onload = function () {
+      imageElement.classList.remove("is-loading");
+      imageElement.classList.add("is-loaded");
+    };
+
+    imageElement.onerror = function () {
       sourceIndex += 1;
       if (sourceIndex < sources.length) {
         imageElement.src = sources[sourceIndex];
-      } else {
-        imageElement.classList.add("image-load-error");
-        imageElement.removeAttribute("src");
+        return;
       }
-    });
+      imageElement.classList.remove("is-loading");
+      imageElement.classList.add("image-load-error");
+      imageElement.onerror = null;
+      imageElement.removeAttribute("src");
+    };
+
     imageElement.src = sources[0] || "assets/favicon.svg";
   }
 
@@ -1139,8 +1247,12 @@
     }
 
     grid.className = "product-grid";
-    products.forEach(function (product) {
-      grid.appendChild(createProductCard(product));
+    products.forEach(function (product, index) {
+      grid.appendChild(
+        createProductCard(product, {
+          eager: index < 8,
+        }),
+      );
     });
   }
 
@@ -2066,7 +2178,7 @@
       "</div>";
 
     var image = row.querySelector("img");
-    setProductImageSource(image, product);
+    setProductImageSource(image, product, { size: "w240", eager: false });
     image.alt = "";
     row.querySelector("h3").textContent = product.name;
     row.querySelector(".industry-chip").textContent = getIndustryName(
