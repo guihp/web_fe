@@ -196,6 +196,7 @@ async function fetchVeiculoNotificationsForUser(
   if (!usuarioId && !isApprover) return [];
   const sinceIso = notifWindowStartIso();
   const items: AppNotification[] = [];
+  const SEVEN_DAYS_MS = 7 * 24 * 60 * 60 * 1000;
 
   if (usuarioId) {
     const { data: resps } = await supabase
@@ -229,6 +230,38 @@ async function fetchVeiculoNotificationsForUser(
           });
         }
       }
+    }
+
+    // 7 dias após a retirada: lembrar de preencher km/valores e enviar prestação
+    const { data: emUso } = await supabase
+      .from('veiculo_responsabilidades')
+      .select('id, veiculos(placa), veiculo_retiradas(id, retirada_em)')
+      .eq('usuario_id', usuarioId)
+      .eq('status', 'em_uso')
+      .order('updated_at', { ascending: false })
+      .limit(20);
+    const today = todayKeyBRT();
+    for (const r of emUso ?? []) {
+      const rawRet = (r as { veiculo_retiradas?: unknown }).veiculo_retiradas;
+      const ret = (Array.isArray(rawRet) ? rawRet[0] : rawRet) as
+        | { id?: string; retirada_em?: string }
+        | null
+        | undefined;
+      if (!ret?.id || !ret.retirada_em) continue;
+      const retiradaMs = new Date(ret.retirada_em).getTime();
+      if (!Number.isFinite(retiradaMs)) continue;
+      if (Date.now() < retiradaMs + SEVEN_DAYS_MS) continue;
+      const placa = (r.veiculos as { placa?: string } | null)?.placa ?? 'veículo';
+      const dias = Math.floor((Date.now() - retiradaMs) / (24 * 60 * 60 * 1000));
+      items.push({
+        id: `veiculo-lembrete-7d-${ret.id}`,
+        kind: 'veiculo',
+        title: `Lembrete: prestação do veículo ${placa}`,
+        detail: `Já se passaram ${dias} dias desde a retirada. Informe a quilometragem, combustível e demais valores e envie a prestação de contas.`,
+        // Mantém no sino enquanto estiver em uso (renova a cada dia civil BRT)
+        at: brtDayAt(today, 9, 0),
+        href: '/fe-representacoes/veiculos?tab=meus',
+      });
     }
 
     const { data: ents } = await supabase

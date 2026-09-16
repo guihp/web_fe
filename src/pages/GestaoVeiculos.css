@@ -237,16 +237,47 @@
   .gestao-veiculos-page {
     padding-left: 10px;
     padding-right: 10px;
-    padding-bottom: 100px;
+    padding-bottom: max(100px, calc(72px + env(safe-area-inset-bottom)));
+  }
+
+  .gestao-veiculos-tabs {
+    top: 0;
+    padding-top: 6px;
+    margin-bottom: 10px;
+  }
+
+  .gestao-veiculos-tabs button {
+    min-height: 44px;
+    padding: 11px 14px;
+    font-size: 0.86rem;
   }
 
   .gv-card {
     padding: 14px;
   }
 
+  .gv-card input,
+  .gv-card select,
+  .gv-card textarea,
+  .gv-abast-form input,
+  .gv-hodometro input,
+  .gv-filter {
+    font-size: 16px; /* evita zoom automático no iOS */
+    min-height: 44px;
+  }
+
+  .gv-card textarea {
+    min-height: 88px;
+  }
+
+  .gv-btn {
+    min-height: 44px;
+  }
+
   .gv-list li {
     flex-direction: column;
     align-items: stretch;
+    gap: 10px;
   }
 
   .gv-list li .gv-actions,
@@ -273,6 +304,16 @@
     flex: 1 1 100%;
   }
 
+  .gv-aprov-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .gv-status-badge {
+    font-size: 0.8rem;
+    padding: 5px 12px;
+  }
+
   .gv-abast-form {
     flex-direction: column;
     align-items: stretch;
@@ -283,6 +324,10 @@
     width: 100%;
     min-width: 0;
     flex: none;
+  }
+
+  .gv-grid-2 {
+    grid-template-columns: 1fr;
   }
 }
 

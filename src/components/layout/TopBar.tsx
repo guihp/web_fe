@@ -48,6 +48,7 @@ function kindIcon(kind: NotificationKind): AppIconName {
   if (kind === 'meta') return 'target';
   if (kind === 'encarte') return 'tag';
   if (kind === 'atividade') return 'clipboard';
+  if (kind === 'veiculo') return 'briefcase';
   return 'dollar';
 }
 
@@ -60,6 +61,7 @@ function kindLabel(kind: NotificationKind): string {
   if (kind === 'meta') return 'Meta';
   if (kind === 'encarte') return 'Promoção';
   if (kind === 'atividade') return 'Tarefa';
+  if (kind === 'veiculo') return 'Veículos';
   return 'Notificação';
 }
 
