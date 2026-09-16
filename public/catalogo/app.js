@@ -1192,6 +1192,40 @@
     imageElement.src = sources[0] || "assets/favicon.svg";
   }
 
+  function parseWeightToKg(weight) {
+    if (!weight || typeof weight !== "string") return null;
+    var first = weight.split("|")[0].trim();
+    var match = first.match(/([\d]+(?:[.,]\d+)?)\s*(kg|g|gr|gramas?)\b/i);
+    if (!match) return null;
+    var amount = Number(String(match[1]).replace(",", "."));
+    if (!Number.isFinite(amount) || amount < 0) return null;
+    var unit = match[2].toLowerCase();
+    if (unit === "kg") return amount;
+    return amount / 1000;
+  }
+
+  /** Predilecta/Vale Fértil: >= 1 kg = food; menor = regular (doces permanece manual na Predilecta). */
+  function resolveProductCategory(product) {
+    var industry = product && product.industry ? product.industry : "";
+    var stored = product && typeof product.category === "string" ? product.category : "";
+
+    if (industry === "predilecta-alimentos") {
+      if (stored === "doces" || stored === "zero-acucar") return stored;
+      if (stored === "food" || stored === "regular") return stored;
+      var predKg = parseWeightToKg(product.weight);
+      if (predKg == null) return stored || "";
+      return predKg >= 1 ? "food" : "regular";
+    }
+
+    if (industry === "vale-fertil") {
+      var valeKg = parseWeightToKg(product.weight);
+      if (valeKg == null) return stored || "";
+      return valeKg >= 1 ? "food" : "regular";
+    }
+
+    return stored || "";
+  }
+
   function renderPublicProducts(industry, query, category) {
     var grid = document.getElementById("product-grid");
     var resultCount = document.getElementById("product-result-count");
@@ -1206,7 +1240,10 @@
         return product.industry === industry.slug;
       })
       .filter(function (product) {
-        return selectedCategory === "all" || product.category === selectedCategory;
+        return (
+          selectedCategory === "all" ||
+          resolveProductCategory(product) === selectedCategory
+        );
       })
       .filter(function (product) {
         return (
@@ -1278,6 +1315,12 @@
         '<button class="category-filter-button" type="button" data-product-category="regular" aria-pressed="false">Regular</button>' +
         '<button class="category-filter-button" type="button" data-product-category="food" aria-pressed="false">Food</button>' +
         '<button class="category-filter-button" type="button" data-product-category="doces" aria-pressed="false">Doces</button>';
+    }
+    if (industry.slug === "vale-fertil") {
+      categoryButtons =
+        '<button class="category-filter-button active" type="button" data-product-category="all" aria-pressed="true">Todos</button>' +
+        '<button class="category-filter-button" type="button" data-product-category="regular" aria-pressed="false">Linha regular</button>' +
+        '<button class="category-filter-button" type="button" data-product-category="food" aria-pressed="false">Linha food</button>';
     }
     var categoryFilterMarkup = categoryButtons
       ? '<div class="product-category-filter" role="group" aria-label="Filtrar linha de produtos">' + categoryButtons + '</div>'
@@ -2057,6 +2100,11 @@
       }
 
       var now = new Date().toISOString();
+      var draftForCategory = {
+        industry: industry,
+        weight: weight,
+        category: existing ? existing.category || "" : "",
+      };
       var product = {
         id: existing ? existing.id : createId(),
         industry: industry,
@@ -2064,7 +2112,7 @@
         weight: weight,
         productCode: productCode,
         mateusCode: mateusCode,
-        category: existing ? existing.category || "" : "",
+        category: resolveProductCategory(draftForCategory),
         image: image,
         driveFileId: driveFileId,
         createdAt: existing ? existing.createdAt : now,
