@@ -47,18 +47,7 @@ const FRAME_ZOOM_DEFAULT = 0.75;
 const FRAME_ZOOM_MAX = 5;
 const FRAME_ZOOM_STEP = 0.25;
 
-type CropZone = { x: number; y: number; w: number; h: number };
 type FramePan = { x: number; y: number };
-
-function centeredSquareZone(width: number, height: number): CropZone {
-  const side = Math.min(width, height) * CAPTURE_SQUARE_RATIO;
-  return {
-    x: (width - side) / 2 / width,
-    y: (height - side) / 2 / height,
-    w: side / width,
-    h: side / height,
-  };
-}
 
 function coverFitSize(imgW: number, imgH: number, stageW: number, stageH: number) {
   const scale = Math.max(stageW / imgW, stageH / imgH);
@@ -108,10 +97,6 @@ async function canvasToJpeg(full: HTMLCanvasElement, quality = 0.92): Promise<Bl
 
 async function captureFullFromCanvas(full: HTMLCanvasElement) {
   const previewBlob = await canvasToJpeg(full, 0.88);
-  const zone = centeredSquareZone(full.width, full.height);
-  // #region agent log
-  fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',runId:'ocr-pre',hypothesisId:'A-D',location:'FazerPesquisa.tsx:captureFullFromCanvas',message:'Full capture dims (pre-frame)',data:{canvasW:full.width,canvasH:full.height,zone,previewBytes:previewBlob.size},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
   return { previewBlob, width: full.width, height: full.height };
 }
 
@@ -247,8 +232,7 @@ export default function FazerPesquisa() {
   const [descricao, setDescricao] = useState('');
   const [precoVarejo, setPrecoVarejo] = useState('');
   const [precoAtacado, setPrecoAtacado] = useState('');
-  const [candidates, setCandidates] = useState<PesquisaOcrCandidate[]>([]);
-  const [selectedCandidate, setSelectedCandidate] = useState(0);
+  const [, setCandidates] = useState<PesquisaOcrCandidate[]>([]);
   const [confirming, setConfirming] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -450,7 +434,6 @@ export default function FazerPesquisa() {
     setPrecoVarejo('');
     setPrecoAtacado('');
     setCandidates([]);
-    setSelectedCandidate(0);
     setOcrBusy(false);
     setCaptureError(false);
     setConfirming(false);
@@ -467,14 +450,10 @@ export default function FazerPesquisa() {
   ) => {
     // Catálogo desligado: só texto/preços do OCR da etiqueta.
     setCandidates([]);
-    setSelectedCandidate(-1);
     const descricaoFinal = (productText || '').trim();
     setDescricao(descricaoFinal);
     setPrecoVarejo(varejo?.trim() ? varejo : '');
     setPrecoAtacado(atacado?.trim() ? atacado : '');
-    // #region agent log
-    fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',runId:'ocr-post',hypothesisId:'D-E',location:'FazerPesquisa.tsx:applyOcrResult',message:'FE applied OCR to form (no catalog)',data:{descricaoLen:descricaoFinal.length,descricaoSample:descricaoFinal.slice(0,120),varejo:varejo??'',atacado:atacado??'',candidatesShown:0},timestamp:Date.now()})}).catch(()=>{});
-    // #endregion
     revokePreview();
     setCaptureError(false);
     setLiveCamera(true);
@@ -518,9 +497,6 @@ export default function FazerPesquisa() {
         preco_varejo: result.preco_varejo,
         preco_atacado: result.preco_atacado,
       };
-      // #region agent log
-      fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',runId:'ocr-snap',hypothesisId:'H-A/H-B',location:'FazerPesquisa.tsx:runOcrOnCrop',message:'OCR snapshot stored for photo save',data:{blobBytes:cropBlob.size,productTextLen:productText.length,productSample:productText.slice(0,80),varejoNull:result.preco_varejo==null||result.preco_varejo==='',atacadoNull:result.preco_atacado==null||result.preco_atacado==='',varejo:result.preco_varejo??'',atacado:result.preco_atacado??''},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       applyOcrResult(
         result.product_text,
         result.preco_varejo,
@@ -557,7 +533,7 @@ export default function FazerPesquisa() {
     try {
       const zoom = frameZoomRef.current;
       const pan = framePanRef.current;
-      const { crop, cropW, cropH, sx, sy } = await cropAdjustedFrame(
+      const { crop } = await cropAdjustedFrame(
         source,
         natural.w,
         natural.h,
@@ -566,9 +542,6 @@ export default function FazerPesquisa() {
         zoom,
         pan,
       );
-      // #region agent log
-      fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',runId:'frame-confirm',hypothesisId:'FRAME',location:'FazerPesquisa.tsx:handleAnalyzeFrame',message:'User confirmed frame crop',data:{zoom,defaultZoom:FRAME_ZOOM_DEFAULT,minZoom:FRAME_ZOOM_MIN,maxZoom:FRAME_ZOOM_MAX,panX:pan.x,panY:pan.y,stageW,stageH,imgW:natural.w,imgH:natural.h,cropW,cropH,sx,sy,cropBytes:crop.size},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
       await runOcrOnCrop(crop);
     } catch (err) {
       showToast(err instanceof Error ? err.message : 'Falha ao recortar a foto.', 'error');
@@ -728,12 +701,6 @@ export default function FazerPesquisa() {
     }
   };
 
-  const handlePickCandidate = (index: number) => {
-    setSelectedCandidate(index);
-    const c = candidates[index];
-    if (c) setDescricao(c.produto);
-  };
-
   const handleConfirm = async () => {
     if (confirming || pesquisaId == null) return;
     const desc = descricao.trim();
@@ -751,31 +718,18 @@ export default function FazerPesquisa() {
 
       const blob = lastPreviewBlobRef.current;
       const ocr = lastOcrRef.current;
-      const ocrSample = (ocr?.product_text ?? '').slice(0, 80);
-      // #region agent log
-      fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',runId:'photo-save',hypothesisId:'H1',location:'FazerPesquisa.tsx:handleConfirm',message:'Before savePesquisaCapturaMedia',data:{pesquisaId,blobPresent:Boolean(blob),blobBytes:blob?.size??0,ocrTextoSample:ocrSample,ocrVarejo:ocr?.preco_varejo??null,ocrAtacado:ocr?.preco_atacado??null,descLen:desc.length},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
-      // #region agent log
-      fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',runId:'photo-save',hypothesisId:'H-D/H-E',location:'FazerPesquisa.tsx:handleConfirm',message:'Blob/OCR vs confirmed descricao',data:{pesquisaId,blobNull:!blob,ocrRawLen:ocr?.product_text?.length??0,descSample:desc.slice(0,80),ocrSample,sameDesc:(ocr?.product_text??'').trim().toLowerCase()===desc.toLowerCase()},timestamp:Date.now()})}).catch(()=>{});
-      // #endregion
 
       if (blob) {
         try {
-          const saved = await savePesquisaCapturaMedia(pesquisaId, {
+          await savePesquisaCapturaMedia(pesquisaId, {
             foto: blob,
             ocr_texto_raw: ocr?.product_text ?? null,
             ocr_preco_varejo: ocr?.preco_varejo ?? null,
             ocr_preco_atacado: ocr?.preco_atacado ?? null,
           });
-          // #region agent log
-          fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',runId:'photo-save',hypothesisId:'H2',location:'FazerPesquisa.tsx:handleConfirm',message:'savePesquisaCapturaMedia ok',data:{pesquisaId,fotoUrlPresent:Boolean(saved.foto_url),fotoPath:saved.foto_path,ocrRawSaved:Boolean(saved.ocr_texto_raw)},timestamp:Date.now()})}).catch(()=>{});
-          // #endregion
         } catch (mediaErr) {
           const mediaMsg =
             mediaErr instanceof Error ? mediaErr.message : 'Falha ao salvar foto.';
-          // #region agent log
-          fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',runId:'photo-save',hypothesisId:'H3',location:'FazerPesquisa.tsx:handleConfirm',message:'savePesquisaCapturaMedia error',data:{pesquisaId,error:mediaMsg},timestamp:Date.now()})}).catch(()=>{});
-          // #endregion
           showToast(
             `Pesquisa confirmada, mas a foto não foi salva: ${mediaMsg}`,
             'error',
@@ -804,7 +758,6 @@ export default function FazerPesquisa() {
     setPrecoVarejo('');
     setPrecoAtacado('');
     setCandidates([]);
-    setSelectedCandidate(0);
     revokePreview();
     clearCaptureMediaRefs();
     setCaptureError(false);

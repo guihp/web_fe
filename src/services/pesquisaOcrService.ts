@@ -160,8 +160,5 @@ export async function postPesquisaOcr(
 
   const json = (await response.json()) as unknown;
   const parsed = parseOcrResponse(json);
-  // #region agent log
-  fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',runId:'ocr-pre',hypothesisId:'A-B-C',location:'pesquisaOcrService.ts:postPesquisaOcr',message:'OCR API raw+parsed',data:{cropProdutoBytes:input.produtoCrop.size,cropPrecoBytes:input.precoCrop.size,tipo:input.tipo,industriaLen:industria.length,rawKeys:json&&typeof json==='object'?Object.keys(json as object):[],textoLen:parsed.product_text.length,textoSample:parsed.product_text.slice(0,180),preco:parsed.preco,preco_varejo:parsed.preco_varejo,preco_atacado:parsed.preco_atacado,candidates:(parsed.candidates||[]).slice(0,3).map(c=>({score:c.score,produto:(c.produto||'').slice(0,60)}))},timestamp:Date.now()})}).catch(()=>{});
-  // #endregion
   return parsed;
 }

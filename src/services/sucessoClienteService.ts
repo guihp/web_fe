@@ -181,9 +181,6 @@ export async function setPedidoKanbanStatus(
     { onConflict: 'venda_id' },
   );
 
-  // #region agent log
-  fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',location:'sucessoClienteService.ts:setPedidoKanbanStatus',message:'kanban status updated',data:{vendaId,status,error:error?.message??null},timestamp:Date.now(),hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
 
   if (error) throw new Error(error.message);
 }

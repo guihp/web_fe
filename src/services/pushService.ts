@@ -63,13 +63,7 @@ function isStandalonePwa(): boolean {
 
 export async function subscribePush(userId: number): Promise<boolean> {
   const vapidPublicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-  // #region agent log
-  fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',location:'pushService.ts:subscribePush:entry',message:'subscribePush called',data:{userId,hasVapid:!!vapidPublicKey,supported:isPushSupported(),permission:typeof Notification!=='undefined'?Notification.permission:'n/a',isIos:isIosDevice(),isStandalone:isStandalonePwa()},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-  // #endregion
   if (!vapidPublicKey) {
-    // #region agent log
-    fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',location:'pushService.ts:subscribePush:no-vapid',message:'VITE_VAPID_PUBLIC_KEY missing',data:{userId},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     throw new Error('Chave VAPID não configurada no build (VITE_VAPID_PUBLIC_KEY). Faça redeploy no Coolify.');
   }
   if (!isPushSupported()) {
@@ -81,9 +75,6 @@ export async function subscribePush(userId: number): Promise<boolean> {
     );
   }
   if (Notification.permission !== 'granted') {
-    // #region agent log
-    fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',location:'pushService.ts:subscribePush:no-permission',message:'permission not granted',data:{permission:Notification.permission},timestamp:Date.now(),hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
     return false;
   }
 
@@ -99,9 +90,6 @@ export async function subscribePush(userId: number): Promise<boolean> {
 
   const json = subscription.toJSON();
   if (!json.endpoint || !json.keys?.p256dh || !json.keys?.auth) {
-    // #region agent log
-    fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',location:'pushService.ts:subscribePush:invalid-json',message:'subscription json incomplete',data:{hasEndpoint:!!json.endpoint,hasP256dh:!!json.keys?.p256dh,hasAuth:!!json.keys?.auth},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-    // #endregion
     return false;
   }
 
@@ -116,9 +104,6 @@ export async function subscribePush(userId: number): Promise<boolean> {
     { onConflict: 'usuario_id,endpoint' },
   );
 
-  // #region agent log
-  fetch('http://127.0.0.1:7632/ingest/c0e9f1ed-8998-49cd-81bc-7cbc34147572',{method:'POST',headers:{'Content-Type':'application/json','X-Debug-Session-Id':'bdee85'},body:JSON.stringify({sessionId:'bdee85',location:'pushService.ts:subscribePush:upsert',message:'upsert result',data:{userId,error:error?.message??null,endpointPrefix:json.endpoint.slice(0,40)},timestamp:Date.now(),hypothesisId:'A'})}).catch(()=>{});
-  // #endregion
 
   if (error) {
     console.warn('[push] Falha ao salvar inscrição:', error.message);
