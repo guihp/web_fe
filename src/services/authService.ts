@@ -5,6 +5,9 @@ import {
   parseAcessoFromNivelAcesso,
   type PortalModuleId,
 } from '../data/portalModules';
+import type { HubSistemaId } from '../data/hubPermissions';
+import { HUB_SISTEMA_IDS } from '../data/hubPermissions';
+import { fetchHubPermissions } from './hubPermissionsService';
 import {
   cargoForExternalTipo,
   externalSecoesForTipo,
@@ -33,6 +36,12 @@ export type AuthUser = {
   data_nascimento: string | null;
   /** Somente visualização (indústria/cliente externo). */
   somente_leitura: boolean;
+  /** Admin supremo do Grupo Fé (hub multi-sistema). */
+  is_super_admin: boolean;
+  /** Sistemas liberados no hub (hub_usuario_sistemas). */
+  hub_sistemas: HubSistemaId[];
+  /** Seções/cards liberados no hub (hub_usuario_secoes). */
+  hub_secoes: string[];
 };
 
 export type LoginTipo = 'interno' | 'industria' | 'cliente';
@@ -59,6 +68,10 @@ async function verifyPassword(senha: string, stored: string): Promise<boolean> {
   const [salt, hash] = stored.split('$');
   if (!salt || !hash) return false;
 
+  if (!globalThis.crypto?.subtle) {
+    throw new Error('Abra via HTTPS ou localhost. HTTP na rede local não permite verificar a senha.');
+  }
+
   const data = new TextEncoder().encode(senha + salt);
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const newHash = Array.from(new Uint8Array(hashBuffer))
@@ -84,7 +97,11 @@ type UsuarioRow = {
   cliente_grupo?: string | null;
   login_cnpj?: string | null;
   data_nascimento?: string | null;
+  is_super_admin?: boolean | null;
 };
+
+const USUARIO_SELECT =
+  'id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url, nivel_acesso, tipo_usuario, industria_id, cliente_grupo, login_cnpj, data_nascimento, is_super_admin';
 
 async function resolveIndustriaNome(industriaId: number | null | undefined): Promise<string | null> {
   if (!industriaId) return null;
@@ -93,7 +110,11 @@ async function resolveIndustriaNome(industriaId: number | null | undefined): Pro
   return toIndustriaPadrao(String((data as { Nome?: string }).Nome ?? ''));
 }
 
-function toAuthUser(user: UsuarioRow, industriaNome: string | null): AuthUser {
+function toAuthUser(
+  user: UsuarioRow,
+  industriaNome: string | null,
+  hub: { sistemas: HubSistemaId[]; secoes: string[] },
+): AuthUser {
   const tipo: TipoUsuario = isTipoUsuario(user.tipo_usuario) ? user.tipo_usuario : 'interno';
   const acesso = isExternalTipo(tipo)
     ? {
@@ -101,6 +122,8 @@ function toAuthUser(user: UsuarioRow, industriaNome: string | null): AuthUser {
         modulos: ['merchandising', 'fe-representacoes'] as PortalModuleId[],
       }
     : parseAcessoFromNivelAcesso(user.nivel_acesso, user.cargo);
+
+  const isSuperAdmin = Boolean(user.is_super_admin) && tipo === 'interno';
 
   return {
     id: user.id,
@@ -121,6 +144,9 @@ function toAuthUser(user: UsuarioRow, industriaNome: string | null): AuthUser {
       ? String(user.data_nascimento).slice(0, 10)
       : null,
     somente_leitura: isExternalTipo(tipo),
+    is_super_admin: isSuperAdmin,
+    hub_sistemas: isSuperAdmin ? [...HUB_SISTEMA_IDS] : hub.sistemas,
+    hub_secoes: isSuperAdmin ? [] : hub.secoes,
   };
 }
 
@@ -146,7 +172,16 @@ async function finalizeLogin(user: UsuarioRow): Promise<AuthUser> {
     throw new Error('Grupo de cliente não configurado. Contacte o administrador.');
   }
 
-  return toAuthUser(user, industriaNome);
+  let hub = { sistemas: [] as HubSistemaId[], secoes: [] as string[] };
+  if (tipo === 'interno') {
+    try {
+      hub = await fetchHubPermissions(user.id);
+    } catch {
+      hub = { sistemas: [], secoes: [] };
+    }
+  }
+
+  return toAuthUser(user, industriaNome, hub);
 }
 
 export async function loginWithCpf(cpf: string, senha: string): Promise<AuthUser> {
@@ -157,9 +192,7 @@ export async function loginWithCpf(cpf: string, senha: string): Promise<AuthUser
 export async function refreshAuthUser(userId: number): Promise<AuthUser | null> {
   const { data, error } = await supabase
     .from('usuarios')
-    .select(
-      'id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url, nivel_acesso, tipo_usuario, industria_id, cliente_grupo, login_cnpj, data_nascimento',
-    )
+    .select(USUARIO_SELECT)
     .eq('id', userId)
     .maybeSingle();
 
@@ -171,7 +204,16 @@ export async function refreshAuthUser(userId: number): Promise<AuthUser | null> 
   const industriaNome =
     tipo === 'industria' ? await resolveIndustriaNome(row.industria_id) : null;
 
-  return toAuthUser(row, industriaNome);
+  let hub = { sistemas: [] as HubSistemaId[], secoes: [] as string[] };
+  if (tipo === 'interno') {
+    try {
+      hub = await fetchHubPermissions(row.id);
+    } catch {
+      hub = { sistemas: [], secoes: [] };
+    }
+  }
+
+  return toAuthUser(row, industriaNome, hub);
 }
 
 export async function loginAs(
@@ -189,9 +231,7 @@ export async function loginAs(
 
     const { data, error } = await supabase
       .from('usuarios')
-      .select(
-        'id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url, nivel_acesso, tipo_usuario, industria_id, cliente_grupo, login_cnpj, data_nascimento',
-      )
+      .select(USUARIO_SELECT)
       .eq('cpf', normalizedCpf)
       .maybeSingle();
 
@@ -229,9 +269,7 @@ export async function loginAs(
 
     const { data, error } = await supabase
       .from('usuarios')
-      .select(
-        'id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url, nivel_acesso, tipo_usuario, industria_id, cliente_grupo, login_cnpj, data_nascimento',
-      )
+      .select(USUARIO_SELECT)
       .eq('tipo_usuario', 'industria')
       .eq('industria_id', industria.id)
       .maybeSingle();
@@ -248,9 +286,7 @@ export async function loginAs(
 
     const { data, error } = await supabase
       .from('usuarios')
-      .select(
-        'id, nome, email, telefone, cargo, cpf, senha, status, foto_perfil_url, nivel_acesso, tipo_usuario, industria_id, cliente_grupo, login_cnpj, data_nascimento',
-      )
+      .select(USUARIO_SELECT)
       .eq('tipo_usuario', 'cliente')
       .eq('login_cnpj', cnpj)
       .maybeSingle();

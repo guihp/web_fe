@@ -18,6 +18,10 @@ export default function PortalHome() {
       user?.modulos_acesso,
       mod.id,
       user?.secoes_acesso,
+      {
+        isSuperAdmin: user?.is_super_admin,
+        hubSistemas: user?.hub_sistemas,
+      },
     ),
   );
 

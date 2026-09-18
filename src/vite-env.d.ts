@@ -11,6 +11,10 @@ interface ImportMetaEnv {
   readonly EXPO_PUBLIC_WEBHOOK_VENDAS?: string;
   readonly VITE_VAPID_PUBLIC_KEY?: string;
   readonly VITE_WEBHOOK_URL?: string;
+  /** Base ou URL completa do serviço OCR de pesquisa (preferido). */
+  readonly VITE_PESQUISA_OCR_URL?: string;
+  /** Secret enviado no header X-OCR-Secret. */
+  readonly VITE_PESQUISA_OCR_SECRET?: string;
 }
 
 interface ImportMeta {

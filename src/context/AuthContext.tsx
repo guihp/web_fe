@@ -53,6 +53,9 @@ function readStoredUser(): AuthUser | null {
         ? String(parsed.data_nascimento).slice(0, 10)
         : null,
       somente_leitura: tipo === 'industria' || tipo === 'cliente',
+      is_super_admin: Boolean(parsed.is_super_admin),
+      hub_sistemas: Array.isArray(parsed.hub_sistemas) ? parsed.hub_sistemas : [],
+      hub_secoes: Array.isArray(parsed.hub_secoes) ? parsed.hub_secoes : [],
       modulos_acesso:
         parsed.modulos_acesso?.length > 0
           ? parsed.modulos_acesso

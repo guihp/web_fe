@@ -17,7 +17,14 @@ import {
   sectionsOfModule,
   type PortalModuleId,
 } from '../../data/portalModules';
+import {
+  HUB_SISTEMAS,
+  defaultHubSecoesForSistemas,
+  type HubSistemaId,
+} from '../../data/hubPermissions';
+import { useAuth } from '../../context/AuthContext';
 import { saveUser, updateUser } from '../../services/userService';
+import { fetchHubPermissions } from '../../services/hubPermissionsService';
 import { fetchIndustrias, fetchIndustriasAtivas } from '../../services/industriaService';
 import { fetchLojas, type Loja } from '../../services/lojasService';
 import {
@@ -51,6 +58,8 @@ function buildEndereco(user: Usuario) {
 type IndustriaOpt = { id: number; nome: string };
 
 export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFormModalProps) {
+  const { user: currentUser } = useAuth();
+  const canEditHub = Boolean(currentUser?.is_super_admin);
   const isEdit = Boolean(user);
   const initialTipo: TipoUsuario =
     user?.tipo_usuario === 'industria' || user?.tipo_usuario === 'cliente'
@@ -80,6 +89,11 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
   const [lojaIds, setLojaIds] = useState<number[]>([]);
   const [lojaSearch, setLojaSearch] = useState('');
   const [secoes, setSecoes] = useState<string[]>(initialSecoes);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(Boolean(user?.is_super_admin));
+  const [hubSistemas, setHubSistemas] = useState<HubSistemaId[]>([]);
+  const [hubSecoes, setHubSecoes] = useState<string[]>([]);
+  const [hubExpanded, setHubExpanded] = useState<Record<string, boolean>>({});
+  const [hubLoading, setHubLoading] = useState(false);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -99,7 +113,6 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
           }))
           .filter((r) => r.nome);
 
-        // Se editar usuário ligado a indústria inativa, mantém a opção atual no select
         const currentId = user?.industria_id;
         if (currentId && !list.some((r) => r.id === currentId)) {
           const all = await fetchIndustrias();
@@ -131,6 +144,25 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
       .catch(() => setLojaIds([]));
   }, [isEdit, user?.id, user?.cargo]);
 
+  useEffect(() => {
+    if (!user?.id || !canEditHub) return;
+    setHubLoading(true);
+    void (async () => {
+      try {
+        const perms = await fetchHubPermissions(user.id);
+        setHubSistemas(perms.sistemas);
+        setHubSecoes(
+          perms.secoes.length ? perms.secoes : defaultHubSecoesForSistemas(perms.sistemas),
+        );
+      } catch {
+        setHubSistemas([]);
+        setHubSecoes([]);
+      } finally {
+        setHubLoading(false);
+      }
+    })();
+  }, [user?.id, canEditHub]);
+
   const lojasFiltradas = useMemo(() => {
     const q = lojaSearch.trim().toLowerCase();
     const available = lojas.filter((l) => !lojaIds.includes(l.id));
@@ -161,7 +193,10 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
   };
 
   const moduleOptions = useMemo(
-    () => PORTAL_MODULES.filter((mod) => mod.id !== 'administrador' || managerCargo),
+    () =>
+      PORTAL_MODULES.filter(
+        (mod) => mod.id !== 'grupo-fe' && (mod.id !== 'administrador' || managerCargo),
+      ),
     [managerCargo],
   );
 
@@ -172,6 +207,11 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
   const handleTipoChange = (next: TipoUsuario) => {
     setTipo(next);
     setError(null);
+    if (next !== 'interno') {
+      setIsSuperAdmin(false);
+      setHubSistemas([]);
+      setHubSecoes([]);
+    }
     if (next === 'cliente' && !form.clienteGrupo && form.nome) {
       updateField('clienteGrupo', normalizeClienteGrupo(form.nome));
     }
@@ -229,6 +269,34 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
     setSecoes((prev) =>
       prev.includes(sectionId) ? prev.filter((id) => id !== sectionId) : [...prev, sectionId],
     );
+  };
+
+  const toggleHubSistema = (sistemaId: HubSistemaId) => {
+    setHubSistemas((prev) => {
+      const on = prev.includes(sistemaId);
+      const next = on ? prev.filter((id) => id !== sistemaId) : [...prev, sistemaId];
+      const sistemaSecoes =
+        HUB_SISTEMAS.find((s) => s.id === sistemaId)?.secoes.map((s) => s.id) ?? [];
+      setHubSecoes((prevSecoes) => {
+        if (on) return prevSecoes.filter((id) => !sistemaSecoes.includes(id));
+        return [...new Set([...prevSecoes, ...sistemaSecoes])];
+      });
+      if (!on) setHubExpanded((prevExp) => ({ ...prevExp, [sistemaId]: true }));
+      return next;
+    });
+  };
+
+  const toggleHubSecao = (secaoId: string, sistemaId: HubSistemaId) => {
+    setHubSecoes((prev) => {
+      const on = prev.includes(secaoId);
+      const next = on ? prev.filter((id) => id !== secaoId) : [...prev, secaoId];
+      if (!on) {
+        setHubSistemas((prevSys) =>
+          prevSys.includes(sistemaId) ? prevSys : [...prevSys, sistemaId],
+        );
+      }
+      return next;
+    });
   };
 
   const generatePassword = () => {
@@ -302,6 +370,13 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
         login_cnpj: tipo === 'cliente' ? form.loginCnpj : null,
         data_nascimento: dataNascimentoIso,
         lojaIds: isCampoMerchCargo(form.cargo) ? lojaIds : [],
+        ...(canEditHub && tipo === 'interno'
+          ? {
+              is_super_admin: isSuperAdmin,
+              hub_sistemas: isSuperAdmin ? [] : hubSistemas,
+              hub_secoes: isSuperAdmin ? [] : hubSecoes,
+            }
+          : {}),
       };
 
       if (isEdit && user) {
@@ -539,11 +614,111 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
               value={form.senha}
               onChange={(e) => updateField('senha', e.target.value)}
             />
-            <button type="button" className="colab-generate-btn" onClick={generatePassword} aria-label="Gerar senha">
+            <button
+              type="button"
+              className="colab-generate-btn"
+              onClick={generatePassword}
+              aria-label="Gerar senha"
+            >
               ↻
             </button>
           </div>
         </label>
+
+        {canEditHub && tipo === 'interno' && (
+          <fieldset className="colab-field full usuario-modulos-field">
+            <legend>Grupo Fé (hub multi-sistema)</legend>
+            <p className="usuario-modulos-hint">
+              Só admin supremo edita estas opções. Admin supremo vê todos os sistemas; demais
+              usuários só os liberados abaixo.
+            </p>
+            <label className="usuario-modulo-chip" style={{ marginBottom: 12 }}>
+              <input
+                type="checkbox"
+                checked={isSuperAdmin}
+                onChange={(e) => setIsSuperAdmin(e.target.checked)}
+              />
+              <span>
+                <strong>Admin supremo</strong>
+                <small>Acesso total ao Hub Grupo Fé e à liberação de sistemas</small>
+              </span>
+            </label>
+
+            {!isSuperAdmin &&
+              (hubLoading ? (
+                <p className="usuario-modulos-hint">Carregando permissões do hub…</p>
+              ) : (
+                <div className="usuario-modulos-grid">
+                  {HUB_SISTEMAS.map((sistema) => {
+                    const checked = hubSistemas.includes(sistema.id);
+                    const sistemaSecoes = sistema.secoes.map((s) => s.id);
+                    const partial =
+                      !checked &&
+                      sistemaSecoes.some((id) => hubSecoes.includes(id)) &&
+                      !sistemaSecoes.every((id) => hubSecoes.includes(id));
+                    const isOpen = hubExpanded[sistema.id] ?? (checked || partial);
+
+                    return (
+                      <div
+                        key={sistema.id}
+                        className={`usuario-modulo-block ${checked || partial ? 'active' : ''}`}
+                      >
+                        <div className="usuario-modulo-chip-row">
+                          <label className="usuario-modulo-chip">
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              ref={(el) => {
+                                if (el) el.indeterminate = partial && !checked;
+                              }}
+                              onChange={() => toggleHubSistema(sistema.id)}
+                            />
+                            <span>
+                              <strong>{sistema.nome}</strong>
+                              <small>{sistema.descricao}</small>
+                            </span>
+                          </label>
+                          <button
+                            type="button"
+                            className="usuario-modulo-expand"
+                            onClick={() =>
+                              setHubExpanded((prev) => ({
+                                ...prev,
+                                [sistema.id]: !isOpen,
+                              }))
+                            }
+                            aria-expanded={isOpen}
+                          >
+                            {isOpen ? '▾' : '▸'} Seções
+                          </button>
+                        </div>
+                        {isOpen && (
+                          <div className="usuario-secoes-grid">
+                            {sistema.secoes.map((secao) => {
+                              const sectionOn = hubSecoes.includes(secao.id);
+                              return (
+                                <label
+                                  key={secao.id}
+                                  className={`usuario-secao-chip ${sectionOn ? 'active' : ''}`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={sectionOn}
+                                    onChange={() => toggleHubSecao(secao.id, sistema.id)}
+                                  />
+                                  <span>{secao.title}</span>
+                                </label>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
+          </fieldset>
+        )}
 
         {!externo && (
           <fieldset className="colab-field full usuario-modulos-field">

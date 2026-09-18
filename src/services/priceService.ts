@@ -18,6 +18,12 @@ export type PesquisaItem = {
   tipo_pesquisa: TipoPesquisa;
   mes: string | null;
   created_at: string | null;
+  /** Foto da captura OCR (TTL ~2 dias). */
+  foto_url: string | null;
+  foto_path: string | null;
+  ocr_texto_raw: string | null;
+  ocr_preco_varejo: string | null;
+  ocr_preco_atacado: string | null;
 };
 
 export const PRICE_PAGE_SIZE = 25;
@@ -83,6 +89,11 @@ function mapRow(row: Record<string, unknown>): PesquisaItem {
     tipo_pesquisa: tipo,
     mes: normalizeMesPesquisa(row.mes),
     created_at: row.created_at != null ? String(row.created_at) : null,
+    foto_url: row.foto_url != null ? String(row.foto_url) : null,
+    foto_path: row.foto_path != null ? String(row.foto_path) : null,
+    ocr_texto_raw: row.ocr_texto_raw != null ? String(row.ocr_texto_raw) : null,
+    ocr_preco_varejo: row.ocr_preco_varejo != null ? String(row.ocr_preco_varejo) : null,
+    ocr_preco_atacado: row.ocr_preco_atacado != null ? String(row.ocr_preco_atacado) : null,
   };
 }
 
@@ -289,7 +300,7 @@ export type CreatePesquisaInicioInput = {
 
 /**
  * Inicia uma pesquisa na tabela `pesquisa` (contexto loja/UF/tipo).
- * Produto/preços via câmera OCR entram numa etapa futura — por enquanto grava rascunho.
+ * Grava rascunho; a câmera OCR confirma depois com `updatePesquisaCaptura`.
  */
 export async function createPesquisaInicio(input: CreatePesquisaInicioInput): Promise<PesquisaItem> {
   const loja = input.loja.trim();
@@ -313,6 +324,85 @@ export async function createPesquisaInicio(input: CreatePesquisaInicioInput): Pr
   };
 
   const { data, error } = await supabase.from('pesquisa').insert([payload]).select('*').single();
+  if (error) throw new Error(error.message);
+  return mapRow(data as Record<string, unknown>);
+}
+
+export type UpdatePesquisaCapturaInput = {
+  descricao: string;
+  /** Preço de varejo confirmado (número ou string BR); null limpa. */
+  preco_varejo: string | number | null;
+  /** Preço de atacado confirmado (número ou string BR); null limpa. */
+  preco_atacado?: string | number | null;
+};
+
+function normalizePrecoCaptura(value: string | number | null | undefined): string | number | null {
+  if (value == null || value === '') return null;
+  if (typeof value === 'number') return value;
+  const trimmed = value.trim();
+  return trimmed || null;
+}
+
+/**
+ * Confirma captura OCR: substitui o rascunho por descrição + preços (varejo/atacado).
+ */
+export async function updatePesquisaCaptura(
+  id: number,
+  input: UpdatePesquisaCapturaInput,
+): Promise<PesquisaItem> {
+  const descricao = input.descricao.trim();
+  if (!descricao) throw new Error('Informe a descrição do produto.');
+
+  const preco_varejo = normalizePrecoCaptura(input.preco_varejo);
+  const preco_atacado = normalizePrecoCaptura(input.preco_atacado);
+
+  const { data, error } = await supabase
+    .from('pesquisa')
+    .update({ descricao, preco_varejo, preco_atacado })
+    .eq('id', id)
+    .select('*')
+    .single();
+  if (error) throw new Error(error.message);
+  return mapRow(data as Record<string, unknown>);
+}
+
+const PESQUISA_FOTOS_BUCKET = 'pesquisa-fotos';
+
+export type SavePesquisaCapturaMediaInput = {
+  foto: Blob;
+  ocr_texto_raw?: string | null;
+  ocr_preco_varejo?: string | null;
+  ocr_preco_atacado?: string | null;
+};
+
+/** Sobe a foto da captura (TTL 2 dias via cron) e grava snapshot do OCR. */
+export async function savePesquisaCapturaMedia(
+  pesquisaId: number,
+  input: SavePesquisaCapturaMediaInput,
+): Promise<PesquisaItem> {
+  const path = `${pesquisaId}/${Date.now()}.jpg`;
+  const { error: uploadError } = await supabase.storage
+    .from(PESQUISA_FOTOS_BUCKET)
+    .upload(path, input.foto, {
+      contentType: input.foto.type || 'image/jpeg',
+      upsert: true,
+    });
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { data: pub } = supabase.storage.from(PESQUISA_FOTOS_BUCKET).getPublicUrl(path);
+
+  const { data, error } = await supabase
+    .from('pesquisa')
+    .update({
+      foto_path: path,
+      foto_url: pub.publicUrl,
+      ocr_texto_raw: input.ocr_texto_raw?.trim() || null,
+      ocr_preco_varejo: normalizePrecoCaptura(input.ocr_preco_varejo ?? null),
+      ocr_preco_atacado: normalizePrecoCaptura(input.ocr_preco_atacado ?? null),
+    })
+    .eq('id', pesquisaId)
+    .select('*')
+    .single();
   if (error) throw new Error(error.message);
   return mapRow(data as Record<string, unknown>);
 }

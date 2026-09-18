@@ -6,7 +6,24 @@ Rota: `/`
 
 Mostra os **balões** liberados para o usuário. Cada balão leva ao hub ou à primeira seção disponível do módulo.
 
-Balões atuais: **Merchandising**, **Fé Representações**, **Financeiro**, **Administrador** (Gerente).
+Balões atuais: **Merchandising**, **Fé Representações**, **Financeiro**, **Administrador** (Gerente), **Grupo Fé** (admin supremo ou usuários com sistemas liberados).
+
+---
+
+## Grupo Fé
+
+Hub: `/grupo-fe`
+
+Dashboard consolidado com KPIs (cards + gráficos) de:
+
+| Sistema | Fonte |
+|---------|--------|
+| Fé Merchandising | DB local App Fé |
+| IAFÉ Finance | Supabase Finance (via Edge Function) |
+| IAFÉ Imobi | Supabase Imobi |
+| Daily | Supabase Daily |
+
+Visibilidade: `is_super_admin` ou ao menos um registro em `hub_usuario_sistemas`. Não usa `nivel_acesso`.
 
 ---
 
@@ -21,7 +38,7 @@ Hub: `/merchandising`
 | Lançar vencimentos | `/atividades/lancar-vencimentos` | Formulário de validade (internos); código reduzido preenche produto/indústria via `codigos`; envia ao webhook n8n `comercial1` |
 | Validades | `/validades` | Lista + gráfico dos produtos que mais venceram no mês; filtros UF, indústria, mês, status e ordenação; loja no formato `código - nome`; exportação (internos); externos só o próprio escopo |
 | Lançar promoções/encarte | `/merchandising/encartes` | **Gerente / Supervisor / Analista admin:** importar Excel e lançar encartes na operação |
-| Fazer pesquisa | `/merchandising/pesquisas` | **Internos:** lançar pesquisa interna ou externa (mesma tabela `pesquisa` do Price). Promotor/Demonstradora escolhem só lojas cadastradas; demais internos, todas. Câmera/OCR fica para etapa seguinte. |
+| Fazer pesquisa | `/merchandising/pesquisas` | **Internos:** lançar pesquisa interna ou externa (mesma tabela `pesquisa` do Price). Promotor/Demonstradora escolhem só lojas cadastradas; demais internos, todas. Fluxo: contexto → câmera com moldura (produto + etiqueta) → OCR Coolify → confirmação editável → `update` na `pesquisa`. |
 | Ebook digital | `/merchandising/ebook` | **Gerente / Supervisor / Analista admin / RH:** galeria de fotos de `atividade_dia` (antes/depois no Storage), filtros, miniaturas e PDF das selecionadas. Sem webhook. |
 | Catálogo das indústrias | `/merchandising/catalogo` | Consulta **dentro do App** (iframe de `/catalogo/`). **Acesso master** só Gerente / Supervisor / RH / Analista admin (internos). Externo **indústria** vê só a própria; externo **cliente** vê todas. Gestão/Drive usam login Google separado. |
 

@@ -16,8 +16,13 @@ import {
   type TipoUsuario,
 } from '../utils/externalAccess';
 import { setUsuarioLojas } from './usuarioLojasService';
+import { saveHubPermissions } from './hubPermissionsService';
 
 async function hashPassword(password: string): Promise<string> {
+  if (!globalThis.crypto?.subtle) {
+    throw new Error('Abra via HTTPS ou localhost. HTTP na rede local não permite gerar hash de senha.');
+  }
+
   const saltArray = crypto.getRandomValues(new Uint8Array(16));
   const salt = Array.from(saltArray)
     .map((b) => b.toString(16).padStart(2, '0'))
@@ -71,6 +76,9 @@ export type SaveUserInput = {
   data_nascimento: string;
   /** Lojas do Promotor/Demonstradora (máx. 7). */
   lojaIds?: number[];
+  is_super_admin?: boolean;
+  hub_sistemas?: string[];
+  hub_secoes?: string[];
 };
 
 function resolveTipo(data: { tipo_usuario?: TipoUsuario; cargo: string }): TipoUsuario {
@@ -132,6 +140,7 @@ export async function saveUser(data: SaveUserInput) {
       tipo === 'cliente' ? normalizeClienteGrupo(data.cliente_grupo ?? data.nome) : null,
     login_cnpj: tipo === 'cliente' ? normalizeCnpjDigits(data.login_cnpj ?? '') : null,
     data_nascimento: dataNascimento,
+    is_super_admin: tipo === 'interno' ? Boolean(data.is_super_admin) : false,
   };
 
   const { data: created, error } = await supabase
@@ -146,6 +155,14 @@ export async function saveUser(data: SaveUserInput) {
 
   if (isCampoMerchCargo(cargo) && created?.id) {
     await setUsuarioLojas(Number(created.id), data.lojaIds ?? []);
+  }
+
+  if (tipo === 'interno' && created?.id && data.hub_sistemas !== undefined) {
+    await saveHubPermissions(
+      Number(created.id),
+      data.is_super_admin ? [] : (data.hub_sistemas ?? []),
+      data.is_super_admin ? [] : (data.hub_secoes ?? []),
+    );
   }
 
   const webhookUrl = import.meta.env.EXPO_PUBLIC_WEBHOOK_SENHA;
@@ -189,6 +206,9 @@ export type UpdateUserInput = {
   login_cnpj?: string | null;
   data_nascimento?: string | null;
   lojaIds?: number[];
+  is_super_admin?: boolean;
+  hub_sistemas?: string[];
+  hub_secoes?: string[];
 };
 
 export async function updateUser(userId: number, data: UpdateUserInput) {
@@ -215,7 +235,7 @@ export async function updateUser(userId: number, data: UpdateUserInput) {
     throw new Error('Data de nascimento inválida.');
   }
 
-  const payload: Record<string, string | number | null> = {
+  const payload: Record<string, string | number | boolean | null> = {
     nome: data.nome.trim(),
     email: data.email?.trim() || null,
     telefone: (data.telefone || '').replace(/\D/g, '') || null,
@@ -232,6 +252,10 @@ export async function updateUser(userId: number, data: UpdateUserInput) {
     data_nascimento: dataNascimento || null,
   };
 
+  if (data.is_super_admin !== undefined) {
+    payload.is_super_admin = tipo === 'interno' ? Boolean(data.is_super_admin) : false;
+  }
+
   if (data.senha?.trim()) {
     payload.senha = await hashPassword(data.senha.trim());
   }
@@ -246,6 +270,14 @@ export async function updateUser(userId: number, data: UpdateUserInput) {
     await setUsuarioLojas(userId, data.lojaIds ?? []);
   } else if (data.lojaIds !== undefined) {
     await setUsuarioLojas(userId, []);
+  }
+
+  if (tipo === 'interno' && data.hub_sistemas !== undefined) {
+    await saveHubPermissions(
+      userId,
+      data.is_super_admin ? [] : (data.hub_sistemas ?? []),
+      data.is_super_admin ? [] : (data.hub_secoes ?? []),
+    );
   }
 
   return { success: true };

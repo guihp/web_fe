@@ -11,48 +11,58 @@
   box-sizing: border-box;
 }
 
-.fazer-pesquisa-hero {
-  display: grid;
-  grid-template-columns: var(--fp-tap) minmax(0, 1fr) var(--fp-tap);
+/* Compact top bar — icon back + subtle title (no coral slab). */
+.fazer-pesquisa-topbar {
+  display: flex;
   align-items: center;
-  background: var(--coral);
-  color: var(--text-on-accent, #fff);
-  border-radius: 14px;
-  min-height: var(--fp-tap);
-  padding: 4px 8px;
+  gap: 6px;
+  min-height: 40px;
+  margin-bottom: 4px;
 }
 
-.fazer-pesquisa-hero h1 {
+.fazer-pesquisa-topbar h1 {
   margin: 0;
-  text-align: center;
-  font-size: clamp(1.05rem, 4vw, 1.2rem);
+  font-size: 1.05rem;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.25;
+  color: var(--text);
+  letter-spacing: -0.01em;
 }
 
-.fazer-pesquisa-back {
+.fazer-pesquisa-back-compact {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: var(--fp-tap);
-  height: var(--fp-tap);
-  border-radius: 12px;
-  color: inherit;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
+  text-decoration: none;
 }
 
-.fazer-pesquisa-back:hover,
-.fazer-pesquisa-back:focus-visible {
-  background: rgb(255 255 255 / 0.16);
+.fazer-pesquisa-back-compact:hover,
+.fazer-pesquisa-back-compact:focus-visible {
+  background: var(--surface-2);
+  color: var(--coral);
   outline: none;
+}
+
+.fazer-pesquisa-back-compact:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .fazer-pesquisa-card {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  margin-top: 14px;
+  margin-top: 10px;
   padding: 16px;
   background: var(--surface);
   border: 1px solid var(--border);
@@ -80,7 +90,7 @@
 .fazer-pesquisa-tipo button {
   min-height: 44px;
   min-width: 0;
-  border: none;
+  border: 1.5px solid transparent;
   border-radius: 8px;
   padding: 10px 8px;
   background: transparent;
@@ -90,12 +100,22 @@
   font-weight: 700;
   cursor: pointer;
   touch-action: manipulation;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .fazer-pesquisa-tipo button.active {
-  background: var(--surface);
+  background: var(--coral);
+  border-color: var(--coral);
+  color: var(--text-on-accent, #fff);
+  box-shadow: none;
+}
+
+.fazer-pesquisa-tipo button:not(.active):hover {
   color: var(--text);
-  box-shadow: var(--shadow);
+  background: var(--surface);
 }
 
 .fazer-pesquisa-hint {
@@ -196,6 +216,10 @@
   cursor: not-allowed;
 }
 
+.fazer-pesquisa-select.is-blocked {
+  cursor: not-allowed;
+}
+
 .fazer-pesquisa-uf-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -205,7 +229,7 @@
 .fazer-pesquisa-uf-row button {
   min-height: var(--fp-tap);
   min-width: 0;
-  border: 1px solid var(--border);
+  border: 1.5px solid var(--border);
   border-radius: var(--fp-radius);
   background: var(--surface-2);
   color: var(--text);
@@ -215,12 +239,20 @@
   letter-spacing: 0.04em;
   cursor: pointer;
   touch-action: manipulation;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.fazer-pesquisa-uf-row button:hover:not(.active) {
+  border-color: color-mix(in srgb, var(--coral) 45%, var(--border));
 }
 
 .fazer-pesquisa-uf-row button.active {
-  background: var(--coral-soft);
+  background: var(--coral);
   border-color: var(--coral);
-  color: var(--coral-dark);
+  color: var(--text-on-accent, #fff);
 }
 
 .fazer-pesquisa-actions {
@@ -261,16 +293,522 @@
   line-height: 1.4;
 }
 
+/* —— Câmera fullscreen —— */
+.fp-camera {
+  position: fixed;
+  inset: 0;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  background: #0b0b0c;
+  color: #fff;
+}
+
+.fp-camera-bar {
+  display: grid;
+  grid-template-columns: 48px 1fr 48px;
+  align-items: center;
+  gap: 4px;
+  padding: max(8px, env(safe-area-inset-top)) 10px 8px;
+  background: rgb(0 0 0 / 0.72);
+}
+
+.fp-camera-title {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  text-align: center;
+}
+
+.fp-camera-title strong {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.fp-camera-title span {
+  font-size: 0.72rem;
+  color: rgb(255 255 255 / 0.72);
+  line-height: 1.3;
+}
+
+.fp-camera-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border: none;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fp-camera-icon-btn:disabled {
+  opacity: 0.5;
+}
+
+.fp-camera-spacer {
+  width: 48px;
+  height: 48px;
+}
+
+.fp-camera-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  background: #111;
+  container-type: size;
+}
+
+.fp-camera-video,
+.fp-camera-preview {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fp-camera-preview {
+  background: #111;
+}
+
+.fp-camera-fallback {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 24px;
+  text-align: center;
+  background:
+    radial-gradient(ellipse at 50% 30%, rgb(255 255 255 / 0.08), transparent 55%),
+    #141416;
+}
+
+.fp-camera-fallback p {
+  margin: 0;
+  max-width: 28ch;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: rgb(255 255 255 / 0.85);
+}
+
+.fp-camera-fallback-btn {
+  min-height: 48px;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 18px;
+  background: var(--coral);
+  color: var(--text-on-accent, #fff);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fp-camera-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: rgb(0 0 0 / 0.28);
+}
+
+/* Quadrado central: 82% do menor lado (bate com CAPTURE_SQUARE_RATIO no TS). */
+.fp-camera-frame {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  box-sizing: border-box;
+  width: min(82cqw, 82cqh);
+  height: min(82cqw, 82cqh);
+  border: 2px solid rgb(255 255 255 / 0.92);
+  border-radius: 12px;
+  background: transparent;
+  box-shadow:
+    inset 0 0 0 1px rgb(0 0 0 / 0.2),
+    0 0 0 1px rgb(0 0 0 / 0.15);
+}
+
+.fp-camera-frame::before,
+.fp-camera-frame::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 12px;
+  pointer-events: none;
+}
+
+.fp-camera-frame::before {
+  background:
+    linear-gradient(#fff, #fff) top left / 22px 2.5px no-repeat,
+    linear-gradient(#fff, #fff) top left / 2.5px 22px no-repeat,
+    linear-gradient(#fff, #fff) top right / 22px 2.5px no-repeat,
+    linear-gradient(#fff, #fff) top right / 2.5px 22px no-repeat;
+}
+
+.fp-camera-frame::after {
+  background:
+    linear-gradient(#fff, #fff) bottom left / 22px 2.5px no-repeat,
+    linear-gradient(#fff, #fff) bottom left / 2.5px 22px no-repeat,
+    linear-gradient(#fff, #fff) bottom right / 22px 2.5px no-repeat,
+    linear-gradient(#fff, #fff) bottom right / 2.5px 22px no-repeat;
+}
+
+.fp-camera-busy {
+  position: absolute;
+  left: 50%;
+  bottom: 18%;
+  transform: translateX(-50%);
+  z-index: 2;
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgb(0 0 0 / 0.75);
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.fp-camera-retake {
+  min-height: 48px;
+  min-width: 160px;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 20px;
+  background: var(--coral);
+  color: var(--text-on-accent, #fff);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fp-camera-analyzing-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: rgb(255 255 255 / 0.72);
+  text-align: center;
+}
+
+.fp-camera-footer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px max(16px, env(safe-area-inset-bottom));
+  background: rgb(0 0 0 / 0.85);
+}
+
+.fp-camera-shutter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fp-camera-shutter:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.fp-camera-alt {
+  border: none;
+  background: transparent;
+  color: rgb(255 255 255 / 0.8);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  touch-action: manipulation;
+  min-height: 40px;
+}
+
+.fp-camera-alt:disabled {
+  opacity: 0.5;
+}
+
+.fp-camera-file {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* —— Ajuste de moldura (pan / zoom) —— */
+.fp-frame-stage {
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  /* Letterbox visível quando zoom < cover (1) */
+  background: #0a0a0a;
+}
+
+.fp-frame-stage:active {
+  cursor: grabbing;
+}
+
+.fp-frame-img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  max-width: none;
+  object-fit: fill;
+  pointer-events: none;
+  will-change: transform;
+  background: #111;
+}
+
+.fp-frame-footer {
+  gap: 12px;
+}
+
+.fp-frame-zoom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.fp-frame-zoom-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border: 1.5px solid rgb(255 255 255 / 0.55);
+  border-radius: 12px;
+  background: rgb(255 255 255 / 0.1);
+  color: #fff;
+  font: inherit;
+  font-size: 1.35rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fp-frame-zoom-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.fp-frame-zoom-label {
+  min-width: 3.5rem;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: rgb(255 255 255 / 0.85);
+  font-variant-numeric: tabular-nums;
+}
+
+.fp-frame-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  max-width: 420px;
+}
+
+.fp-frame-secondary,
+.fp-frame-primary {
+  min-height: 48px;
+  border: none;
+  border-radius: 12px;
+  padding: 12px 16px;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fp-frame-secondary {
+  background: rgb(255 255 255 / 0.12);
+  color: #fff;
+  border: 1.5px solid rgb(255 255 255 / 0.35);
+}
+
+.fp-frame-primary {
+  background: var(--coral);
+  color: var(--text-on-accent, #fff);
+}
+
+/* —— Confirmação —— */
+.fp-confirm {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 560px;
+  min-width: 0;
+  margin: 0 auto;
+  box-sizing: border-box;
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+.fp-confirm-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 10px;
+  padding: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  box-shadow: var(--shadow);
+}
+
+.fp-confirm-card textarea {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  min-height: 88px;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--fp-radius);
+  background-color: var(--input-bg, var(--surface));
+  color: var(--text);
+  font: inherit;
+  font-size: 16px;
+  line-height: 1.35;
+  resize: vertical;
+  outline: none;
+}
+
+.fp-confirm-card textarea:focus {
+  border-color: var(--coral);
+}
+
+.fp-confirm-prices {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.fp-confirm-atacado-hint {
+  margin-top: -6px;
+}
+
+.fp-confirm-candidates {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.fp-confirm-candidates ul {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.fp-confirm-candidates button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--fp-radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fp-confirm-candidates button:hover:not(.active):not(:disabled) {
+  border-color: color-mix(in srgb, var(--coral) 40%, var(--border));
+  background: var(--surface-2);
+}
+
+.fp-confirm-candidates button.active {
+  border-color: var(--coral);
+  background: var(--surface);
+  box-shadow: inset 3px 0 0 var(--coral);
+  color: var(--text);
+}
+
+.fp-confirm-cand-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.fp-confirm-candidates button.active .fp-confirm-cand-name {
+  color: var(--text);
+}
+
+.fp-confirm-cand-meta {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.fp-confirm-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.fp-confirm-actions .fazer-pesquisa-camera {
+  color: var(--text-on-accent, #fff);
+}
+
+.fp-confirm-secondary {
+  min-height: 52px;
+  border: 1px solid var(--border);
+  border-radius: var(--fp-radius);
+  padding: 14px 12px;
+  background: var(--surface-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.fp-confirm-secondary:disabled,
+.fp-confirm-actions .fazer-pesquisa-camera:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 @media (max-width: 900px) {
-  .fazer-pesquisa-page {
+  .fazer-pesquisa-page,
+  .fp-confirm {
     max-width: none;
   }
 
-  .fazer-pesquisa-hero {
-    border-radius: 12px;
-  }
-
-  .fazer-pesquisa-card {
+  .fazer-pesquisa-card,
+  .fp-confirm-card {
     padding: var(--fp-pad);
   }
 
@@ -284,12 +822,13 @@
 }
 
 @media (max-width: 480px) {
-  .fazer-pesquisa-hero {
-    border-radius: 10px;
+  .fazer-pesquisa-card,
+  .fp-confirm-card {
+    border-radius: 12px;
   }
 
-  .fazer-pesquisa-card {
-    border-radius: 12px;
+  .fp-confirm-prices {
+    grid-template-columns: 1fr;
   }
 }
 

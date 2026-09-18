@@ -36,3 +36,7 @@ scripts/validades-*
 supabase/.temp/
 _UL.css
 
+# local tooling / caches
+.cursor/
+__pycache__/
+*.pyc

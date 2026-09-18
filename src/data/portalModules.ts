@@ -5,6 +5,7 @@ export const PORTAL_MODULE_IDS = [
   'fe-representacoes',
   'financeiro',
   'administrador',
+  'grupo-fe',
 ] as const;
 
 export type PortalModuleId = (typeof PORTAL_MODULE_IDS)[number];
@@ -225,9 +226,27 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
       },
     ],
   },
+  {
+    id: 'grupo-fe',
+    title: 'Grupo Fé',
+    description: 'Visão consolidada dos sistemas do Grupo Fé.',
+    badge: 'Central',
+    icon: 'rocket',
+    path: '/grupo-fe',
+    sections: [
+      { id: 'grupo-fe.hub', title: 'Hub Grupo Fé', path: '/grupo-fe', icon: 'rocket' },
+    ],
+  },
 ];
 
 export const ALL_SECTION_IDS = PORTAL_MODULES.flatMap((m) => m.sections.map((s) => s.id));
+
+/** Seções do hub Grupo Fé — permissões via hub_usuario_*, não via nivel_acesso. */
+export const HUB_PORTAL_SECTION_IDS = ['grupo-fe.hub'] as const;
+
+export function isGrupoFeModule(moduleId: string): boolean {
+  return moduleId === 'grupo-fe';
+}
 
 /** Cargos que podem gerenciar usuários e ver o balão Administrador. */
 export const USER_MANAGER_CARGOS = ['Gerente'] as const;
@@ -346,9 +365,9 @@ export function moduleIdFromSection(sectionId: string): PortalModuleId | null {
 
 export function defaultSecoesForCargo(cargo: string): string[] {
   if (canManageUsers(cargo)) {
-    return [...ALL_SECTION_IDS];
+    return ALL_SECTION_IDS.filter((id) => !id.startsWith('grupo-fe.'));
   }
-  return PORTAL_MODULES.filter((m) => m.id !== 'administrador')
+  return PORTAL_MODULES.filter((m) => m.id !== 'administrador' && m.id !== 'grupo-fe')
     .flatMap((m) => m.sections.map((s) => s.id))
     .filter((id) => {
       if (id === 'fe-representacoes.avisos') return false;
@@ -361,8 +380,10 @@ export function defaultSecoesForCargo(cargo: string): string[] {
 
 /** @deprecated use defaultSecoesForCargo — mantido para compat. */
 export function defaultModulosForCargo(cargo: string): PortalModuleId[] {
-  if (canManageUsers(cargo)) return [...PORTAL_MODULE_IDS];
-  return PORTAL_MODULE_IDS.filter((id) => id !== 'administrador');
+  if (canManageUsers(cargo)) {
+    return PORTAL_MODULE_IDS.filter((id) => id !== 'grupo-fe');
+  }
+  return PORTAL_MODULE_IDS.filter((id) => id !== 'administrador' && id !== 'grupo-fe');
 }
 
 function remapLegacySectionId(id: string): string {
@@ -379,7 +400,9 @@ function remapLegacySectionId(id: string): string {
 }
 
 export function sanitizeSecoes(cargo: string, secoes: string[] | null | undefined): string[] {
-  const allowed = new Set(ALL_SECTION_IDS);
+  const allowed = new Set(
+    ALL_SECTION_IDS.filter((id) => !(HUB_PORTAL_SECTION_IDS as readonly string[]).includes(id)),
+  );
   const picked = [
     ...new Set(
       (secoes ?? [])
@@ -547,7 +570,8 @@ export function firstPathForModule(
   if (
     moduleId === 'merchandising' ||
     moduleId === 'fe-representacoes' ||
-    moduleId === 'administrador'
+    moduleId === 'administrador' ||
+    moduleId === 'grupo-fe'
   ) {
     return mod.path;
   }
@@ -620,6 +644,7 @@ export function sectionIdForPath(pathname: string): string | 'home' | null {
 
   if (normalized.startsWith('/administrador')) return 'administrador.hub';
   if (normalized.startsWith('/fe-representacoes')) return 'fe-representacoes.hub';
+  if (normalized.startsWith('/grupo-fe')) return 'grupo-fe.hub';
   return null;
 }
 
@@ -634,7 +659,16 @@ export function userHasSectionAccess(
   cargo: string,
   secoes: string[] | null | undefined,
   sectionId: string,
+  hubOpts?: {
+    isSuperAdmin?: boolean;
+    hubSistemas?: string[] | null;
+  },
 ): boolean {
+  if (sectionId === 'grupo-fe.hub' || sectionId.startsWith('grupo-fe.')) {
+    if (hubOpts?.isSuperAdmin) return true;
+    return (hubOpts?.hubSistemas ?? []).length > 0;
+  }
+
   if ((ALWAYS_AVAILABLE_SECTION_IDS as readonly string[]).includes(sectionId)) {
     return true;
   }
@@ -730,7 +764,16 @@ export function userHasModuleAccess(
   modulosOrSecoes: string[] | null | undefined,
   moduleId: PortalModuleId,
   secoes?: string[] | null,
+  hubOpts?: {
+    isSuperAdmin?: boolean;
+    hubSistemas?: string[] | null;
+  },
 ): boolean {
+  if (moduleId === 'grupo-fe') {
+    if (hubOpts?.isSuperAdmin) return true;
+    return (hubOpts?.hubSistemas ?? []).length > 0;
+  }
+
   if (ALWAYS_AVAILABLE_MODULE_IDS.includes(moduleId)) {
     return true;
   }

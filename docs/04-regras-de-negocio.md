@@ -34,7 +34,7 @@
 2. Internas: custo (`preco_custo`), markup/margem e gráfico; export/import de custo só para internos.
 3. Filtro por **`mes`**: um mês disponível → esse; vários → mês vigente (usuário pode trocar).
 4. Externos não exportam nem editam custo.
-5. **Fazer pesquisa** (`/merchandising/pesquisas`): internos escolhem tipo (interna = só nossas indústrias; externa = nosso produto ou concorrência), UF (MA/PI/PA), loja e fornecedor. Promotor/Demonstradora só veem lojas de `usuario_lojas`; gerente/supervisor e demais internos veem todas. Grava rascunho em `pesquisa` (câmera/OCR depois).
+5. **Fazer pesquisa** (`/merchandising/pesquisas`): internos escolhem tipo (interna = só nossas indústrias; externa = nosso produto ou concorrência), UF (MA/PI/PA), loja e fornecedor. Promotor/Demonstradora só veem lojas de `usuario_lojas`; gerente/supervisor e demais internos veem todas. Ao abrir a câmera grava rascunho em `pesquisa`; o usuário encaixa 1 produto (faixa superior) e a etiqueta de preço (faixa inferior), o app envia os crops ao serviço OCR (`POST /ocr/pesquisa`), mostra confirmação (descrição/preço editáveis; em interna, top-3 do catálogo `codigos`) e só então atualiza `descricao` + `preco_varejo`.
 
 ## Vendas
 

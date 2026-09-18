@@ -36,6 +36,7 @@ import FeRepresentacoes from './pages/FeRepresentacoes';
 import Price from './pages/Price';
 import GestaoVeiculos from './pages/GestaoVeiculos';
 import Avisos from './pages/Avisos';
+import GrupoFeHub from './pages/GrupoFeHub';
 
 export default function App() {
   return (
@@ -47,6 +48,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<ManagerLayout />}>
           <Route path="/" element={<PortalHome />} />
+          <Route path="/grupo-fe" element={<GrupoFeHub />} />
           <Route path="/merchandising" element={<Merchandising />} />
           <Route path="/merchandising/encartes" element={<LancarEncartes />} />
           <Route path="/merchandising/pesquisas" element={<FazerPesquisa />} />

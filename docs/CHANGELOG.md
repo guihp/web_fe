@@ -35,6 +35,17 @@ Formato: mais recente no topo.
 - Módulos e deploy: catálogo Coolify + checklist Google OAuth (`localhost:5173` e domínio de produção).
 - Regras de acesso do catálogo por cargo/tipo de usuário.
 
+## 2026-09-10
+
+### App
+- **Fazer pesquisa**: câmera PWA com moldura (produto + etiqueta de preço), crops JPEG, chamada ao serviço OCR Coolify e tela de confirmação (edição + candidatos do catálogo em interna) antes de gravar `descricao` / `preco_varejo`.
+- Foto da captura sobe para Storage `pesquisa-fotos` (TTL 2 dias) com snapshot OCR; miniatura na tabela Price.
+- Cliente OCR: `postPesquisaOcr` + envs `VITE_PESQUISA_OCR_URL` / `VITE_PESQUISA_OCR_SECRET` (fallback de URL: `EXPO_PUBLIC_WEBHOOK_PESQUISA`).
+
+### Documentação / deploy
+- Fluxo câmera+OCR em `02`, `04`, `05`; segundo app Coolify `services/pesquisa-ocr` (ver README do serviço).
+- Dev: Vite HTTPS (`@vitejs/plugin-basic-ssl`) para login no celular via Network URL; `crypto.subtle` exige contexto seguro.
+
 ## 2026-09-09
 
 ### App
@@ -82,9 +93,14 @@ Formato: mais recente no topo.
 - Preferência de aniversário em `02-modulos-e-telas.md`, `04-regras-de-negocio.md` e `05-tecnologia-e-deploy.md`.
 - Aviso de meta batida nas mesmas docs.
 - Confirmações de envio (avisos e Meu roteiro) em `02-modulos-e-telas.md` e `04-regras-de-negocio.md`.
+
 ## 2026-08-31
 
 ### App
+- Hub **Grupo Fé** (`/grupo-fe`): balão na home, dashboard de KPIs multi-sistema.
+- Flag `is_super_admin` + tabelas `hub_sistemas`, `hub_usuario_sistemas`, `hub_usuario_secoes`.
+- Edge Function `hub-metrics` agrega Finance / Imobi / Daily / Fé (secrets `FINANCE_*`, `IMOBI_*`, `DAILY_*` com **service_role**; rejeita anon/RLS-empty).
+- Formulário de usuários: toggle admin supremo + checklists de sistemas/seções (só super admin).
 - Avisos (só Gerente, em Fé Representações): enviar **salário** ou **feriado** com modelo editável; cai no sino e no push da equipe **interna**.
 - Aviso de **folha de ponto** automático todo dia 25 (`pg_cron` + tabela `avisos`).
 - Preferência push `notify_aviso`; externos não recebem avisos.
@@ -99,6 +115,8 @@ Formato: mais recente no topo.
 - Sincronização de lojas: 25 PDVs novos; Assaí renomeado para **SENDAS**; aliases Mateus incluem Mix/Super/Posterus/Carone/Camino.
 
 ### Documentação
+- Deploy/secrets e seed do primeiro super admin em `05-tecnologia-e-deploy.md` e `01-acesso-e-usuarios.md`.
+- Módulo Grupo Fé em `02-modulos-e-telas.md`.
 - Avisos em `02-modulos-e-telas.md`, `04-regras-de-negocio.md` e `05-tecnologia-e-deploy.md`.
 - Senha do dia em `02-modulos-e-telas.md`.
 

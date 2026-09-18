@@ -21,7 +21,9 @@ npm install
 npm run dev
 ```
 
-App local: `http://localhost:5173`.
+App local: `https://localhost:5174` (dev usa certificado self-signed via `@vitejs/plugin-basic-ssl`).
+
+Teste no celular (mesma Wi‑Fi): use a URL **Network** do Vite (`https://192.168.x.x:5174`). Na primeira vez o navegador pode pedir para aceitar o certificado autoassinado — aceite/avance uma vez para o login funcionar (`crypto.subtle` exige HTTPS fora de localhost).
 
 ## Variáveis de ambiente
 
@@ -33,10 +35,15 @@ Obrigatórias (também no **build** do Coolify):
 Opcionais (webhooks n8n):
 
 - `EXPO_PUBLIC_WEBHOOK_SENHA`
-- `EXPO_PUBLIC_WEBHOOK_PESQUISA`
+- `EXPO_PUBLIC_WEBHOOK_PESQUISA` — fallback de URL do OCR se `VITE_PESQUISA_OCR_URL` estiver vazio
 - `EXPO_PUBLIC_WEBHOOK_HARIBO`
 - `EXPO_PUBLIC_WEBHOOK_VALIDADE` — Lançar vencimentos (fallback: webhook `comercial1` no n8n)
 - `EXPO_PUBLIC_WEBHOOK_VENDAS`
+
+Opcionais (Fazer Pesquisa / OCR):
+
+- `VITE_PESQUISA_OCR_URL` — base ou URL completa do serviço Python (`…/ocr/pesquisa`)
+- `VITE_PESQUISA_OCR_SECRET` — valor do header `X-OCR-Secret` (mesmo `OCR_SHARED_SECRET` do app OCR). **Sempre entre aspas** se contiver `#`; reinicie o Vite após alterar. Deve ser byte-a-byte idêntico ao Coolify.
 
 Opcional (Web Push):
 
@@ -46,13 +53,34 @@ Opcional (Web Push):
 
 ## Deploy Coolify
 
-1. App a partir do GitHub.
-2. Build Pack: **Dockerfile**.
-3. Porta **80**.
-4. Healthcheck: `GET /health` → `ok`.
-5. Definir as variáveis Supabase como build args / env de build.
-6. Para push notifications: incluir `VITE_VAPID_PUBLIC_KEY` no build.
-7. Redeploy: push em `main` dispara o Coolify se o app estiver com webhook GitHub.
+São **dois apps** no mesmo VPS (sem migration nova — usa a tabela `pesquisa` já existente).
+
+### App 1 — web_fe (PWA)
+
+1. App a partir do GitHub; Build Pack: **Dockerfile**; porta **80**.
+2. Healthcheck: `GET /health` → `ok`.
+3. Build args / env de build: Supabase (`EXPO_PUBLIC_SUPABASE_*`), webhooks n8n se usados, e para OCR:
+   - `VITE_PESQUISA_OCR_URL` (ex.: `https://ocr-pesquisa.seudominio.com`)
+   - `VITE_PESQUISA_OCR_SECRET` (mesmo segredo do app OCR)
+4. Opcional: `VITE_VAPID_PUBLIC_KEY` para push.
+5. Redeploy: push em `main` dispara o Coolify se o app estiver com webhook GitHub.
+
+### App 2 — pesquisa-ocr (Python)
+
+Repo de deploy: [iafeoficial/ocr-fe-representacao](https://github.com/iafeoficial/ocr-fe-representacao) (Dockerfile na raiz). Cópia local de desenvolvimento: [`services/pesquisa-ocr/`](../services/pesquisa-ocr/).
+
+1. Novo app no Coolify a partir desse repo; **Base Directory** vazio; porta **8000**; healthcheck `GET /health`.
+2. Env no Coolify (runtime):
+
+| Variável | Obrigatória | Descrição |
+|----------|-------------|-----------|
+| `OCR_SHARED_SECRET` | sim | Idêntico a `VITE_PESQUISA_OCR_SECRET` do web_fe. Se tiver `#`, não truncar; no Coolify cole o valor sem aspas extras (ou aspas só se a UI não as incluir no valor). |
+| `SUPABASE_URL` | sim* | URL do projeto Supabase |
+| `SUPABASE_SERVICE_ROLE_KEY` | sim* | Service role — **somente leitura** de `public.codigos` |
+
+\*Necessárias para pesquisa **interna** (match fuzzy). Externa devolve só OCR + preço.
+
+3. Domínio público (ex.: `https://ocr-pesquisa.seudominio.com`) — é o valor de `VITE_PESQUISA_OCR_URL` no build do front.
 
 ### Catálogo das indústrias (interno ao App)
 
@@ -96,6 +124,49 @@ Não há runtime Vercel no fluxo de produção do catálogo.
 - Migration aniversário: `supabase/migrations/20260901100000_notify_aniversario.sql` (já aplicada no projeto remoto).
 - Migration meta: `supabase/migrations/20260901110000_notify_meta.sql` (já aplicada no projeto remoto).
 - Gestão de Veículos: bucket Storage `veiculo-anexos`; service `src/services/veiculosService.ts`; página `src/pages/GestaoVeiculos.tsx`.
+- Notificações push: tabela Supabase `push_subscriptions`; Realtime em `baseVendas`, `pedido_kanban` e `contrato_faturamento` para badge do sino.
+
+## Hub Grupo Fé (multi-sistema)
+
+O balão **Grupo Fé** (`/grupo-fe`) agrega KPIs de Fé Merchandising, IAFÉ Finance, IAFÉ Imobi e Daily via Edge Function `hub-metrics` no projeto App Fé (`sjapbromslgohlxcndrj`).
+
+### Secrets no Supabase App Fé
+
+Em **Project Settings → Edge Functions → Secrets** (ou CLI `supabase secrets set`), configurar:
+
+| Secret | Valor esperado |
+|--------|----------------|
+| `FINANCE_SUPABASE_URL` | `https://dlbiwguzbiosaoyrcvay.supabase.co` |
+| `FINANCE_SERVICE_ROLE_KEY` | **service_role** (secret) do projeto Finance — **não** use anon |
+| `IMOBI_SUPABASE_URL` | `https://bfcssdogttmqeujgmxdf.supabase.co` |
+| `IMOBI_SERVICE_ROLE_KEY` | **service_role** (secret) do projeto Imobi — **não** use anon |
+| `DAILY_SUPABASE_URL` | `https://gyadlrxdwxwzaerpjudu.supabase.co` |
+| `DAILY_SERVICE_ROLE_KEY` | **service_role** (secret) do projeto Daily — **não** use anon |
+
+Onde pegar: em cada projeto remoto → **Project Settings → API → `service_role` `secret`** (legado: JWT com `"role":"service_role"`; novo formato: chave `sb_secret_…`). **Não** use `anon` / `publishable` / `sb_publishable_…`.
+
+Se configurar só `*_ANON_KEY` ou colar a chave anon em `*_SERVICE_ROLE_KEY`, a function falha de propósito com mensagem clara. Anon + RLS devolve vazio sem erro de API → o Hub mostrava zeros com status "Atualizado".
+
+`SUPABASE_URL` e `SUPABASE_SERVICE_ROLE_KEY` do App Fé já existem automaticamente no runtime das functions.
+
+A function usa `verify_jwt: false` e autentica pelo `usuario_id` (body / header `x-usuario-id`), validando `usuarios` + `is_super_admin` / `hub_usuario_sistemas`.
+
+### Primeiro admin supremo
+
+Nenhum usuário nasce como super admin. Marque o primeiro via SQL no App Fé:
+
+```sql
+UPDATE usuarios
+SET is_super_admin = true
+WHERE cpf = 'SEU_CPF_SOMENTE_DIGITOS';
+-- ou: WHERE id = 123;
+```
+
+Depois, faça logout/login. Esse usuário verá o balão Grupo Fé e poderá liberar sistemas/seções (e marcar outros super admins) em **Administrador → Usuários**.
+
+### Deploy da function
+
+Código em `supabase/functions/hub-metrics/index.ts`. Redeploy via MCP/`supabase functions deploy hub-metrics --no-verify-jwt` após alterações.
 
 ## Estrutura útil do código (para quem mantém)
 
@@ -103,6 +174,8 @@ Não há runtime Vercel no fluxo de produção do catálogo.
 |-----------------|-------|
 | `src/pages/` | Telas |
 | `src/services/` | Chamadas ao Supabase e regras de dados |
+| `src/services/pesquisaOcrService.ts` | Cliente HTTP do OCR (Fazer Pesquisa) |
+| `services/pesquisa-ocr/` | App FastAPI + Tesseract (fonte local; deploy em [ocr-fe-representacao](https://github.com/iafeoficial/ocr-fe-representacao)) |
 | `src/data/portalModules.ts` | Módulos, seções, permissões |
 | `src/utils/externalAccess.ts` | Tipos e escopo de usuários externos |
 | `src/utils/vendasDomain.ts` | Meses, regiões, padronização de indústria |

@@ -23,6 +23,10 @@ export default function ProtectedRoute() {
   }
 
   const sectionId = sectionIdForPath(location.pathname);
+  const hubOpts = {
+    isSuperAdmin: user.is_super_admin,
+    hubSistemas: user.hub_sistemas,
+  };
 
   if (
     typeof sectionId === 'string' &&
@@ -32,7 +36,11 @@ export default function ProtectedRoute() {
     return <Navigate to="/" replace />;
   }
 
-  if (sectionId === 'administrador.hub') {
+  if (sectionId === 'grupo-fe.hub') {
+    if (!userHasSectionAccess(user.cargo, user.secoes_acesso, sectionId, hubOpts)) {
+      return <Navigate to="/" replace />;
+    }
+  } else if (sectionId === 'administrador.hub') {
     const hasAnyAdmin = (user.secoes_acesso ?? []).some((s) => s.startsWith('administrador.'));
     if (!hasAnyAdmin && !userHasSectionAccess(user.cargo, user.secoes_acesso, sectionId)) {
       return <Navigate to="/" replace />;
@@ -44,7 +52,7 @@ export default function ProtectedRoute() {
   } else if (
     sectionId &&
     sectionId !== 'home' &&
-    !userHasSectionAccess(user.cargo, user.secoes_acesso, sectionId)
+    !userHasSectionAccess(user.cargo, user.secoes_acesso, sectionId, hubOpts)
   ) {
     return <Navigate to="/" replace />;
   }

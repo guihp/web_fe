@@ -15,6 +15,7 @@ export type Usuario = {
   cliente_grupo?: string | null;
   login_cnpj?: string | null;
   data_nascimento?: string | null;
+  is_super_admin?: boolean | null;
 };
 
 const ESTADOS: Record<string, string> = {

@@ -536,6 +536,7 @@ export default function Price() {
                 <table className="base-vendas-table">
                   <thead>
                     <tr>
+                      <th className="col-foto">Foto</th>
                       <th>Produto</th>
                       <th>Indústria</th>
                       <th>Loja</th>
@@ -557,10 +558,37 @@ export default function Price() {
                       const markupBase = calcMarkupPercent(row.preco_varejo, row.preco_custo);
                       const markupExibido = calcMarkupExibido(markupBase, multiplicadorPct);
                       const margem = calcMargemFromMarkup(markupExibido);
+                      const ocrTitle = row.ocr_texto_raw?.trim()
+                        ? row.ocr_texto_raw.trim().slice(0, 160)
+                        : undefined;
 
                       return (
                         <tr key={row.id}>
-                          <td className="col-nome">{row.descricao}</td>
+                          <td className="col-foto">
+                            {row.foto_url ? (
+                              <a
+                                href={row.foto_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="price-foto-link"
+                                title={ocrTitle ?? 'Abrir foto da captura'}
+                              >
+                                <img
+                                  src={row.foto_url}
+                                  alt=""
+                                  className="price-foto-thumb"
+                                  loading="lazy"
+                                />
+                              </a>
+                            ) : (
+                              <span className="price-foto-empty" title={ocrTitle}>
+                                —
+                              </span>
+                            )}
+                          </td>
+                          <td className="col-nome" title={ocrTitle}>
+                            {row.descricao}
+                          </td>
                           <td>{row.industria}</td>
                           <td>{row.loja ?? '—'}</td>
                           <td>{row.uf ?? '—'}</td>

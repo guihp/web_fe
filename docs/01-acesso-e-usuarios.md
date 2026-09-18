@@ -78,6 +78,18 @@ Regras importantes:
 
 A sessão fica guardada no navegador (não usa login JWT do Supabase Auth neste momento). Ao sair, os dados da sessão são limpos.
 
+## Hub Grupo Fé (admin supremo)
+
+Além do Gerente (que gerencia usuários do App Fé), existe o flag `is_super_admin` na tabela `usuarios`:
+
+- Vê o balão **Grupo Fé** com todos os sistemas (Fé, Finance, Imobi, Daily).
+- Pode marcar outros usuários como admin supremo e liberar sistemas/seções do hub no formulário de usuários.
+- Gerente **não** herda isso automaticamente.
+
+Permissões do hub ficam em `hub_usuario_sistemas` e `hub_usuario_secoes` (não no JSON `nivel_acesso`).
+
+**Primeiro seed:** rode no SQL do App Fé `UPDATE usuarios SET is_super_admin = true WHERE cpf = '…';` e faça login novamente. Detalhes em [05-tecnologia-e-deploy.md](./05-tecnologia-e-deploy.md).
+
 ## Notificações (sino)
 
 | Tipo de usuário | O que aparece no sino |
