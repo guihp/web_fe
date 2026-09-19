@@ -34,13 +34,13 @@ Hub: `/merchandising`
 | Seção | Rota | O que faz |
 |-------|------|-----------|
 | Treinamentos | `/treinamento` | Materiais e PDFs de capacitação |
-| Atividades | `/atividades` | Gestores: visitas enviadas aos promotores. **Promotor/Demonstradora:** Meu roteiro (lojas vinculadas → check-in → indústria → fotos antes/depois; sem GPS). Antes de enviar, confirma com prévia das fotos + senha do dia (irreversível). |
-| Lançar vencimentos | `/atividades/lancar-vencimentos` | Formulário de validade (internos); código reduzido preenche produto/indústria via `codigos`; envia ao webhook n8n `comercial1` |
-| Validades | `/validades` | Lista + gráfico dos produtos que mais venceram no mês; filtros UF, indústria, mês, status e ordenação; loja no formato `código - nome`; exportação (internos); externos só o próprio escopo |
+| Atividades | `/atividades` | Gestores: visitas enviadas aos promotores. **Promotor/Demonstradora:** Meu roteiro (lojas vinculadas → check-in → indústria → fotos antes/depois; sem GPS). Antes de enviar, confirma com prévia das fotos + senha do dia (irreversível). **Offline:** salva no aparelho e sincroniza ao reconectar. |
+| Lançar vencimentos | `/atividades/lancar-vencimentos` | Formulário de validade (internos); código reduzido preenche produto/indústria via `codigos`; envia ao webhook n8n `comercial1`. **Offline:** enfileira e reenvia ao conectar. |
+| Validades | `/validades` | Lista + gráfico dos produtos que mais venceram no mês; filtros UF, indústria, mês, status e ordenação; loja no formato `código - nome`; exportação (internos); externos só o próprio escopo. **Offline:** consulta o último snapshot em cache (sem registrar venda). |
 | Lançar promoções/encarte | `/merchandising/encartes` | **Gerente / Supervisor / Analista admin:** importar Excel e lançar encartes na operação |
 | Fazer pesquisa | `/merchandising/pesquisas` | **Internos:** lançar pesquisa interna ou externa (mesma tabela `pesquisa` do Price). Promotor/Demonstradora escolhem só lojas cadastradas; demais internos, todas. Fluxo: contexto → câmera com moldura (produto + etiqueta) → OCR Coolify → confirmação editável → `update` na `pesquisa`. |
 | Ebook digital | `/merchandising/ebook` | **Gerente / Supervisor / Analista admin / RH:** galeria de fotos de `atividade_dia` (antes/depois no Storage), filtros, miniaturas e PDF das selecionadas. Sem webhook. |
-| Catálogo das indústrias | `/merchandising/catalogo` | Consulta **dentro do App** (iframe de `/catalogo/`). **Acesso master** só Gerente / Supervisor / RH / Analista admin (internos). Externo **indústria** vê só a própria; externo **cliente** vê todas. Gestão/Drive usam login Google separado. |
+| Catálogo das indústrias | `/merchandising/catalogo` | Consulta **dentro do App** (iframe de `/catalogo/`). **Acesso master** só Gerente / Supervisor / RH / Analista admin (internos). Externo **indústria** vê só a própria; externo **cliente** vê todas. Gestão/Drive usam login Google separado. **Offline:** consulta produtos já salvos no aparelho. |
 
 No hub **Merchandising**, **todos** os usuários logados (internos e externos) veem o bloco **Senha do dia** (tabela `senhas`, calendário de hoje em America/Sao_Paulo).
 

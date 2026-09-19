@@ -18,6 +18,17 @@
   line-height: 1.45;
 }
 
+.catalogo-offline-hint {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #c2410c 35%, var(--border));
+  background: color-mix(in srgb, #c2410c 8%, var(--surface));
+  color: var(--text);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
 .catalogo-frame {
   flex: 1 1 auto;
   width: 100%;

@@ -16,6 +16,16 @@ import {
   maskPriceBrInput,
   submitLancarVencimento,
 } from '../services/lancarVencimentoService';
+import {
+  cacheIndustrias,
+  cacheLojasAtivas,
+  readCachedIndustrias,
+  readCachedLojasAtivas,
+} from '../services/offlineCacheService';
+import {
+  enqueueLancarVencimento,
+  isLikelyNetworkError,
+} from '../services/offlineOutboxService';
 import { industriasMatch } from '../utils/vendasDomain';
 import './LancarVencimentos.css';
 
@@ -40,6 +50,7 @@ export default function LancarVencimentos() {
   const [lojas, setLojas] = useState<Loja[]>([]);
   const [industrias, setIndustrias] = useState<string[]>([]);
   const [loadingOpts, setLoadingOpts] = useState(true);
+  const [optsFromCache, setOptsFromCache] = useState(false);
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [codeLookup, setCodeLookup] = useState<
@@ -97,17 +108,31 @@ export default function LancarVencimentos() {
     if (!allowed) return;
     Promise.all([fetchLojas(), fetchIndustriasAtivas()])
       .then(([lojasData, indData]) => {
-        setLojas(lojasData.filter((l) => !l.status || l.status === 'Ativo'));
-        setIndustrias(
-          indData
-            .map((i) => i.Nome)
-            .filter(Boolean)
-            .sort((a, b) => a.localeCompare(b, 'pt-BR')),
-        );
+        const ativos = lojasData.filter((l) => !l.status || l.status === 'Ativo');
+        const indNomes = indData
+          .map((i) => i.Nome)
+          .filter(Boolean)
+          .sort((a, b) => a.localeCompare(b, 'pt-BR'));
+        setLojas(ativos);
+        setIndustrias(indNomes);
+        setOptsFromCache(false);
+        void cacheLojasAtivas(ativos);
+        void cacheIndustrias(indNomes);
       })
-      .catch(() => {
-        setLojas([]);
-        setIndustrias([]);
+      .catch(async () => {
+        const [cachedLojas, cachedInd] = await Promise.all([
+          readCachedLojasAtivas(),
+          readCachedIndustrias(),
+        ]);
+        if (cachedLojas?.length) {
+          setLojas(cachedLojas);
+          setIndustrias(cachedInd ?? []);
+          setOptsFromCache(true);
+        } else {
+          setLojas([]);
+          setIndustrias([]);
+          setOptsFromCache(false);
+        }
       })
       .finally(() => setLoadingOpts(false));
   }, [allowed]);
@@ -242,25 +267,54 @@ export default function LancarVencimentos() {
     const storeCode =
       selectedLoja.codigo != null ? String(selectedLoja.codigo) : String(selectedLoja.id);
 
+    const payload = {
+      promoterName: promoterName.trim(),
+      store: storeCode,
+      state: state.trim().toUpperCase(),
+      code: code.trim(),
+      description: description.trim(),
+      batch: batch.trim(),
+      quantity: quantity.trim(),
+      price: price.trim(),
+      storeName: selectedLoja.Nome.trim(),
+      industria: industria.trim(),
+      date: dateIso,
+      submittedAt: new Date().toISOString(),
+    };
+
     setSending(true);
     try {
-      await submitLancarVencimento({
-        promoterName: promoterName.trim(),
-        store: storeCode,
-        state: state.trim().toUpperCase(),
-        code: code.trim(),
-        description: description.trim(),
-        batch: batch.trim(),
-        quantity: quantity.trim(),
-        price: price.trim(),
-        storeName: selectedLoja.Nome.trim(),
-        industria: industria.trim(),
-        date: dateIso,
-        submittedAt: new Date().toISOString(),
-      });
+      if (!navigator.onLine) {
+        await enqueueLancarVencimento({
+          ...payload,
+          usuarioId: user?.id ?? 0,
+        });
+        showToast('Salvo no aparelho. Será enviado ao conectar.', 'success');
+        resetForm();
+        return;
+      }
+
+      await submitLancarVencimento(payload);
       showToast('Vencimento enviado com sucesso.', 'success');
       resetForm();
     } catch (err) {
+      if (isLikelyNetworkError(err)) {
+        try {
+          await enqueueLancarVencimento({
+            ...payload,
+            usuarioId: user?.id ?? 0,
+          });
+          showToast('Salvo no aparelho. Será enviado ao conectar.', 'success');
+          resetForm();
+          return;
+        } catch (queueErr) {
+          const message =
+            queueErr instanceof Error ? queueErr.message : 'Falha ao salvar offline.';
+          setError(message);
+          showToast(message, 'error');
+          return;
+        }
+      }
       const message = err instanceof Error ? err.message : 'Falha ao enviar vencimento.';
       setError(message);
       showToast(message, 'error');
@@ -278,6 +332,12 @@ export default function LancarVencimentos() {
         <p className="lancar-venc-subtitle">
           Registre produtos próximos do vencimento. O envio usa o mesmo fluxo do webhook comercial.
         </p>
+        {optsFromCache && (
+          <p className="lancar-venc-cache-hint" role="status">
+            Sem conexão — lojas e indústrias do último acesso em cache. Preencha o produto
+            manualmente se a busca por código falhar.
+          </p>
+        )}
       </header>
 
       <form className="lancar-venc-card" onSubmit={(e) => void handleSubmit(e)}>

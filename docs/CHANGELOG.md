@@ -2,6 +2,16 @@
 
 Formato: mais recente no topo.
 
+## 2026-09-19
+
+### App
+- **Offline + sync (campo Merchandising):** Meu roteiro e Lançar vencimentos salvam no IndexedDB sem internet e sincronizam de forma híbrida (auto ao reconectar + **Enviar pendentes**). Fotos do roteiro comprimidas no client; UUID evita duplicar no retry.
+- **Leitura offline leve:** Validades exibe último snapshot em cache; Catálogo usa assets/IDB já existentes (sem upload). Pesquisa OCR continua exigindo rede.
+- PWA: `navigateFallback` SPA, cache `/catalogo/`, Background Sync `fe-outbox-sync`, banner `OfflineBanner`.
+
+### Documentação
+- Atualizados `02`, `05` e este changelog.
+
 ## 2026-09-16
 
 ### App

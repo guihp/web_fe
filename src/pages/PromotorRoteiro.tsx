@@ -6,6 +6,18 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { fetchIndustriasAtivas } from '../services/industriaService';
 import {
+  cacheIndustrias,
+  cacheSenhaDoDia,
+  cacheUsuarioLojas,
+  readCachedIndustrias,
+  readCachedSenhaDoDia,
+  readCachedUsuarioLojas,
+} from '../services/offlineCacheService';
+import {
+  enqueuePromotorAntesDepois,
+  isLikelyNetworkError,
+} from '../services/offlineOutboxService';
+import {
   fetchMinhasAtividadesHoje,
   submitPromotorAntesDepois,
 } from '../services/promotorAtividadeService';
@@ -33,6 +45,7 @@ export default function PromotorRoteiro() {
     Awaited<ReturnType<typeof fetchMinhasAtividadesHoje>>
   >([]);
   const [loading, setLoading] = useState(true);
+  const [fromCache, setFromCache] = useState(false);
   const [sending, setSending] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [senhaConfirm, setSenhaConfirm] = useState<string | null>(null);
@@ -68,18 +81,32 @@ export default function PromotorRoteiro() {
         fetchIndustriasAtivas(),
         fetchMinhasAtividadesHoje(user.id),
       ]);
+      const indNomes = indData
+        .map((i) => i.Nome)
+        .filter(Boolean)
+        .sort((a, b) => a.localeCompare(b, 'pt-BR'));
       setLojas(lojasData);
-      setIndustrias(
-        indData
-          .map((i) => i.Nome)
-          .filter(Boolean)
-          .sort((a, b) => a.localeCompare(b, 'pt-BR')),
-      );
+      setIndustrias(indNomes);
       setHojeRows(hoje);
+      setFromCache(false);
+      void cacheUsuarioLojas(user.id, lojasData);
+      void cacheIndustrias(indNomes);
     } catch {
-      setLojas([]);
-      setIndustrias([]);
-      setHojeRows([]);
+      const [cachedLojas, cachedInd] = await Promise.all([
+        readCachedUsuarioLojas(user.id),
+        readCachedIndustrias(),
+      ]);
+      if (cachedLojas?.length) {
+        setLojas(cachedLojas);
+        setIndustrias(cachedInd ?? []);
+        setHojeRows([]);
+        setFromCache(true);
+      } else {
+        setLojas([]);
+        setIndustrias([]);
+        setHojeRows([]);
+        setFromCache(false);
+      }
     } finally {
       setLoading(false);
     }
@@ -152,7 +179,6 @@ export default function PromotorRoteiro() {
       return;
     }
 
-    // Recria as prévias a partir dos arquivos (garante as duas no popup).
     setPreview('antes', URL.createObjectURL(fotoAntes));
     setPreview('depois', URL.createObjectURL(fotoDepois));
 
@@ -161,9 +187,15 @@ export default function PromotorRoteiro() {
       const senha = await fetchSenhaDoDia();
       setSenhaConfirm(senha?.senha ?? null);
       setSenhaDiaLabel(formatDiaBR(senha?.dia ?? todayDateKeyBRT()));
+      void cacheSenhaDoDia({
+        senha: senha?.senha ?? null,
+        dia: senha?.dia ?? todayDateKeyBRT(),
+        label: formatDiaBR(senha?.dia ?? todayDateKeyBRT()),
+      });
     } catch {
-      setSenhaConfirm(null);
-      setSenhaDiaLabel(formatDiaBR(todayDateKeyBRT()));
+      const cached = await readCachedSenhaDoDia();
+      setSenhaConfirm(cached?.senha ?? null);
+      setSenhaDiaLabel(cached?.label ?? formatDiaBR(todayDateKeyBRT()));
     }
     setConfirmOpen(true);
   };
@@ -174,6 +206,20 @@ export default function PromotorRoteiro() {
     setSending(true);
     setError(null);
     try {
+      if (!navigator.onLine) {
+        await enqueuePromotorAntesDepois({
+          usuarioId: user.id,
+          loja,
+          industria,
+          fotoAntes,
+          fotoDepois,
+        });
+        setConfirmOpen(false);
+        showToast('Salvo no aparelho. Será enviado ao conectar.', 'success');
+        resetFlow();
+        return;
+      }
+
       await submitPromotorAntesDepois({
         usuarioId: user.id,
         loja,
@@ -186,6 +232,28 @@ export default function PromotorRoteiro() {
       resetFlow();
       await reload();
     } catch (err) {
+      if (isLikelyNetworkError(err)) {
+        try {
+          await enqueuePromotorAntesDepois({
+            usuarioId: user.id,
+            loja,
+            industria,
+            fotoAntes,
+            fotoDepois,
+          });
+          setConfirmOpen(false);
+          showToast('Salvo no aparelho. Será enviado ao conectar.', 'success');
+          resetFlow();
+          return;
+        } catch (queueErr) {
+          const message =
+            queueErr instanceof Error ? queueErr.message : 'Falha ao salvar offline.';
+          setError(message);
+          showToast(message, 'error');
+          setConfirmOpen(false);
+          return;
+        }
+      }
       const message = err instanceof Error ? err.message : 'Falha ao enviar atividade.';
       setError(message);
       showToast(message, 'error');
@@ -210,6 +278,12 @@ export default function PromotorRoteiro() {
       </header>
 
       <SenhaDoDiaCard />
+
+      {fromCache && (
+        <p className="promotor-roteiro-cache-hint" role="status">
+          Sem conexão — lojas e indústrias do último acesso em cache.
+        </p>
+      )}
 
       {loading ? (
         <p className="promotor-roteiro-empty">Carregando lojas…</p>
@@ -256,7 +330,9 @@ export default function PromotorRoteiro() {
           {step === 'industria' && loja && (
             <section className="promotor-roteiro-card">
               <h2>Indústrias</h2>
-              <p className="promotor-roteiro-subtitle">Loja: {loja.Nome} · {regionalLabel}</p>
+              <p className="promotor-roteiro-subtitle">
+                Loja: {loja.Nome} · {regionalLabel}
+              </p>
               <ul className="promotor-industria-list">
                 {industrias.map((nome) => (
                   <li key={nome}>
@@ -374,6 +450,12 @@ export default function PromotorRoteiro() {
           <p className="promotor-confirm-warn">
             Depois de enviar, a ação é <strong>irreversível</strong>. Confira as fotos e a senha do
             dia antes de confirmar.
+            {!navigator.onLine ? (
+              <>
+                {' '}
+                <strong>Sem internet:</strong> o envio ficará na fila do aparelho.
+              </>
+            ) : null}
           </p>
 
           <div className="promotor-confirm-meta">
@@ -416,7 +498,11 @@ export default function PromotorRoteiro() {
               disabled={sending}
               onClick={() => void handleConfirmSend()}
             >
-              {sending ? 'Enviando…' : 'Sim, enviar'}
+              {sending
+                ? 'Enviando…'
+                : !navigator.onLine
+                  ? 'Salvar no aparelho'
+                  : 'Sim, enviar'}
             </button>
           </div>
         </ModalShell>

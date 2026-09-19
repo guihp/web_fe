@@ -5,6 +5,7 @@ import { AuthProvider } from './context/AuthContext';
 import { PwaUpdateProvider } from './context/PwaUpdateContext';
 import { ThemeProvider } from './context/ThemeContext';
 import { ToastProvider } from './context/ToastContext';
+import OfflineBanner from './components/layout/OfflineBanner';
 import PwaUpdateBanner from './components/layout/PwaUpdateBanner';
 import App from './App';
 import './styles/theme.css';
@@ -18,6 +19,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           <AuthProvider>
             <ToastProvider>
               <App />
+              <OfflineBanner />
               <PwaUpdateBanner />
             </ToastProvider>
           </AuthProvider>

@@ -25,6 +25,12 @@ import {
   fetchLojas,
   formatLojaLabelFromStored,
 } from '../services/lojasService';
+import {
+  cacheValidadesFilters,
+  cacheValidadesSnapshot,
+  readCachedValidadesFilters,
+  readCachedValidadesSnapshot,
+} from '../services/offlineCacheService';
 import { exportValidadesXlsx } from '../utils/xlsxIO';
 import './BaseDadosVendas.css';
 import './Validades.css';
@@ -81,6 +87,8 @@ export default function Validades() {
   const [items, setItems] = useState<Validade[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [fromCache, setFromCache] = useState(false);
+  const [cacheUpdatedAt, setCacheUpdatedAt] = useState<number | null>(null);
   const [chartRows, setChartRows] = useState<ValidadeTopProduto[]>([]);
   const [chartLoading, setChartLoading] = useState(false);
   const [vendaItem, setVendaItem] = useState<Validade | null>(null);
@@ -116,8 +124,18 @@ export default function Validades() {
           : opts.industrias,
       );
       setMeses(opts.meses);
+      void cacheValidadesFilters(opts);
     } catch {
-      /* filtros opcionais */
+      const cached = await readCachedValidadesFilters();
+      if (cached) {
+        setUfs(cached.ufs);
+        setIndustrias(
+          scopeIndustria
+            ? cached.industrias.filter((i) => i === scopeIndustria)
+            : cached.industrias,
+        );
+        setMeses(cached.meses);
+      }
     }
   }, [scopeIndustria]);
 
@@ -141,10 +159,39 @@ export default function Validades() {
       });
       setItems(result.data);
       setTotal(result.total);
+      setFromCache(false);
+      setCacheUpdatedAt(null);
+      if (user?.id) {
+        void cacheValidadesSnapshot(user.id, {
+          items: result.data,
+          total: result.total,
+          search,
+          uf,
+          industria,
+          mes,
+          status: statusFilter,
+          sort,
+          page,
+          scopeIndustria,
+          scopeClienteGrupo,
+        });
+      }
     } catch (err) {
+      if (user?.id) {
+        const cached = await readCachedValidadesSnapshot(user.id);
+        if (cached?.value?.items?.length) {
+          setItems(cached.value.items);
+          setTotal(cached.value.total);
+          setFromCache(true);
+          setCacheUpdatedAt(cached.updatedAt);
+          showToast('Sem conexão — exibindo última lista em cache.', 'info');
+          return;
+        }
+      }
       showToast(err instanceof Error ? err.message : 'Erro ao carregar validades.', 'error');
       setItems([]);
       setTotal(0);
+      setFromCache(false);
     } finally {
       setLoading(false);
     }
@@ -160,6 +207,7 @@ export default function Validades() {
     showToast,
     scopeIndustria,
     scopeClienteGrupo,
+    user?.id,
   ]);
 
   const loadChart = useCallback(async () => {
@@ -293,6 +341,15 @@ export default function Validades() {
             Modo visualização
             {scopeIndustria ? `, indústria ${scopeIndustria}` : ''}
             {scopeClienteGrupo ? `, grupo ${scopeClienteGrupo}` : ''}.
+          </p>
+        )}
+        {fromCache && (
+          <p className="validades-cache-hint" role="status">
+            Sem conexão — lista em cache
+            {cacheUpdatedAt
+              ? ` (atualizada às ${new Date(cacheUpdatedAt).toLocaleString('pt-BR')})`
+              : ''}
+            . Somente consulta; vendas exigem internet.
           </p>
         )}
       </header>

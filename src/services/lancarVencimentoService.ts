@@ -11,6 +11,8 @@ export type LancarVencimentoPayload = {
   industria: string;
   date: string;
   submittedAt: string;
+  /** UUID do outbox — n8n pode ignorar; evita confusão no retry local. */
+  clientMutationId?: string;
 };
 
 const DEFAULT_WEBHOOK_URL =

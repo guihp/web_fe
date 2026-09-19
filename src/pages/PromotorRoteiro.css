@@ -20,6 +20,16 @@
   line-height: 1.45;
 }
 
+.promotor-roteiro-cache-hint {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid color-mix(in srgb, #c2410c 35%, var(--border));
+  background: color-mix(in srgb, #c2410c 8%, var(--surface));
+  color: var(--text);
+  font-size: 0.875rem;
+}
+
 .promotor-roteiro-card {
   background: var(--surface);
   border: 1px solid var(--border);

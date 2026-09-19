@@ -1,3 +1,4 @@
+import { getCache, putCache } from '../lib/offlineDb';
 import { supabase } from '../lib/supabase';
 import { todayISO } from '../utils/atividadesDomain';
 import type { Loja } from './lojasService';
@@ -12,10 +13,24 @@ function extensionForFile(file: File): string {
   return 'jpg';
 }
 
+function syncedMutationKey(mutationId: string) {
+  return `synced_mutation:${mutationId}`;
+}
+
+async function readSyncedMutation(mutationId: string): Promise<number | null> {
+  const row = await getCache<{ atividadeId: number }>(syncedMutationKey(mutationId));
+  return row?.value?.atividadeId ?? null;
+}
+
+async function writeSyncedMutation(mutationId: string, atividadeId: number) {
+  await putCache(syncedMutationKey(mutationId), { atividadeId });
+}
+
 async function uploadAtividadeFoto(
   usuarioId: number,
   kind: 'antes' | 'depois',
   file: File,
+  clientMutationId?: string,
 ): Promise<string> {
   if (!file.type.startsWith('image/')) {
     throw new Error('Selecione uma imagem (JPG, PNG ou WebP).');
@@ -25,13 +40,13 @@ async function uploadAtividadeFoto(
   }
 
   const ext = extensionForFile(file);
-  const stamp = Date.now();
-  // Nome deixa explícito antes/depois no Storage.
+  const stamp = clientMutationId?.trim() || String(Date.now());
+  // Path estável com clientMutationId evita duplicar foto no retry offline.
   const path = `${usuarioId}/${todayISO()}/${kind}-${stamp}.${ext}`;
 
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
     contentType: file.type,
-    upsert: false,
+    upsert: Boolean(clientMutationId),
   });
   if (error) throw new Error(error.message);
 
@@ -45,6 +60,8 @@ export type PromotorExecucaoInput = {
   industria: string;
   fotoAntes: File;
   fotoDepois: File;
+  /** UUID do outbox — idempotência no retry offline. */
+  clientMutationId?: string;
 };
 
 /** Check-in + envio Antes/Depois (sem GPS). Grava fotos + senha do dia automaticamente. */
@@ -57,8 +74,34 @@ export async function submitPromotorAntesDepois(
 
   const hoje = todayISO();
   const lojaNome = input.loja.Nome.trim();
+  const mutationId = input.clientMutationId?.trim() || null;
+
+  if (mutationId) {
+    const cachedId = await readSyncedMutation(mutationId).catch(() => null);
+    if (cachedId) return { atividadeId: cachedId };
+  }
 
   const senhaDoDia = await fetchSenhaDoDia().catch(() => null);
+
+  const [fotoAntesUrl, fotoDepoisUrl] = await Promise.all([
+    uploadAtividadeFoto(input.usuarioId, 'antes', input.fotoAntes, mutationId ?? undefined),
+    uploadAtividadeFoto(input.usuarioId, 'depois', input.fotoDepois, mutationId ?? undefined),
+  ]);
+
+  // Retry: se já gravou atividade_dia com essas URLs (path estável), reusa.
+  if (mutationId) {
+    const { data: existingDia } = await supabase
+      .from('atividade_dia')
+      .select('atividade_id')
+      .eq('data', hoje)
+      .ilike('foto_antes_url', `%${mutationId}%`)
+      .maybeSingle();
+    if (existingDia?.atividade_id) {
+      const atividadeId = Number(existingDia.atividade_id);
+      await writeSyncedMutation(mutationId, atividadeId).catch(() => undefined);
+      return { atividadeId };
+    }
+  }
 
   const { data: atividade, error: atError } = await supabase
     .from('atividades')
@@ -79,11 +122,6 @@ export async function submitPromotorAntesDepois(
   if (atError) throw new Error(atError.message);
   const atividadeId = Number(atividade.id);
 
-  const [fotoAntesUrl, fotoDepoisUrl] = await Promise.all([
-    uploadAtividadeFoto(input.usuarioId, 'antes', input.fotoAntes),
-    uploadAtividadeFoto(input.usuarioId, 'depois', input.fotoDepois),
-  ]);
-
   const { error: diaError } = await supabase.from('atividade_dia').insert({
     atividade_id: atividadeId,
     data: hoje,
@@ -94,6 +132,10 @@ export async function submitPromotorAntesDepois(
   });
 
   if (diaError) throw new Error(diaError.message);
+
+  if (mutationId) {
+    await writeSyncedMutation(mutationId, atividadeId).catch(() => undefined);
+  }
 
   return { atividadeId };
 }

@@ -1,6 +1,8 @@
 ﻿/// <reference lib="webworker" />
 import { clientsClaim } from 'workbox-core';
-import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching';
+import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
+import { NavigationRoute, registerRoute } from 'workbox-routing';
+import { CacheFirst, NetworkFirst } from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -8,10 +10,51 @@ precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 clientsClaim();
 
+// SPA offline: navegações caem no index.html precacheado (exceto catálogo estático e APIs).
+const navigationHandler = createHandlerBoundToURL('/index.html');
+registerRoute(
+  new NavigationRoute(navigationHandler, {
+    denylist: [/^\/catalogo\//, /^\/api\//, /\/[^/?]+\.[^/]+$/],
+  }),
+);
+
+// Shell e assets do catálogo já visitados.
+registerRoute(
+  ({ url }) => url.origin === self.location.origin && url.pathname.startsWith('/catalogo/'),
+  new CacheFirst({
+    cacheName: 'fe-catalogo-assets',
+    plugins: [],
+  }),
+);
+
+// API do catálogo: tenta rede; se offline, usa cache da última resposta.
+registerRoute(
+  ({ url }) =>
+    url.pathname.startsWith('/api/catalog') ||
+    url.pathname.includes('/functions/v1/catalogo-catalog'),
+  new NetworkFirst({
+    cacheName: 'fe-catalogo-api',
+    networkTimeoutSeconds: 8,
+  }),
+);
+
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
     void self.skipWaiting();
   }
+});
+
+/** Acorda clients para flush do outbox IndexedDB. */
+self.addEventListener('sync', (event) => {
+  const syncEvent = event as ExtendableEvent & { tag?: string };
+  if (syncEvent.tag !== 'fe-outbox-sync') return;
+  syncEvent.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+      for (const client of clients) {
+        client.postMessage({ type: 'FE_OUTBOX_SYNC' });
+      }
+    }),
+  );
 });
 
 type PushPayload = {
