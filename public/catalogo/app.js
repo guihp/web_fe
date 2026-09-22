@@ -67,6 +67,16 @@
     haribo: true,
   });
 
+  /** Códigos oficiais Mateus por slug (fonte da verdade no client). */
+  var INDUSTRY_CODES_BY_SLUG = Object.freeze(
+    DEFAULT_INDUSTRIES.reduce(function (map, industry) {
+      if (industry.code) {
+        map[industry.slug] = String(industry.code);
+      }
+      return map;
+    }, {}),
+  );
+
   var state = {
     products: [],
     adminSearch: "",
@@ -175,10 +185,7 @@
       }
       if (bySlug[def.slug]) {
         bySlug[def.slug] = Object.assign({}, bySlug[def.slug], {
-          code:
-            bySlug[def.slug].code != null && bySlug[def.slug].code !== ""
-              ? String(bySlug[def.slug].code)
-              : def.code,
+          code: def.code || bySlug[def.slug].code || null,
           logo:
             bySlug[def.slug].logo != null ? bySlug[def.slug].logo : def.logo,
           monogram: bySlug[def.slug].monogram || def.monogram,
@@ -186,6 +193,14 @@
         });
       } else {
         bySlug[def.slug] = Object.assign({}, def);
+      }
+    });
+
+    // Qualquer indústria remota/extra também recebe código conhecido pelo slug.
+    Object.keys(bySlug).forEach(function (slug) {
+      var known = INDUSTRY_CODES_BY_SLUG[slug];
+      if (known) {
+        bySlug[slug].code = known;
       }
     });
 
