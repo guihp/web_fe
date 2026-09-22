@@ -918,6 +918,10 @@ img {
   text-align: center;
 }
 
+.empty-state[hidden] {
+  display: none !important;
+}
+
 .empty-state-icon {
   width: 76px;
   height: 76px;
@@ -1861,6 +1865,10 @@ img {
 
   .industry-card {
     min-height: 210px;
+  }
+
+  .industry-code {
+    font-size: 0.9rem;
   }
 
   .page-hero {
