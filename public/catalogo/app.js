@@ -51,6 +51,14 @@
       logo: "assets/brands/tourinho.avif",
       code: "11217",
     },
+    {
+      slug: "peccin",
+      name: "Peccin",
+      shortName: "Peccin",
+      monogram: "PC",
+      logo: null,
+      code: "15747",
+    },
   ]);
 
   /** Indústrias inativas — não aparecem nos balões mesmo se ainda vierem do cache/API. */

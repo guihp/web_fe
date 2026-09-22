@@ -8,7 +8,7 @@ export const CATALOGO_INDUSTRY_DEFS = [
   { slug: 'ruppers', name: 'Ruppers', shortName: 'Ruppers', code: '59324' },
   { slug: 'dacolonia-alimentos', name: 'DaColônia Alimentos', shortName: 'DaColônia', code: '67934' },
   { slug: 'tourinho-alimentos', name: 'Tourinho Alimentos', shortName: 'Tourinho', code: '11217' },
-  { slug: 'peccin', name: 'Peccin', shortName: 'Peccin', code: null },
+  { slug: 'peccin', name: 'Peccin', shortName: 'Peccin', code: '15747' },
 ] as const;
 
 /**
