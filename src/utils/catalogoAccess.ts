@@ -37,6 +37,9 @@ export function resolveCatalogoIndustrySlug(
   return null;
 }
 
+/** Bust de cache do iframe / SW quando o catálogo muda. */
+export const CATALOGO_ASSET_VERSION = '20260922-codes1';
+
 export function buildCatalogoIframeSrc(options: {
   gestao: boolean;
   industrySlug: string | null;
@@ -44,6 +47,6 @@ export function buildCatalogoIframeSrc(options: {
   const params = new URLSearchParams();
   if (options.gestao) params.set('gestao', '1');
   if (options.industrySlug) params.set('industry', options.industrySlug);
-  const qs = params.toString();
-  return qs ? `/catalogo/index.html?${qs}` : '/catalogo/index.html';
+  params.set('v', CATALOGO_ASSET_VERSION);
+  return `/catalogo/index.html?${params.toString()}`;
 }

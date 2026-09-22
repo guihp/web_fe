@@ -989,6 +989,8 @@
 
   function industryCardMarkup(industry, count) {
     var codeLabel = industryCodeLabel(industry);
+    var codeDigits =
+      industry && industry.code != null ? String(industry.code).trim() : "";
     return (
       '<a class="industry-card" href="#/industria/' +
       industry.slug +
@@ -1000,6 +1002,9 @@
       '<div class="industry-card-footer">' +
       "<div><h3>" +
       industry.name +
+      (codeDigits
+        ? ' <span class="industry-code-badge">' + codeDigits + "</span>"
+        : "") +
       "</h3>" +
       (codeLabel
         ? '<span class="industry-code">' + codeLabel + "</span>"

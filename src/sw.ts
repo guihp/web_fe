@@ -2,7 +2,7 @@
 import { clientsClaim } from 'workbox-core';
 import { cleanupOutdatedCaches, createHandlerBoundToURL, precacheAndRoute } from 'workbox-precaching';
 import { NavigationRoute, registerRoute } from 'workbox-routing';
-import { CacheFirst, NetworkFirst } from 'workbox-strategies';
+import { NetworkFirst } from 'workbox-strategies';
 
 declare const self: ServiceWorkerGlobalScope;
 
@@ -18,12 +18,12 @@ registerRoute(
   }),
 );
 
-// Shell e assets do catálogo já visitados.
+// Catálogo: rede primeiro — CacheFirst prendia o celular em app.js antigo sem códigos.
 registerRoute(
   ({ url }) => url.origin === self.location.origin && url.pathname.startsWith('/catalogo/'),
-  new CacheFirst({
-    cacheName: 'fe-catalogo-assets',
-    plugins: [],
+  new NetworkFirst({
+    cacheName: 'fe-catalogo-assets-v3',
+    networkTimeoutSeconds: 5,
   }),
 );
 
@@ -33,10 +33,27 @@ registerRoute(
     url.pathname.startsWith('/api/catalog') ||
     url.pathname.includes('/functions/v1/catalogo-catalog'),
   new NetworkFirst({
-    cacheName: 'fe-catalogo-api',
+    cacheName: 'fe-catalogo-api-v2',
     networkTimeoutSeconds: 8,
   }),
 );
+
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(
+        keys
+          .filter(
+            (key) =>
+              key === 'fe-catalogo-assets' ||
+              key === 'fe-catalogo-assets-v2' ||
+              key === 'fe-catalogo-api',
+          )
+          .map((key) => caches.delete(key)),
+      ),
+    ),
+  );
+});
 
 self.addEventListener('message', (event) => {
   if (event.data?.type === 'SKIP_WAITING') {
