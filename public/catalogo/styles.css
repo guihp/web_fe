@@ -484,6 +484,19 @@ img {
   line-height: 1.35;
 }
 
+.industry-code {
+  display: block;
+  margin-top: 6px;
+  color: var(--brand-orange-dark, #c2410c);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.industry-code-heading {
+  margin: 0 0 8px;
+}
+
 .industry-count {
   display: block;
   margin-top: 7px;
@@ -1100,6 +1113,11 @@ img {
 .industry-management-info span {
   color: var(--ink-soft);
   font-size: 0.75rem;
+}
+
+.industry-management-info .industry-code {
+  color: var(--brand-orange-dark, #c2410c);
+  font-weight: 700;
 }
 
 .industry-remove-button {

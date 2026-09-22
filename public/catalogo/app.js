@@ -8,6 +8,8 @@
       shortName: "Predilecta",
       monogram: "PA",
       logo: "assets/brands/predilecta.png",
+      /** Cód. indústria Mateus (Predilecta / Stella d'oro / Etti). */
+      code: "723",
     },
     {
       slug: "precioso-alimentos",
@@ -15,6 +17,7 @@
       shortName: "Precioso",
       monogram: "PR",
       logo: "assets/brands/precioso.avif",
+      code: "133612",
     },
     {
       slug: "vale-fertil",
@@ -22,6 +25,7 @@
       shortName: "Vale Fértil",
       monogram: "VF",
       logo: "assets/brands/vale-fertil.avif",
+      code: "1968",
     },
     {
       slug: "bendo-alimentos",
@@ -29,6 +33,7 @@
       shortName: "Bendo",
       monogram: "BA",
       logo: null,
+      code: null,
     },
     {
       slug: "ruppers",
@@ -36,6 +41,7 @@
       shortName: "Ruppers",
       monogram: "RU",
       logo: "assets/brands/ruppers.avif",
+      code: "59324",
     },
     {
       slug: "dacolonia-alimentos",
@@ -43,6 +49,7 @@
       shortName: "DaColônia",
       monogram: "DC",
       logo: "assets/brands/dacolonia.avif",
+      code: "67934",
     },
     {
       slug: "tourinho-alimentos",
@@ -50,6 +57,15 @@
       shortName: "Tourinho",
       monogram: "TA",
       logo: "assets/brands/tourinho.avif",
+      code: "11217",
+    },
+    {
+      slug: "haribo",
+      name: "Haribo",
+      shortName: "Haribo",
+      monogram: "HB",
+      logo: null,
+      code: "81318",
     },
   ]);
 
@@ -140,16 +156,68 @@
     });
   }
 
+  /** Garante códigos oficiais e indústrias default mesmo com lista antiga em cache. */
+  function mergeIndustryDefaults(saved) {
+    var list = Array.isArray(saved) ? saved : [];
+    var bySlug = {};
+    list.forEach(function (industry) {
+      if (industry && typeof industry.slug === "string") {
+        bySlug[industry.slug] = Object.assign({}, industry);
+      }
+    });
+
+    DEFAULT_INDUSTRIES.forEach(function (def) {
+      if (bySlug[def.slug]) {
+        bySlug[def.slug] = Object.assign({}, bySlug[def.slug], {
+          code:
+            bySlug[def.slug].code != null && bySlug[def.slug].code !== ""
+              ? String(bySlug[def.slug].code)
+              : def.code,
+          logo:
+            bySlug[def.slug].logo != null ? bySlug[def.slug].logo : def.logo,
+          monogram: bySlug[def.slug].monogram || def.monogram,
+          shortName: bySlug[def.slug].shortName || def.shortName,
+        });
+      } else {
+        bySlug[def.slug] = Object.assign({}, def);
+      }
+    });
+
+    var result = DEFAULT_INDUSTRIES.map(function (def) {
+      return bySlug[def.slug];
+    });
+    list.forEach(function (industry) {
+      if (
+        industry &&
+        industry.slug &&
+        !DEFAULT_INDUSTRIES.some(function (def) {
+          return def.slug === industry.slug;
+        })
+      ) {
+        result.push(bySlug[industry.slug]);
+      }
+    });
+    return result;
+  }
+
   function loadIndustries() {
     try {
       var saved = localStorage.getItem(INDUSTRIES_KEY);
       var parsed = saved ? JSON.parse(saved) : null;
-      return Array.isArray(parsed) && parsed.length
-        ? parsed
-        : cloneDefaultIndustries();
+      return mergeIndustryDefaults(
+        Array.isArray(parsed) && parsed.length
+          ? parsed
+          : cloneDefaultIndustries(),
+      );
     } catch (error) {
       return cloneDefaultIndustries();
     }
+  }
+
+  function industryCodeLabel(industry) {
+    var code =
+      industry && industry.code != null ? String(industry.code).trim() : "";
+    return code ? "Cód. " + code : "";
   }
 
   async function saveIndustries() {
@@ -613,7 +681,7 @@
         try {
           var shared = await remoteRequest();
           if (Array.isArray(shared.industries) && shared.industries.length) {
-            state.industries = shared.industries;
+            state.industries = mergeIndustryDefaults(shared.industries);
             localStorage.setItem(
               INDUSTRIES_KEY,
               JSON.stringify(state.industries),
@@ -896,17 +964,23 @@
   }
 
   function industryCardMarkup(industry, count) {
+    var codeLabel = industryCodeLabel(industry);
     return (
       '<a class="industry-card" href="#/industria/' +
       industry.slug +
       '" aria-label="Abrir produtos da ' +
       industry.name +
+      (codeLabel ? " (" + codeLabel + ")" : "") +
       '">' +
       brandVisual(industry, false) +
       '<div class="industry-card-footer">' +
       "<div><h3>" +
       industry.name +
-      '</h3><span class="industry-count">' +
+      "</h3>" +
+      (codeLabel
+        ? '<span class="industry-code">' + codeLabel + "</span>"
+        : "") +
+      '<span class="industry-count">' +
       count +
       " " +
       productWord(count) +
@@ -929,7 +1003,10 @@
     var counts = getCountsByIndustry();
     var normalizedFilter = normalizeText(filterValue);
     var matches = getVisibleIndustries().filter(function (industry) {
-      return normalizeText(industry.name).includes(normalizedFilter);
+      return (
+        normalizeText(industry.name).includes(normalizedFilter) ||
+        normalizeText(String(industry.code || "")).includes(normalizedFilter)
+      );
     });
 
     grid.innerHTML = matches
@@ -1349,7 +1426,13 @@
       '<div class="page-heading-card">' +
       '<div class="page-heading"><p class="eyebrow">Produtos por indústria</p><h1>' +
       industry.name +
-      "</h1><p>Consulte os produtos desta indústria, suas gramaturas e os códigos reduzidos do Mateus.</p></div>" +
+      "</h1>" +
+      (industryCodeLabel(industry)
+        ? '<p class="industry-code industry-code-heading">' +
+          industryCodeLabel(industry) +
+          "</p>"
+        : "") +
+      "<p>Consulte os produtos desta indústria, suas gramaturas e os códigos reduzidos do Mateus.</p></div>" +
       brandVisual(industry, true) +
       "</div>" +
       '<div class="product-toolbar">' +
@@ -1537,11 +1620,17 @@
             brandVisual(industry, false) +
             '<div class="industry-management-info"><strong>' +
             industry.name +
-            '</strong><span>' +
+            "</strong>" +
+            (industryCodeLabel(industry)
+              ? '<span class="industry-code">' +
+                industryCodeLabel(industry) +
+                "</span>"
+              : "") +
+            "<span>" +
             count +
-            ' ' +
+            " " +
             productWord(count) +
-            '</span></div>' +
+            "</span></div>" +
             '<button class="button button-danger industry-remove-button" type="button" data-remove-industry="' +
             industry.slug +
             '"' +
@@ -2390,6 +2479,10 @@
             })
             .map(function (industry) {
               var name = industry.name.trim().slice(0, 80);
+              var code =
+                industry.code != null && String(industry.code).trim()
+                  ? String(industry.code).trim().slice(0, 20)
+                  : null;
               return {
                 slug: industry.slug,
                 name: name,
@@ -2397,6 +2490,7 @@
                 monogram: createIndustryMonogram(name),
                 logo:
                   typeof industry.logo === "string" ? industry.logo : null,
+                code: code,
               };
             })
         : state.industries;
@@ -2486,7 +2580,10 @@
         updatedAt: new Date().toISOString(),
       };
     });
-    return { products: products, industries: importedIndustries };
+    return {
+      products: products,
+      industries: mergeIndustryDefaults(importedIndustries),
+    };
   }
 
   async function handleBackupImport(event) {
@@ -2516,7 +2613,7 @@
         importedProducts,
         importedBackup.industries,
       );
-      state.industries = importedBackup.industries;
+      state.industries = mergeIndustryDefaults(importedBackup.industries);
       localStorage.setItem(
         INDUSTRIES_KEY,
         JSON.stringify(state.industries),
