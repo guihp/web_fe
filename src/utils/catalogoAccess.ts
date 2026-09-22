@@ -5,11 +5,9 @@ export const CATALOGO_INDUSTRY_DEFS = [
   { slug: 'predilecta-alimentos', name: 'Predilecta Alimentos', shortName: 'Predilecta', code: '723' },
   { slug: 'precioso-alimentos', name: 'Precioso Alimentos', shortName: 'Precioso', code: '133612' },
   { slug: 'vale-fertil', name: 'Vale Fértil', shortName: 'Vale Fértil', code: '1968' },
-  { slug: 'bendo-alimentos', name: 'Bendo Alimentos', shortName: 'Bendo', code: null },
   { slug: 'ruppers', name: 'Ruppers', shortName: 'Ruppers', code: '59324' },
   { slug: 'dacolonia-alimentos', name: 'DaColônia Alimentos', shortName: 'DaColônia', code: '67934' },
   { slug: 'tourinho-alimentos', name: 'Tourinho Alimentos', shortName: 'Tourinho', code: '11217' },
-  { slug: 'haribo', name: 'Haribo', shortName: 'Haribo', code: '81318' },
   { slug: 'peccin', name: 'Peccin', shortName: 'Peccin', code: null },
 ] as const;
 

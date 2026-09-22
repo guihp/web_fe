@@ -28,14 +28,6 @@
       code: "1968",
     },
     {
-      slug: "bendo-alimentos",
-      name: "Bendo Alimentos",
-      shortName: "Bendo",
-      monogram: "BA",
-      logo: null,
-      code: null,
-    },
-    {
       slug: "ruppers",
       name: "Ruppers",
       shortName: "Ruppers",
@@ -59,15 +51,13 @@
       logo: "assets/brands/tourinho.avif",
       code: "11217",
     },
-    {
-      slug: "haribo",
-      name: "Haribo",
-      shortName: "Haribo",
-      monogram: "HB",
-      logo: null,
-      code: "81318",
-    },
   ]);
+
+  /** Indústrias inativas — não aparecem nos balões mesmo se ainda vierem do cache/API. */
+  var INACTIVE_INDUSTRY_SLUGS = Object.freeze({
+    "bendo-alimentos": true,
+    haribo: true,
+  });
 
   var state = {
     products: [],
@@ -110,10 +100,13 @@
   }
 
   function getVisibleIndustries() {
+    var list = state.industries.filter(function (industry) {
+      return industry && industry.slug && !INACTIVE_INDUSTRY_SLUGS[industry.slug];
+    });
     if (!scopedIndustrySlug) {
-      return state.industries;
+      return list;
     }
-    return state.industries.filter(function (industry) {
+    return list.filter(function (industry) {
       return industry.slug === scopedIndustrySlug;
     });
   }
@@ -158,7 +151,9 @@
 
   /** Garante códigos oficiais e indústrias default mesmo com lista antiga em cache. */
   function mergeIndustryDefaults(saved) {
-    var list = Array.isArray(saved) ? saved : [];
+    var list = (Array.isArray(saved) ? saved : []).filter(function (industry) {
+      return industry && industry.slug && !INACTIVE_INDUSTRY_SLUGS[industry.slug];
+    });
     var bySlug = {};
     list.forEach(function (industry) {
       if (industry && typeof industry.slug === "string") {
@@ -167,6 +162,9 @@
     });
 
     DEFAULT_INDUSTRIES.forEach(function (def) {
+      if (INACTIVE_INDUSTRY_SLUGS[def.slug]) {
+        return;
+      }
       if (bySlug[def.slug]) {
         bySlug[def.slug] = Object.assign({}, bySlug[def.slug], {
           code:
@@ -183,13 +181,16 @@
       }
     });
 
-    var result = DEFAULT_INDUSTRIES.map(function (def) {
+    var result = DEFAULT_INDUSTRIES.filter(function (def) {
+      return !INACTIVE_INDUSTRY_SLUGS[def.slug];
+    }).map(function (def) {
       return bySlug[def.slug];
     });
     list.forEach(function (industry) {
       if (
         industry &&
         industry.slug &&
+        !INACTIVE_INDUSTRY_SLUGS[industry.slug] &&
         !DEFAULT_INDUSTRIES.some(function (def) {
           return def.slug === industry.slug;
         })

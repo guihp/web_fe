@@ -7,7 +7,9 @@ import path from 'path';
 export default defineConfig({
   plugins: [
     react(),
-    basicSsl(),
+    // HTTPS local opcional: VITE_DEV_HTTPS=1 npm run dev (útil p/ OAuth Google).
+    // Por padrão fica HTTP para o browser abrir sem erro de certificado.
+    ...(process.env.VITE_DEV_HTTPS === '1' ? [basicSsl()] : []),
     VitePWA({
       strategies: 'injectManifest',
       srcDir: 'src',
