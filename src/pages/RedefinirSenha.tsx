@@ -33,8 +33,16 @@ export default function RedefinirSenha() {
     });
 
     void (async () => {
-      // Hash do link de recovery (#access_token=...)
-      await supabase.auth.getSession();
+      // PKCE: ?code=...  |  Implicit: #access_token=...&type=recovery
+      const params = new URLSearchParams(window.location.search);
+      const code = params.get('code');
+      if (code) {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+        if (exchangeError) {
+          console.error('exchangeCodeForSession', exchangeError.message);
+        }
+      }
+
       const { data } = await supabase.auth.getSession();
       if (cancelled) return;
       if (data.session) {

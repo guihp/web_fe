@@ -14,7 +14,7 @@ Opção **Lembrar**: mantém a sessão no navegador; sem isso, a sessão vale at
 
 Configuração Auth (painel Supabase → Authentication → URL Configuration):
 
-- **Site URL (local):** `http://localhost:5174`
+- **Site URL (local):** `http://localhost:5174/redefinir-senha` (preferível; se ficar só em `/`, o app redireciona tokens de recovery para esta rota)
 - **Redirect (local):** `http://localhost:5174/redefinir-senha`
 - **Produção (após Coolify):** Site URL = `https://SEU-DOMINIO` e redirects `https://SEU-DOMINIO/redefinir-senha` (+ opcional `https://SEU-DOMINIO/**`).
 

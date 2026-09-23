@@ -5,7 +5,7 @@ export async function requestPasswordReset(input: {
   tipo: LoginTipo;
   identifier: string;
   redirectTo?: string;
-}): Promise<{ message: string }> {
+}): Promise<{ message: string; recoveryLink?: string; rateLimited?: boolean }> {
   const redirectTo =
     input.redirectTo?.trim() ||
     `${window.location.origin}/redefinir-senha`;
@@ -22,11 +22,21 @@ export async function requestPasswordReset(input: {
     throw new Error(error.message || 'Não foi possível solicitar a redefinição.');
   }
 
+  const payload = data as {
+    message?: string;
+    recoveryLink?: string;
+    rateLimited?: boolean;
+  } | null;
+
   const message =
-    (data as { message?: string } | null)?.message ??
+    payload?.message ??
     'Se houver e-mail cadastrado para este acesso, enviamos um link para redefinir a senha.';
 
-  return { message };
+  return {
+    message,
+    recoveryLink: payload?.recoveryLink,
+    rateLimited: payload?.rateLimited,
+  };
 }
 
 export async function syncPasswordAfterReset(password: string): Promise<void> {

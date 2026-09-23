@@ -34,20 +34,23 @@ function toIndustriaPadrao(value: string) {
     .replace(/\s+/g, ' ');
 }
 
-function isAllowedRedirect(redirectTo: string, siteOrigin: string) {
+function isLocalRedirect(redirectTo: string) {
   try {
     const url = new URL(redirectTo);
-    const allowed = new Set([
-      siteOrigin,
-      'http://localhost:5174',
-      'http://127.0.0.1:5174',
-      'https://localhost:5174',
-    ]);
-    if (allowed.has(url.origin)) {
-      return url.pathname.startsWith('/redefinir-senha');
+    return url.hostname === 'localhost' || url.hostname === '127.0.0.1';
+  } catch {
+    return false;
+  }
+}
+
+function isAllowedRedirect(redirectTo: string) {
+  try {
+    const url = new URL(redirectTo);
+    if (!url.pathname.startsWith('/redefinir-senha')) return false;
+    if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+      return url.protocol === 'http:' || url.protocol === 'https:';
     }
-    // Produção Coolify: qualquer https com path /redefinir-senha
-    return url.protocol === 'https:' && url.pathname.startsWith('/redefinir-senha');
+    return url.protocol === 'https:';
   } catch {
     return false;
   }
@@ -78,26 +81,21 @@ Deno.serve(async (req) => {
     const tipo = body.tipo ?? 'interno';
     const identifier = String(body.identifier ?? '').trim();
     const redirectTo = String(body.redirectTo ?? '').trim();
-    const siteOrigin = new URL(supabaseUrl).origin.includes('supabase')
-      ? new URL(redirectTo || 'http://localhost:5174').origin
-      : 'http://localhost:5174';
 
-    // Resposta sempre genérica (não vaza se o usuário existe).
-    const genericOk = () =>
-      json({
-        ok: true,
-        message:
-          'Se houver e-mail cadastrado para este acesso, enviamos um link para redefinir a senha.',
-      });
+    const genericMessage =
+      'Se houver e-mail cadastrado para este acesso, enviamos um link para redefinir a senha.';
+
+    const genericOk = (extra: Record<string, unknown> = {}) =>
+      json({ ok: true, message: genericMessage, ...extra });
 
     if (!identifier) {
       return genericOk();
     }
 
     const safeRedirect =
-      redirectTo && isAllowedRedirect(redirectTo, siteOrigin)
+      redirectTo && isAllowedRedirect(redirectTo)
         ? redirectTo
-        : `${new URL(redirectTo || 'http://localhost:5174/redefinir-senha').origin}/redefinir-senha`;
+        : 'http://localhost:5174/redefinir-senha';
 
     const admin = createClient(supabaseUrl, serviceKey, {
       auth: { persistSession: false, autoRefreshToken: false },
@@ -164,22 +162,43 @@ Deno.serve(async (req) => {
 
     const emailNorm = email.toLowerCase();
 
-    // Garante usuário em auth.users para o recovery do Supabase Auth.
+    // Garante auth.users + metadata apontando para o id correto de `usuarios`
+    // (mesmo e-mail pode existir em várias linhas — o sync usa app_usuario_id).
     const { error: createError } = await admin.auth.admin.createUser({
       email: emailNorm,
       email_confirm: true,
       password: `${crypto.randomUUID()}Aa1!`,
       user_metadata: { app_usuario_id: usuarioId },
     });
-    if (
-      createError &&
-      !/already|registered|exists/i.test(createError.message ?? '')
-    ) {
+
+    if (createError && /already|registered|exists/i.test(createError.message ?? '')) {
+      let authUserId: string | null = null;
+      for (let page = 1; page <= 5 && !authUserId; page++) {
+        const { data: listed, error: listErr } = await admin.auth.admin.listUsers({
+          page,
+          perPage: 200,
+        });
+        if (listErr) {
+          console.error('listUsers', listErr.message);
+          break;
+        }
+        const found = (listed?.users ?? []).find(
+          (u) => (u.email ?? '').toLowerCase() === emailNorm,
+        );
+        if (found?.id) authUserId = found.id;
+        if ((listed?.users?.length ?? 0) < 200) break;
+      }
+      if (authUserId) {
+        const { error: metaErr } = await admin.auth.admin.updateUserById(authUserId, {
+          user_metadata: { app_usuario_id: usuarioId },
+        });
+        if (metaErr) console.error('updateUserById metadata', metaErr.message);
+      }
+    } else if (createError) {
       console.error('createUser', createError.message);
       return genericOk();
     }
 
-    // Dispara e-mail oficial de recovery (GoTrue /recover).
     const apikey = anonKey || serviceKey;
     const recoverRes = await fetch(`${supabaseUrl}/auth/v1/recover`, {
       method: 'POST',
@@ -194,9 +213,41 @@ Deno.serve(async (req) => {
       }),
     });
 
-    if (!recoverRes.ok) {
-      const text = await recoverRes.text().catch(() => '');
-      console.error('recover failed', recoverRes.status, text.slice(0, 300));
+    if (recoverRes.ok) {
+      return genericOk();
+    }
+
+    const text = await recoverRes.text().catch(() => '');
+    console.error('recover failed', recoverRes.status, text.slice(0, 300));
+
+    if (recoverRes.status === 429 && isLocalRedirect(safeRedirect)) {
+      const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+        type: 'recovery',
+        email: emailNorm,
+        options: { redirectTo: safeRedirect },
+      });
+      if (linkError) {
+        console.error('generateLink', linkError.message);
+      }
+      const actionLink = linkData?.properties?.action_link ?? null;
+      if (actionLink) {
+        return json({
+          ok: true,
+          message:
+            'Limite de e-mails do Supabase atingido. Em localhost, abrimos o link gerado para você testar.',
+          recoveryLink: actionLink,
+          rateLimited: true,
+        });
+      }
+    }
+
+    if (recoverRes.status === 429) {
+      return json({
+        ok: true,
+        message:
+          'Muitas solicitações em pouco tempo. Aguarde alguns minutos e tente de novo (e confira o spam).',
+        rateLimited: true,
+      });
     }
 
     return genericOk();

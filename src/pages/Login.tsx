@@ -97,12 +97,16 @@ export default function Login() {
     }
     setResetting(true);
     try {
-      const { message } = await requestPasswordReset({
+      const { message, recoveryLink, rateLimited } = await requestPasswordReset({
         tipo: loginTipo,
         identifier,
         redirectTo: `${window.location.origin}/redefinir-senha`,
       });
-      showToast(message, 'success');
+      showToast(message, rateLimited ? 'info' : 'success');
+      // Bypass do rate limit de e-mail do Supabase (só em localhost).
+      if (recoveryLink && /^https?:\/\/(localhost|127\.0\.0\.1)([:/]|$)/i.test(window.location.origin)) {
+        window.open(recoveryLink, '_blank', 'noopener,noreferrer');
+      }
     } catch (err) {
       showToast(
         err instanceof Error ? err.message : 'Não foi possível solicitar a redefinição.',

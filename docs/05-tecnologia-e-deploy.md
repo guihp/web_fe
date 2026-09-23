@@ -29,7 +29,7 @@ Painel: **Authentication → URL Configuration**
 
 | Ambiente | Site URL | Redirect URLs |
 |----------|----------|---------------|
-| Local (já configurado) | `http://localhost:5174` | `http://localhost:5174/redefinir-senha` |
+| Local (recomendado) | `http://localhost:5174/redefinir-senha` | `http://localhost:5174/redefinir-senha` |
 | Produção (após Coolify) | `https://SEU-DOMINIO` | `https://SEU-DOMINIO/redefinir-senha` e `https://SEU-DOMINIO/**` |
 
 Edge Functions no projeto App Fé (`sjapbromslgohlxcndrj`):

@@ -18,6 +18,29 @@
         } catch (e) {
           document.documentElement.setAttribute('data-theme', 'light');
         }
+
+        // Recovery do Auth costuma cair na Site URL (/); sem isso o app manda para /login.
+        try {
+          var path = location.pathname;
+          if (path.indexOf('/redefinir-senha') === 0) return;
+          if (path !== '/' && path !== '/login' && path !== '') return;
+          var search = location.search || '';
+          var hash = location.hash || '';
+          var q = new URLSearchParams(search);
+          var h = new URLSearchParams(hash.charAt(0) === '#' ? hash.slice(1) : hash);
+          var type = q.get('type') || h.get('type');
+          var authPayload =
+            type === 'recovery' ||
+            h.has('access_token') ||
+            q.has('access_token') ||
+            q.has('code') ||
+            h.has('refresh_token');
+          if (authPayload) {
+            location.replace('/redefinir-senha' + search + hash);
+          }
+        } catch (e2) {
+          /* ignore */
+        }
       })();
     </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />

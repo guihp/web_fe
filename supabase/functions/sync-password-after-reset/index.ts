@@ -72,18 +72,51 @@ Deno.serve(async (req) => {
       auth: { persistSession: false, autoRefreshToken: false },
     });
 
-    let query = admin.from('usuarios').select('id, email').ilike('email', email);
-    const { data: byEmail, error: emailErr } = await query.maybeSingle();
-    if (emailErr) {
-      return json({ error: emailErr.message }, 500);
+    // Preferir o id gravado no Auth (vindo do CPF/indústria/CNPJ do pedido).
+    // Vários registros podem compartilhar o mesmo e-mail — lookup só por e-mail
+    // atualizava a linha errada e o login por CPF continuava com a senha antiga.
+    let usuarioId: number | null = metaId > 0 ? metaId : null;
+
+    if (!usuarioId) {
+      const { data: rows, error: emailErr } = await admin
+        .from('usuarios')
+        .select('id, email, cpf')
+        .ilike('email', email);
+
+      if (emailErr) {
+        return json({ error: emailErr.message }, 500);
+      }
+
+      const list = rows ?? [];
+      if (list.length === 1) {
+        usuarioId = Number(list[0].id);
+      } else if (list.length > 1) {
+        const withCpf = list.find((r) => r.cpf && String(r.cpf).replace(/\D/g, '').length === 11);
+        usuarioId = withCpf ? Number(withCpf.id) : null;
+        if (!usuarioId) {
+          return json(
+            {
+              error:
+                'Há várias contas com este e-mail. Peça ao admin para unificar o cadastro.',
+            },
+            409,
+          );
+        }
+      }
     }
 
-    let usuarioId = byEmail?.id ? Number(byEmail.id) : null;
-    if (!usuarioId && metaId > 0) {
-      usuarioId = metaId;
-    }
     if (!usuarioId) {
       return json({ error: 'Usuário do app não encontrado para este e-mail.' }, 404);
+    }
+
+    // Confirma que o id existe (metadata pode estar desatualizado).
+    const { data: target, error: targetErr } = await admin
+      .from('usuarios')
+      .select('id')
+      .eq('id', usuarioId)
+      .maybeSingle();
+    if (targetErr || !target) {
+      return json({ error: 'Usuário do app não encontrado.' }, 404);
     }
 
     const hashed = await hashPassword(password);
@@ -96,7 +129,7 @@ Deno.serve(async (req) => {
       return json({ error: updErr.message }, 500);
     }
 
-    return json({ ok: true });
+    return json({ ok: true, usuarioId });
   } catch (err) {
     console.error(err);
     return json({ error: 'Falha ao sincronizar senha.' }, 500);
