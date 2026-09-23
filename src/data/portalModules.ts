@@ -1,4 +1,5 @@
 import type { AppIconName } from '../components/icons/AppIcon';
+import { isHubSistemaId } from './hubPermissions';
 
 export const PORTAL_MODULE_IDS = [
   'merchandising',
@@ -235,6 +236,11 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
     path: '/grupo-fe',
     sections: [
       { id: 'grupo-fe.hub', title: 'Hub Grupo Fé', path: '/grupo-fe', icon: 'rocket' },
+      { id: 'grupo-fe.finance', title: 'Finance', path: '/grupo-fe/finance', icon: 'money' },
+      { id: 'grupo-fe.imobi', title: 'Imobi', path: '/grupo-fe/imobi', icon: 'building' },
+      { id: 'grupo-fe.daily', title: 'Daily', path: '/grupo-fe/daily', icon: 'clipboard' },
+      // Sem página de detalhe: redireciona ao hub com foco no card Fé
+      { id: 'grupo-fe.fe', title: 'Fé', path: '/grupo-fe/fe', icon: 'cart' },
     ],
   },
 ];
@@ -242,7 +248,13 @@ export const PORTAL_MODULES: PortalModuleDef[] = [
 export const ALL_SECTION_IDS = PORTAL_MODULES.flatMap((m) => m.sections.map((s) => s.id));
 
 /** Seções do hub Grupo Fé — permissões via hub_usuario_*, não via nivel_acesso. */
-export const HUB_PORTAL_SECTION_IDS = ['grupo-fe.hub'] as const;
+export const HUB_PORTAL_SECTION_IDS = [
+  'grupo-fe.hub',
+  'grupo-fe.finance',
+  'grupo-fe.imobi',
+  'grupo-fe.daily',
+  'grupo-fe.fe',
+] as const;
 
 export function isGrupoFeModule(moduleId: string): boolean {
   return moduleId === 'grupo-fe';
@@ -401,11 +413,12 @@ function remapLegacySectionId(id: string): string {
 
 export function sanitizeSecoes(cargo: string, secoes: string[] | null | undefined): string[] {
   const allowed = new Set(
-    ALL_SECTION_IDS.filter((id) => !(HUB_PORTAL_SECTION_IDS as readonly string[]).includes(id)),
+    ALL_SECTION_IDS.filter((id) => !id.startsWith('grupo-fe.')),
   );
   const picked = [
     ...new Set(
       (secoes ?? [])
+        .filter((s): s is string => typeof s === 'string' && s.trim().length > 0)
         .map((s) => remapLegacySectionId(s.trim()))
         .filter((s) => allowed.has(s)),
     ),
@@ -597,10 +610,18 @@ const SUCESSO_SECTION_IDS = [
 ] as const;
 
 /** Mapeia rota atual para o id da seção. */
-export function sectionIdForPath(pathname: string): string | 'home' | null {
+export function sectionIdForPath(pathname: string | null | undefined): string | 'home' | null {
+  if (pathname == null) return null;
   if (pathname === '/' || pathname === '') return 'home';
 
   const normalized = pathname.replace(/\/$/, '') || '/';
+
+  // Grupo Fé — rotas explícitas (evita /grupo-fe engolir detalhe via startsWith)
+  if (normalized === '/grupo-fe/finance') return 'grupo-fe.finance';
+  if (normalized === '/grupo-fe/imobi') return 'grupo-fe.imobi';
+  if (normalized === '/grupo-fe/daily') return 'grupo-fe.daily';
+  if (normalized === '/grupo-fe/fe') return 'grupo-fe.fe';
+  if (normalized === '/grupo-fe') return 'grupo-fe.hub';
 
   // Rotas atuais Fé Representações
   if (normalized === '/fe-representacoes/price') return 'fe-representacoes.price';
@@ -664,8 +685,16 @@ export function userHasSectionAccess(
     hubSistemas?: string[] | null;
   },
 ): boolean {
-  if (sectionId === 'grupo-fe.hub' || sectionId.startsWith('grupo-fe.')) {
+  if (sectionId === 'grupo-fe.hub') {
     if (hubOpts?.isSuperAdmin) return true;
+    return (hubOpts?.hubSistemas ?? []).length > 0;
+  }
+  if (sectionId.startsWith('grupo-fe.')) {
+    if (hubOpts?.isSuperAdmin) return true;
+    const sistemaId = sectionId.slice('grupo-fe.'.length);
+    if (isHubSistemaId(sistemaId)) {
+      return (hubOpts?.hubSistemas ?? []).includes(sistemaId);
+    }
     return (hubOpts?.hubSistemas ?? []).length > 0;
   }
 

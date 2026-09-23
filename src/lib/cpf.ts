@@ -1,5 +1,6 @@
-export function normalizeCpf(cpf: string): string {
-  return cpf.replace(/\D/g, '');
+export function normalizeCpf(cpf?: string | null): string {
+  if (cpf == null) return '';
+  return String(cpf).replace(/\D/g, '');
 }
 
 export function maskCpfInput(value: string) {

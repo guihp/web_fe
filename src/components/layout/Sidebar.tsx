@@ -15,6 +15,7 @@ import {
 import AppIcon, { type AppIconName } from '../icons/AppIcon';
 import './Sidebar.css';
 
+
 type NavItem = {
   id: string;
   label: string;
@@ -57,9 +58,25 @@ function pathMatches(itemPath: string, pathname: string, search: string) {
     return pathname === '/financeiro' && !new URLSearchParams(search).get('tab');
   }
 
+  // Fé: atalho /grupo-fe/fe redireciona para o hub com ?sistema=fe
+  if (path === '/grupo-fe/fe') {
+    return (
+      pathname === '/grupo-fe/fe' ||
+      (pathname === '/grupo-fe' && new URLSearchParams(search).get('sistema') === 'fe')
+    );
+  }
+
   // Hubs: só path exato
-  if (path === '/administrador' || path === '/merchandising' || path === '/fe-representacoes') {
-    return pathname === path;
+  if (
+    path === '/administrador' ||
+    path === '/merchandising' ||
+    path === '/fe-representacoes' ||
+    path === '/grupo-fe'
+  ) {
+    return (
+      pathname === path &&
+      (path !== '/grupo-fe' || !new URLSearchParams(search).get('sistema'))
+    );
   }
 
   return pathname === path || pathname.startsWith(`${path}/`);
@@ -106,6 +123,10 @@ export default function Sidebar() {
   const items = useMemo(() => {
     const cargo = user?.cargo ?? '';
     const secoes = user?.secoes_acesso;
+    const hubOpts = {
+      isSuperAdmin: user?.is_super_admin,
+      hubSistemas: user?.hub_sistemas,
+    };
     const moduleId = currentModuleId(location.pathname);
     const nav: NavItem[] = [HOME_ITEM];
 
@@ -143,7 +164,7 @@ export default function Sidebar() {
       }
 
       if (
-        !userHasSectionAccess(cargo, secoes, section.id) &&
+        !userHasSectionAccess(cargo, secoes, section.id, hubOpts) &&
         !(
           section.id === 'administrador.hub' &&
           (secoes ?? []).some((s) => s.startsWith('administrador.'))

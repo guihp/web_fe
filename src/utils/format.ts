@@ -2,7 +2,7 @@ export type Usuario = {
   id: number;
   nome: string;
   telefone: string | null;
-  cpf: string;
+  cpf: string | null;
   cargo: string;
   cidade: string | null;
   estado_id: string | null;
@@ -58,8 +58,9 @@ export function formatLocal(cidade?: string | null, estadoId?: string | null) {
   return cidadeStr || estado || '—';
 }
 
-export function formatCpf(cpf: string) {
-  const digits = cpf.replace(/\D/g, '');
+export function formatCpf(cpf?: string | null) {
+  if (cpf == null || cpf === '') return '—';
+  const digits = String(cpf).replace(/\D/g, '');
   if (digits.length !== 11) return cpf;
   return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
 }

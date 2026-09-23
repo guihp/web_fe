@@ -49,6 +49,8 @@ export const HUB_SISTEMAS: HubSistemaDef[] = [
       { id: 'imobi.usuarios', title: 'Usuários ativos', sistemaId: 'imobi' },
       { id: 'imobi.leads', title: 'Leads', sistemaId: 'imobi' },
       { id: 'imobi.imoveis', title: 'Imóveis', sistemaId: 'imobi' },
+      { id: 'imobi.visitas', title: 'Visitas', sistemaId: 'imobi' },
+      { id: 'imobi.atendimentos', title: 'Atendimentos', sistemaId: 'imobi' },
     ],
   },
   {

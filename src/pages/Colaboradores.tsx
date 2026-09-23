@@ -86,7 +86,7 @@ export default function Colaboradores() {
       const local = formatLocal(item.cidade, item.estado_id).toLowerCase();
       const cpf = formatCpf(item.cpf);
       return (
-        item.nome.toLowerCase().includes(term) ||
+        (item.nome ?? '').toLowerCase().includes(term) ||
         (item.cargo ?? '').toLowerCase().includes(term) ||
         local.includes(term) ||
         cpf.includes(term) ||

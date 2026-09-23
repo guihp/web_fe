@@ -38,6 +38,9 @@ import Price from './pages/Price';
 import GestaoVeiculos from './pages/GestaoVeiculos';
 import Avisos from './pages/Avisos';
 import GrupoFeHub from './pages/GrupoFeHub';
+import GrupoFeImobiDetail from './pages/GrupoFeImobiDetail';
+import GrupoFeFinanceDetail from './pages/GrupoFeFinanceDetail';
+import GrupoFeDailyDetail from './pages/GrupoFeDailyDetail';
 
 export default function App() {
   return (
@@ -51,6 +54,13 @@ export default function App() {
         <Route element={<ManagerLayout />}>
           <Route path="/" element={<PortalHome />} />
           <Route path="/grupo-fe" element={<GrupoFeHub />} />
+          <Route
+            path="/grupo-fe/fe"
+            element={<Navigate to="/grupo-fe?sistema=fe" replace />}
+          />
+          <Route path="/grupo-fe/imobi" element={<GrupoFeImobiDetail />} />
+          <Route path="/grupo-fe/finance" element={<GrupoFeFinanceDetail />} />
+          <Route path="/grupo-fe/daily" element={<GrupoFeDailyDetail />} />
           <Route path="/merchandising" element={<Merchandising />} />
           <Route path="/merchandising/encartes" element={<LancarEncartes />} />
           <Route path="/merchandising/pesquisas" element={<FazerPesquisa />} />

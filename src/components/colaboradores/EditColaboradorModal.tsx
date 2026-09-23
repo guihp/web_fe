@@ -26,7 +26,7 @@ export default function EditColaboradorModal({ user, onClose, onSuccess }: EditC
     nome: user.nome,
     email: user.email || '',
     telefone: user.telefone ? maskPhoneInput(user.telefone) : '',
-    cpf: formatCpf(user.cpf),
+    cpf: user.cpf ? formatCpf(user.cpf) : '',
     endereco: buildEndereco(user),
     cargo: user.cargo,
     senha: '',

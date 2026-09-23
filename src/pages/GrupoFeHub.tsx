@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import AppIcon, { type AppIconName } from '../components/icons/AppIcon';
 import { useAuth } from '../context/AuthContext';
 import { HUB_SISTEMAS, userHasHubSistema, type HubSistemaId } from '../data/hubPermissions';
@@ -103,10 +103,13 @@ function HBarList({
   data,
   accent,
 }: {
-  data: { label: string; value: number }[];
+  data: { label: string | null | undefined; value: number }[];
   accent: string;
 }) {
-  const rows = data.filter((d) => d.value > 0 && d.label.trim()).slice(0, 6);
+  const rows = data
+    .map((d) => ({ ...d, label: String(d.label ?? '').trim() }))
+    .filter((d) => d.value > 0 && d.label)
+    .slice(0, 6);
   const max = Math.max(...rows.map((d) => d.value), 1);
   if (rows.length === 0) return <p className="gfh-muted">Sem distribuição no período</p>;
 
@@ -347,9 +350,17 @@ function SistemaCard({
   const meta = SISTEMA_META[result.sistema];
   const featured = featuredFor(result);
   const kpis = secondaryKpis(result);
+  const detailPath =
+    result.sistema === 'imobi'
+      ? '/grupo-fe/imobi'
+      : result.sistema === 'finance'
+        ? '/grupo-fe/finance'
+        : result.sistema === 'daily'
+          ? '/grupo-fe/daily'
+          : null;
 
-  return (
-    <article className="gfh-card" style={{ ['--gfh-accent' as string]: meta.accent }}>
+  const body = (
+    <>
       <header className="gfh-card-head">
         <div className="gfh-card-title-row">
           <span className="gfh-card-icon" aria-hidden>
@@ -388,6 +399,29 @@ function SistemaCard({
           <div className="gfh-chart">{chartPanel(result, meta.accent)}</div>
         </>
       )}
+    </>
+  );
+
+  if (detailPath) {
+    return (
+      <Link
+        to={detailPath}
+        id={`gfh-sistema-${result.sistema}`}
+        className="gfh-card gfh-card-link"
+        style={{ ['--gfh-accent' as string]: meta.accent }}
+      >
+        {body}
+      </Link>
+    );
+  }
+
+  return (
+    <article
+      id={`gfh-sistema-${result.sistema}`}
+      className="gfh-card"
+      style={{ ['--gfh-accent' as string]: meta.accent }}
+    >
+      {body}
     </article>
   );
 }
@@ -440,6 +474,7 @@ function buildExecutiveSummary(results: HubSistemaMetricsResult[]) {
 
 export default function GrupoFeHub() {
   const { user } = useAuth();
+  const [searchParams] = useSearchParams();
   const [data, setData] = useState<HubMetricsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -461,7 +496,7 @@ export default function GrupoFeHub() {
         if (!cancelled) setData(metrics);
       } catch (err) {
         if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Erro ao carregar o hub.');
+          setError(err instanceof Error ? err.message : 'Falha ao carregar o hub.');
           setData(null);
         }
       } finally {
@@ -472,6 +507,13 @@ export default function GrupoFeHub() {
       cancelled = true;
     };
   }, [user?.id]);
+
+  const focusSistema = searchParams.get('sistema');
+  useEffect(() => {
+    if (loading || !focusSistema) return;
+    const el = document.getElementById(`gfh-sistema-${focusSistema}`);
+    el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [loading, focusSistema, visibleSystems]);
 
   const bySistema = useMemo(() => {
     const map = new Map<HubSistemaId, HubSistemaMetricsResult>();

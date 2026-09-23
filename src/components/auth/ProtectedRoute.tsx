@@ -36,7 +36,7 @@ export default function ProtectedRoute() {
     return <Navigate to="/" replace />;
   }
 
-  if (sectionId === 'grupo-fe.hub') {
+  if (sectionId === 'grupo-fe.hub' || sectionId?.startsWith('grupo-fe.')) {
     if (!userHasSectionAccess(user.cargo, user.secoes_acesso, sectionId, hubOpts)) {
       return <Navigate to="/" replace />;
     }
