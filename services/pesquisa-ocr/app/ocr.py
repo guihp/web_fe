@@ -209,17 +209,31 @@ def assign_prices_from_labels(
     if emb is not None:
         units, pack = emb
         derived = _price_to_float(pack) / float(units)
-        varejo = _format_brl(derived)
-        # Prefer an OCR'd unit price that matches pack/N (fixes 2,19 vs 2,79).
-        for p in merge_price_lists(blob):
-            if abs(_price_to_float(p) - derived) <= 0.06:
-                varejo = p
-                break
-        return varejo, pack, "emb-pack"
+        prices = merge_price_lists(blob)
+        # EMB pack total is case price, NOT gôndola "atacado". Only unit → varejo.
+        for p in prices:
+            if abs(_price_to_float(p) - derived) <= 0.08:
+                return p, None, "emb-pack"
+        unitish = [
+            p
+            for p in prices
+            if 0.5 <= _price_to_float(p) < 40.0
+            and abs(_price_to_float(p) - _price_to_float(pack)) > 0.01
+        ]
+        if unitish:
+            for u in unitish:
+                if abs(_price_to_float(u) * float(units) - _price_to_float(pack)) <= 0.51:
+                    return u, None, "emb-pack-ocr"
+            return min(unitish, key=_price_to_float), None, "emb-pack-fallback"
+        return _format_brl(derived), None, "emb-pack-derived"
 
     if is_unit_emb_layout(blob):
-        v, a = assign_varejo_atacado(merge_price_lists(blob))
-        return v, a, "unit-emb-prices"
+        prices = merge_price_lists(blob)
+        unitish = [p for p in prices if 0.5 <= _price_to_float(p) < 40.0]
+        if unitish:
+            return min(unitish, key=_price_to_float), None, "unit-emb-prices"
+        v, _a = assign_varejo_atacado(prices)
+        return v, None, "unit-emb-prices"
 
     return None, None, "none"
 

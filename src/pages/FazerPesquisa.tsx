@@ -338,7 +338,8 @@ export default function FazerPesquisa() {
     setCameraReady(false);
 
     (async () => {
-      if (!navigator.mediaDevices?.getUserMedia) {
+      // getUserMedia requires a secure context; on HTTP LAN (iPhone) go straight to file/capture.
+      if (!window.isSecureContext || !navigator.mediaDevices?.getUserMedia) {
         if (!cancelled) setCameraFallback(true);
         return;
       }
@@ -451,9 +452,11 @@ export default function FazerPesquisa() {
     // Catálogo desligado: só texto/preços do OCR da etiqueta.
     setCandidates([]);
     const descricaoFinal = (productText || '').trim();
+    const varejoFinal = varejo?.trim() ? varejo : '';
+    const atacadoFinal = atacado?.trim() ? atacado : '';
     setDescricao(descricaoFinal);
-    setPrecoVarejo(varejo?.trim() ? varejo : '');
-    setPrecoAtacado(atacado?.trim() ? atacado : '');
+    setPrecoVarejo(varejoFinal);
+    setPrecoAtacado(atacadoFinal);
     revokePreview();
     setCaptureError(false);
     setLiveCamera(true);
@@ -530,6 +533,9 @@ export default function FazerPesquisa() {
       showToast('Aguarde a moldura carregar.', 'error');
       return;
     }
+    // Show busy immediately — iPhone gallery captures can take seconds to crop
+    // before postPesquisaOcr runs (runOcrOnCrop also toggles ocrBusy).
+    setOcrBusy(true);
     try {
       const zoom = frameZoomRef.current;
       const pan = framePanRef.current;
@@ -544,6 +550,7 @@ export default function FazerPesquisa() {
       );
       await runOcrOnCrop(crop);
     } catch (err) {
+      setOcrBusy(false);
       showToast(err instanceof Error ? err.message : 'Falha ao recortar a foto.', 'error');
     }
   };
@@ -946,13 +953,6 @@ export default function FazerPesquisa() {
           ) : (
             <div className="fp-camera-fallback">
               <p>Use a câmera do aparelho para enquadrar produto e preço no quadrado.</p>
-              <button
-                type="button"
-                className="fp-camera-fallback-btn"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                Tirar / escolher foto
-              </button>
             </div>
           )}
 
@@ -975,7 +975,7 @@ export default function FazerPesquisa() {
           )}
           <button
             type="button"
-            className="fp-camera-alt"
+            className={cameraFallback ? 'fp-camera-fallback-btn' : 'fp-camera-alt'}
             onClick={() => fileInputRef.current?.click()}
           >
             Galeria / captura

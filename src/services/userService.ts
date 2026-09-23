@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { normalizeCpf } from '../lib/cpf';
+import { sha256Hex } from '../lib/sha256';
 import {
   defaultSecoesForCargo,
   encodeNivelAcesso,
@@ -19,22 +20,12 @@ import { setUsuarioLojas } from './usuarioLojasService';
 import { saveHubPermissions } from './hubPermissionsService';
 
 async function hashPassword(password: string): Promise<string> {
-  if (!globalThis.crypto?.subtle) {
-    throw new Error('Abra via HTTPS ou localhost. HTTP na rede local não permite gerar hash de senha.');
-  }
-
   const saltArray = crypto.getRandomValues(new Uint8Array(16));
   const salt = Array.from(saltArray)
     .map((b) => b.toString(16).padStart(2, '0'))
     .join('');
 
-  const passwordWithSalt = password + salt;
-  const data = new TextEncoder().encode(passwordWithSalt);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hash = Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-
+  const hash = await sha256Hex(password + salt);
   return `${salt}$${hash}`;
 }
 

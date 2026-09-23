@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase';
 import { normalizeCpf } from '../lib/cpf';
+import { sha256Hex } from '../lib/sha256';
 import {
   canManageUsers,
   parseAcessoFromNivelAcesso,
@@ -68,16 +69,7 @@ async function verifyPassword(senha: string, stored: string): Promise<boolean> {
   const [salt, hash] = stored.split('$');
   if (!salt || !hash) return false;
 
-  if (!globalThis.crypto?.subtle) {
-    throw new Error('Abra via HTTPS ou localhost. HTTP na rede local não permite verificar a senha.');
-  }
-
-  const data = new TextEncoder().encode(senha + salt);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const newHash = Array.from(new Uint8Array(hashBuffer))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-
+  const newHash = await sha256Hex(senha + salt);
   return newHash === hash;
 }
 
