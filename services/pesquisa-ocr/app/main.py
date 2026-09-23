@@ -208,7 +208,8 @@ async def ocr_pesquisa(
     body = {
         "tipo": tipo_norm,
         "industria": industria_s,
-        "texto_ocr": descricao or tag_text or full_text,
+        # Raw OCR text (not cleaned) — front may reconcile prices / show fallback name.
+        "texto_ocr": (tag_text or full_text or descricao or "").strip(),
         "preco_ocr_raw": price_text,
         "preco": preco,
         "preco_varejo": preco_varejo,

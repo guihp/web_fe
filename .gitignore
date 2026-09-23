@@ -19,6 +19,8 @@ dist/
 npm-debug.*
 yarn-debug.*
 yarn-error.*
+debug-*.log
+**/debug-*.log
 
 # temp media / extracted frames
 assets/lojas-frames/
