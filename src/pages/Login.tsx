@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext';
 import { maskCpfInput } from '../lib/cpf';
 import type { LoginTipo } from '../services/authService';
 import { fetchRandomVerse, getFallbackVerse, type BibleVerse } from '../services/bibleService';
+import { requestPasswordReset } from '../services/passwordResetService';
 import { maskCnpjInput } from '../utils/externalAccess';
 import './Login.css';
 
@@ -48,6 +49,7 @@ export default function Login() {
   const [submitting, setSubmitting] = useState(false);
   const [verse, setVerse] = useState<BibleVerse | null>(null);
   const [verseLoading, setVerseLoading] = useState(true);
+  const [resetting, setResetting] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -87,6 +89,29 @@ export default function Login() {
       : loginTipo === 'industria'
         ? 'PREDILECTA'
         : '00.000.000/0000-00';
+
+  const handleForgotPassword = async () => {
+    if (!identifier.trim()) {
+      showToast(`Informe o ${identifierLabel} antes de redefinir a senha.`, 'info');
+      return;
+    }
+    setResetting(true);
+    try {
+      const { message } = await requestPasswordReset({
+        tipo: loginTipo,
+        identifier,
+        redirectTo: `${window.location.origin}/redefinir-senha`,
+      });
+      showToast(message, 'success');
+    } catch (err) {
+      showToast(
+        err instanceof Error ? err.message : 'Não foi possível solicitar a redefinição.',
+        'error',
+      );
+    } finally {
+      setResetting(false);
+    }
+  };
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -185,11 +210,10 @@ export default function Login() {
               <button
                 type="button"
                 className="login-forgot"
-                onClick={() =>
-                  showToast('Contacte o administrador para redefinir sua senha.', 'info')
-                }
+                disabled={resetting}
+                onClick={() => void handleForgotPassword()}
               >
-                Esqueci minha senha
+                {resetting ? 'Enviando…' : 'Esqueci minha senha'}
               </button>
             </div>
 

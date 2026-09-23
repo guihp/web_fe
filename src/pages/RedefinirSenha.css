@@ -1,0 +1,123 @@
+.reset-page {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 24px 16px;
+  background: var(--bg);
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.reset-card {
+  width: min(420px, 100%);
+  padding: 28px 24px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  box-shadow: var(--shadow-lg, 0 12px 40px rgba(0, 0, 0, 0.08));
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.reset-logo {
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+  margin-bottom: 4px;
+}
+
+.reset-card h1 {
+  margin: 0;
+  font-size: 1.45rem;
+}
+
+.reset-subtitle {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.reset-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.reset-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.reset-field input {
+  border: 1px solid var(--border);
+  background: var(--input-bg, var(--surface));
+  color: var(--text);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+}
+
+.reset-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.reset-error {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--danger-bg, #fef2f2);
+  color: var(--danger, #b91c1c);
+  border: 1px solid var(--danger, #fecaca);
+  font-size: 0.85rem;
+}
+
+.reset-submit {
+  border: none;
+  border-radius: 12px;
+  padding: 14px;
+  background: var(--btn-primary-bg);
+  color: var(--btn-primary-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.reset-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.reset-link {
+  text-align: center;
+  color: var(--coral, #ea6624);
+  font-size: 0.88rem;
+  text-decoration: none;
+}
+
+.reset-link:hover {
+  text-decoration: underline;
+}
+
+.reset-status {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.reset-status--error {
+  color: var(--danger, #b91c1c);
+}
+
+.reset-status-block {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}

@@ -10,7 +10,15 @@
 
 Opção **Lembrar**: mantém a sessão no navegador; sem isso, a sessão vale até fechar a aba/janela.
 
-Esqueci a senha: o usuário deve **contactar o administrador** (não há reset self-service no web).
+**Esqueci a senha:** o usuário informa o identificador (CPF / indústria / CNPJ) e clica em **Esqueci minha senha**. Se houver **e-mail cadastrado** em `usuarios`, o Supabase Auth envia o link de recovery para `/redefinir-senha`. A nova senha é gravada no Auth e sincronizada em `usuarios.senha` (login por CPF continua igual).
+
+Configuração Auth (painel Supabase → Authentication → URL Configuration):
+
+- **Site URL (local):** `http://localhost:5174`
+- **Redirect (local):** `http://localhost:5174/redefinir-senha`
+- **Produção (após Coolify):** Site URL = `https://SEU-DOMINIO` e redirects `https://SEU-DOMINIO/redefinir-senha` (+ opcional `https://SEU-DOMINIO/**`).
+
+Edge Functions: `request-password-reset` (público) e `sync-password-after-reset` (JWT da sessão de recovery).
 
 ## Tipos de usuário no cadastro
 

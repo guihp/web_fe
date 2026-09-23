@@ -2,6 +2,15 @@
 
 Formato: mais recente no topo.
 
+## 2026-09-23
+
+### App
+- **Esqueci minha senha:** envia e-mail de recovery (Supabase Auth) para o e-mail cadastrado; página `/redefinir-senha` grava a nova senha no Auth e em `usuarios.senha`.
+- **Toasts:** contraste corrigido no modo escuro (info/success/error).
+
+### Documentação / Auth
+- Site URL local `http://localhost:5174` + redirect `/redefinir-senha`; checklist de URLs de produção no Coolify em `01` e `05`.
+
 ## 2026-09-19
 
 ### App

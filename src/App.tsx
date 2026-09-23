@@ -3,6 +3,7 @@ import ProtectedRoute, { PublicOnlyRoute } from './components/auth/ProtectedRout
 import ManagerLayout from './components/layout/ManagerLayout';
 import VendasModuleLayout from './components/layout/VendasModuleLayout';
 import Login from './pages/Login';
+import RedefinirSenha from './pages/RedefinirSenha';
 import PortalHome from './pages/PortalHome';
 import Colaboradores from './pages/Colaboradores';
 import Treinamentos from './pages/Treinamentos';
@@ -44,6 +45,7 @@ export default function App() {
       <Route element={<PublicOnlyRoute />}>
         <Route path="/login" element={<Login />} />
       </Route>
+      <Route path="/redefinir-senha" element={<RedefinirSenha />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<ManagerLayout />}>

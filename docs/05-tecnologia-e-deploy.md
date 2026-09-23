@@ -21,9 +21,23 @@ npm install
 npm run dev
 ```
 
-App local: `https://localhost:5174` (dev usa certificado self-signed via `@vitejs/plugin-basic-ssl`).
+App local: `http://localhost:5174` (HTTP por padrão). Para HTTPS local: `VITE_DEV_HTTPS=1 npm run dev`.
 
-Teste no celular (mesma Wi‑Fi): use a URL **Network** do Vite (`https://192.168.x.x:5174`). Na primeira vez o navegador pode pedir para aceitar o certificado autoassinado — aceite/avance uma vez para o login funcionar (`crypto.subtle` exige HTTPS fora de localhost).
+### Auth — reset de senha (Supabase)
+
+Painel: **Authentication → URL Configuration**
+
+| Ambiente | Site URL | Redirect URLs |
+|----------|----------|---------------|
+| Local (já configurado) | `http://localhost:5174` | `http://localhost:5174/redefinir-senha` |
+| Produção (após Coolify) | `https://SEU-DOMINIO` | `https://SEU-DOMINIO/redefinir-senha` e `https://SEU-DOMINIO/**` |
+
+Edge Functions no projeto App Fé (`sjapbromslgohlxcndrj`):
+
+- `request-password-reset` (`verify_jwt: false`) — pedido a partir do Login
+- `sync-password-after-reset` (`verify_jwt: true`) — grava hash em `usuarios.senha` após `updateUser`
+
+Rota pública do front: `/redefinir-senha`.
 
 ## Variáveis de ambiente
 
