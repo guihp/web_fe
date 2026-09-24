@@ -18,6 +18,8 @@ export type Atividade = {
   usuario_responsavel: number;
   loja: string;
   industria: string;
+  /** Seções da loja a trabalhar (texto livre do criador). */
+  secoes?: string | null;
   data_inicio: string;
   data_fim: string;
   status?: string;
@@ -69,6 +71,8 @@ export { fetchIndustrias, fetchIndustriasAtivas } from './industriaService';
 export type AtividadeFormData = {
   tipo: string;
   loja: string;
+  /** Seções a postar / trabalhar na loja (texto livre). */
+  secoes: string;
   industrias: string[];
   usuarioId: number;
   usuarioNome: string;
@@ -124,9 +128,16 @@ function applyClientFilters(rows: AtividadeRow[], filters: AtividadeFilters): At
     result = result.filter((r) => {
       const loja = (r.loja ?? '').toLowerCase();
       const industria = (r.industria ?? '').toLowerCase();
+      const secoes = (r.secoes ?? '').toLowerCase();
       const responsavel = (r.responsavelNome ?? '').toLowerCase();
       const tipo = (r.tipo ?? '').toLowerCase();
-      return loja.includes(q) || industria.includes(q) || responsavel.includes(q) || tipo.includes(q);
+      return (
+        loja.includes(q) ||
+        industria.includes(q) ||
+        secoes.includes(q) ||
+        responsavel.includes(q) ||
+        tipo.includes(q)
+      );
     });
   }
 
@@ -231,6 +242,7 @@ export async function addAtividade(data: AtividadeFormData, criadoPor: number) {
     usuario_responsavel: data.usuarioId,
     loja: data.loja,
     industria,
+    secoes: data.secoes.trim() || null,
     data_inicio: data.dataInicio,
     data_fim: data.dataFim,
     status: 'Pendente',

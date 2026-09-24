@@ -83,6 +83,49 @@
   pointer-events: none;
 }
 
+.atividade-loja-list {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 6px;
+  max-height: 220px;
+  overflow: auto;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: var(--shadow-lg, 0 12px 28px rgba(0, 0, 0, 0.12));
+  z-index: 5;
+}
+
+.atividade-loja-list button {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.atividade-loja-list button:hover,
+.atividade-loja-list button.is-selected {
+  background: var(--coral-soft);
+  color: var(--text);
+}
+
+.atividade-loja-empty {
+  padding: 10px 12px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.atividade-loja-hint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 .atividade-loading {
   font-size: 0.88rem;
   color: var(--text-muted);

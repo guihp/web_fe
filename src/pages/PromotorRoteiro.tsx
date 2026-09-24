@@ -18,6 +18,11 @@ import {
   isLikelyNetworkError,
 } from '../services/offlineOutboxService';
 import {
+  clearPromotorDraft,
+  loadPromotorDraftFotos,
+  savePromotorDraftFoto,
+} from '../services/promotorDraftService';
+import {
   fetchMinhasAtividadesHoje,
   submitPromotorAntesDepois,
 } from '../services/promotorAtividadeService';
@@ -59,8 +64,10 @@ export default function PromotorRoteiro() {
   const [fotoDepois, setFotoDepois] = useState<File | null>(null);
   const [previewAntes, setPreviewAntes] = useState<string | null>(null);
   const [previewDepois, setPreviewDepois] = useState<string | null>(null);
+  const [draftHint, setDraftHint] = useState(false);
   const previewAntesRef = useRef<string | null>(null);
   const previewDepoisRef = useRef<string | null>(null);
+  const restoreGenRef = useRef(0);
 
   const firstName = user?.nome?.split(' ')[0] ?? 'Promotor';
 
@@ -116,14 +123,6 @@ export default function PromotorRoteiro() {
     void reload();
   }, [user?.id]);
 
-  // Só revoga no unmount — não quando a outra foto muda (evita quebrar a prévia).
-  useEffect(() => {
-    return () => {
-      if (previewAntesRef.current) URL.revokeObjectURL(previewAntesRef.current);
-      if (previewDepoisRef.current) URL.revokeObjectURL(previewDepoisRef.current);
-    };
-  }, []);
-
   const setPreview = (kind: 'antes' | 'depois', nextUrl: string | null) => {
     if (kind === 'antes') {
       if (previewAntesRef.current) URL.revokeObjectURL(previewAntesRef.current);
@@ -136,6 +135,41 @@ export default function PromotorRoteiro() {
     }
   };
 
+  /** Restaura fotos do aparelho ao chegar na etapa (sobrevive a fechar o PWA). */
+  useEffect(() => {
+    if (step !== 'fotos' || !user?.id || !loja || !industria.trim()) return;
+    const gen = ++restoreGenRef.current;
+    void (async () => {
+      try {
+        const draft = await loadPromotorDraftFotos({
+          usuarioId: user.id,
+          lojaId: loja.id,
+          industria,
+        });
+        if (gen !== restoreGenRef.current) return;
+        if (draft.fotoAntes) {
+          setFotoAntes(draft.fotoAntes);
+          setPreview('antes', URL.createObjectURL(draft.fotoAntes));
+        }
+        if (draft.fotoDepois) {
+          setFotoDepois(draft.fotoDepois);
+          setPreview('depois', URL.createObjectURL(draft.fotoDepois));
+        }
+        if (draft.fotoAntes || draft.fotoDepois) setDraftHint(true);
+      } catch {
+        /* ignore */
+      }
+    })();
+  }, [step, user?.id, loja, industria]);
+
+  // Só revoga no unmount — não quando a outra foto muda (evita quebrar a prévia).
+  useEffect(() => {
+    return () => {
+      if (previewAntesRef.current) URL.revokeObjectURL(previewAntesRef.current);
+      if (previewDepoisRef.current) URL.revokeObjectURL(previewDepoisRef.current);
+    };
+  }, []);
+
   const resetFlow = () => {
     setStep('lojas');
     setLoja(null);
@@ -144,6 +178,7 @@ export default function PromotorRoteiro() {
     setFotoDepois(null);
     setPreview('antes', null);
     setPreview('depois', null);
+    setDraftHint(false);
     setConfirmOpen(false);
     setSenhaConfirm(null);
     setError(null);
@@ -156,7 +191,8 @@ export default function PromotorRoteiro() {
   };
 
   const onPickFoto = (kind: 'antes' | 'depois', file: File | null) => {
-    if (!file) return;
+    if (!file || !user?.id || !loja || !industria.trim()) return;
+    restoreGenRef.current += 1;
     const url = URL.createObjectURL(file);
     if (kind === 'antes') {
       setFotoAntes(file);
@@ -165,6 +201,25 @@ export default function PromotorRoteiro() {
       setFotoDepois(file);
       setPreview('depois', url);
     }
+    setDraftHint(false);
+    void savePromotorDraftFoto({
+      usuarioId: user.id,
+      lojaId: loja.id,
+      industria,
+      kind,
+      file,
+    }).catch(() => {
+      /* rascunho best-effort */
+    });
+  };
+
+  const clearDraftAfterSend = async () => {
+    if (!user?.id || !loja || !industria.trim()) return;
+    await clearPromotorDraft({
+      usuarioId: user.id,
+      lojaId: loja.id,
+      industria,
+    }).catch(() => undefined);
   };
 
   const handleSubmit = async (event: FormEvent) => {
@@ -214,6 +269,7 @@ export default function PromotorRoteiro() {
           fotoAntes,
           fotoDepois,
         });
+        await clearDraftAfterSend();
         setConfirmOpen(false);
         showToast('Salvo no aparelho. Será enviado ao conectar.', 'success');
         resetFlow();
@@ -227,6 +283,7 @@ export default function PromotorRoteiro() {
         fotoAntes,
         fotoDepois,
       });
+      await clearDraftAfterSend();
       setConfirmOpen(false);
       showToast('Atividade enviada com sucesso.', 'success');
       resetFlow();
@@ -241,6 +298,7 @@ export default function PromotorRoteiro() {
             fotoAntes,
             fotoDepois,
           });
+          await clearDraftAfterSend();
           setConfirmOpen(false);
           showToast('Salvo no aparelho. Será enviado ao conectar.', 'success');
           resetFlow();
@@ -341,6 +399,11 @@ export default function PromotorRoteiro() {
                       className={`promotor-industria-btn ${industria === nome ? 'is-active' : ''}`}
                       onClick={() => {
                         setIndustria(nome);
+                        setFotoAntes(null);
+                        setFotoDepois(null);
+                        setPreview('antes', null);
+                        setPreview('depois', null);
+                        setDraftHint(false);
                         setStep('fotos');
                       }}
                     >
@@ -363,6 +426,12 @@ export default function PromotorRoteiro() {
               <p className="promotor-roteiro-subtitle">
                 {loja.Nome} · {regionalLabel}
               </p>
+
+              {draftHint && (
+                <p className="promotor-roteiro-cache-hint" role="status">
+                  Foto recuperada do aparelho (rascunho salvo neste PDV / indústria).
+                </p>
+              )}
 
               <div className="promotor-fotos-grid">
                 <label className="promotor-foto-box">

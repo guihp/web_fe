@@ -308,6 +308,7 @@ function AtividadesGestao() {
                   <th>Tipo</th>
                   <th>Promotor</th>
                   <th>Loja</th>
+                  <th>Seções</th>
                   <th>Indústria</th>
                   <th>Período</th>
                   <th>Status</th>
@@ -324,6 +325,7 @@ function AtividadesGestao() {
                       <td>{row.tipo}</td>
                       <td>{row.responsavelNome}</td>
                       <td>{row.loja}</td>
+                      <td>{row.secoes?.trim() || '—'}</td>
                       <td>{row.industria}</td>
                       <td>{formatPeriodo(row.data_inicio, row.data_fim)}</td>
                       <td>

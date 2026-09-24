@@ -41,6 +41,9 @@ export default function ConfirmAtividadeModal({
           <strong>Loja:</strong> {pending.loja}
         </p>
         <p>
+          <strong>Seções:</strong> {pending.secoes}
+        </p>
+        <p>
           <strong>Período:</strong> {formatPeriodo(pending.dataInicio, pending.dataFim)}
         </p>
         <div>

@@ -413,7 +413,7 @@ async function fetchAtividadeNotificationsForUser(
     const windowStart = notifWindowStartKey();
     const { data, error } = await supabase
       .from('atividades')
-      .select('id, tipo, loja, industria, data_inicio, data_fim, status')
+      .select('id, tipo, loja, industria, secoes, data_inicio, data_fim, status')
       .eq('usuario_responsavel', usuarioId)
       .order('id', { ascending: false })
       .limit(Math.max(limit * 3, 24));
@@ -437,16 +437,23 @@ async function fetchAtividadeNotificationsForUser(
         const tipo = String(row.tipo ?? 'Tarefa');
         const loja = String(row.loja ?? '—');
         const industria = String(row.industria ?? '');
+        const secoes = String(row.secoes ?? '').trim();
         const periodo = formatAtividadePeriodo(
           row.data_inicio as string,
           row.data_fim as string,
         );
         const inicio = String(row.data_inicio ?? '').slice(0, 10);
+        const parts = [
+          loja,
+          industria || null,
+          secoes ? `Seções: ${secoes}` : null,
+          periodo,
+        ].filter(Boolean);
         return {
           id: `atividade-${row.id}-${inicio}`,
           kind: 'atividade' as const,
           title: `Nova tarefa: ${tipo}`,
-          detail: `${loja}${industria ? ` · ${industria}` : ''} · ${periodo}`,
+          detail: parts.join(' · '),
           at: brtDayAt(inicio || today, 8, 30),
           href: '/atividades',
         };

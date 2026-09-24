@@ -173,6 +173,7 @@ export default function ViewAtividadeModal({
       <div className="atividade-view-summary">
         <DetailRow label="Promotor" value={atividade.responsavelNome} />
         <DetailRow label="Loja" value={atividade.loja} />
+        <DetailRow label="Seções" value={atividade.secoes?.trim() || '—'} />
         <DetailRow label="Indústria" value={atividade.industria} />
         <DetailRow label="Período" value={formatPeriodo(atividade.data_inicio, atividade.data_fim)} />
         <div className="atividade-detail-row">
