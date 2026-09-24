@@ -18,9 +18,9 @@ export default defineConfig({
       injectRegister: false,
       manifest: {
         id: '/',
-        name: 'App FÃ©',
-        short_name: 'App FÃ©',
-        description: 'Portal gerencial FÃ© Merchandising',
+        name: 'App Fe',
+        short_name: 'App Fe',
+        description: 'Portal gerencial Fe Merchandising',
         lang: 'pt-BR',
         theme_color: '#ea6624',
         background_color: '#ffffff',

@@ -160,7 +160,7 @@ export default function PromotorRoteiro() {
         /* ignore */
       }
     })();
-  }, [step, user?.id, loja, industria]);
+  }, [step, user?.id, loja?.id, industria]);
 
   // Só revoga no unmount — não quando a outra foto muda (evita quebrar a prévia).
   useEffect(() => {
