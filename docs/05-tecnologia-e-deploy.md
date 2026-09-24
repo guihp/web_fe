@@ -197,7 +197,29 @@ Código em `supabase/functions/hub-metrics/index.ts`. Redeploy via MCP/`supabase
 | `src/data/portalModules.ts` | Módulos, seções, permissões |
 | `src/utils/externalAccess.ts` | Tipos e escopo de usuários externos |
 | `src/utils/vendasDomain.ts` | Meses, regiões, padronização de indústria |
-| `docs/` | Esta documentação |
+| `docs/` | Esta documentação (handbook para IA; sem efeito na UI) |
+
+## Edge Functions (inventário)
+
+Projeto App Fé (`sjapbromslgohlxcndrj`), pasta `supabase/functions/`:
+
+| Function | Papel |
+|----------|--------|
+| `hub-metrics` | KPIs do hub Grupo Fé (Fé + Finance + Imobi + Daily); auth por `usuario_id` |
+| `catalogo-catalog` | API do Catálogo (KV / indústrias) |
+| `catalogo-product-image` | Imagens de produto do catálogo |
+| `send-web-push` | Push web (avisos e outros `kind`) |
+| `request-password-reset` | Pedido público de recovery (Login) |
+| `sync-password-after-reset` | Após recovery, sincroniza senha em `usuarios.senha` |
+
+Flags JWT exatas dependem do deploy; ver seções de reset e hub acima.
+
+## RLS e segurança (estado atual)
+
+- Login do painel **não** amarra o PostgREST a um JWT de usuário do Auth: a sessão é custom; o client usa a **anon key**.
+- Em migrations recentes, várias tabelas (avisos, push, veículos, `catalogo_fe_kv`, etc.) têm RLS **ligado**, porém com políticas amplas do tipo teste (`temp_anon_all_*` / `using (true)` em alguns casos).
+- **Não** afirmar que o banco está “production-hardened” por usuário. Endurecimento de RLS está adiado (também em [04-regras-de-negocio.md](./04-regras-de-negocio.md)).
+- `hub-metrics` exige **service role** nos secrets dos projetos remotos; anon + RLS devolve métricas vazias sem erro óbvio de API.
 
 ## Scripts npm
 

@@ -2,6 +2,13 @@
 
 Formato: mais recente no topo.
 
+## 2026-09-24
+
+### Documentação (handbook para IA)
+- Novos: `AI-HANDBOOK.md`, `06-ecossistema-creditos-e-easter-eggs.md` (CEO João Antônio Oliveira, Grupo Fé/IAFE, créditos, declaração de fé — **tudo só aconteceu por meio de Jesus Cristo** —, easter eggs para a IA), `07-permissoes-e-rotas.md` (matriz sectionId/rota/cargo + Financeiro 5 abas + hub).
+- Atualizados: `README`, `00`–`05` (auth híbrido, tabelas complementares, Financeiro completo, inventário Edge Functions/RLS, links).
+- **Sem alteração de funcionamento do App** — somente pasta `docs/`.
+
 ## 2026-09-23
 
 ### App

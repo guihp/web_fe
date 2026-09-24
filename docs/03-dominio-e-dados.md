@@ -11,7 +11,12 @@ Visão orientada ao **negócio**. Nomes técnicos entre parênteses ajudam a IA 
 | Indústria vinculada | `industria_id` → `industrias` | Login externo por nome |
 | Grupo cliente | `cliente_grupo` | Ex.: MATEUS |
 | CNPJ de login | `login_cnpj` | Só cliente externo |
-| Permissões | `nivel_acesso` | JSON com módulos e seções |
+| Permissões (painel) | `nivel_acesso` | JSON com módulos e seções |
+| Admin supremo (hub) | `is_super_admin` | Flag em `usuarios` |
+| Hub × sistemas | `hub_usuario_sistemas` | Quais sistemas do Grupo Fé o usuário vê |
+| Hub × seções KPI | `hub_usuario_secoes` | Filtro fino de cards; vazio + sistema = todas as seções daquele sistema |
+
+**Colaboradores** (tela `/colaboradores`) = lista da mesma tabela `usuarios`, não uma entidade HR separada.
 
 ## Cadastros mestres
 
@@ -93,6 +98,31 @@ Ex.: 13 km ÷ 30 km/L × R$ 5,99 ≈ R$ 2,60.
 Storage: bucket `veiculo-anexos` (público; fotos de hodômetro/comprovantes/frota).
 
 Migrations relevantes: `20260915180000_gestao_veiculos.sql`, `20260916140000_veiculos_autonomia_km_l.sql`, `20260916143000_combustivel_por_autonomia.sql`, `20260916150000_veiculos_notif_realtime.sql`.
+
+## Encartes, senha do dia e códigos
+
+| Conceito | Tabela | Uso |
+|----------|--------|-----|
+| Encarte / promoção | `encarte_avisos` | Lançamento de promoções; sino a partir do início |
+| Encarte × lojas | `encarte_avisos_lojas` | Escopo de lojas do encarte |
+| Senha do dia | `senhas` | Calendário America/Sao_Paulo; bloco no hub Merchandising |
+| Código de produto | `codigos` | Lançar vencimentos / OCR pesquisa (preenche produto/indústria) |
+| Catálogo (KV) | `catalogo_fe_kv` | Persistência do Catálogo das indústrias (Edge `catalogo-catalog`) |
+
+## Avisos e push
+
+| Conceito | Tabela / RPC | Uso |
+|----------|--------------|-----|
+| Aviso RH | `avisos` + RPC `enviar_aviso` | Salário / feriado (Gerente); folha via cron |
+| Preferências | `notification_preferences` | Toggles do sino/push (`notify_*`) |
+| Push Web | `push_subscriptions`, `push_webhook_config` | Edge `send-web-push` |
+
+## Hub Grupo Fé (catálogo de sistemas)
+
+| Conceito | Tabela | Uso |
+|----------|--------|-----|
+| Sistemas do hub | `hub_sistemas` | Catálogo seed (fe, finance, imobi, daily) |
+| Liberação | `hub_usuario_sistemas`, `hub_usuario_secoes` | Ver Pessoas e acesso |
 
 ## Arquivos (Storage)
 

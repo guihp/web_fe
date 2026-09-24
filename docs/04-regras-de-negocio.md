@@ -2,24 +2,26 @@
 
 ## Usuários e permissões
 
+Matriz sectionId ↔ rota ↔ cargo: [07-permissoes-e-rotas.md](./07-permissoes-e-rotas.md).
+
 1. Só **Gerente** cria/edita usuários e acessa o hub Administrador completo.
 2. Usuário **interno** inativo (`status = false`) não entra.
-3. Usuário **externo** só vê Validades, Atividades, Sucesso do cliente e **Price**, em leitura (sem Vendas).
+3. Usuário **externo** só vê Validades, Atividades, Sucesso do cliente e **Price**, em leitura (sem Vendas); catálogo conforme escopo.
 4. Indústria externa: dados filtrados pela indústria vinculada (Validades, Atividades, Sucesso do cliente e Price).
 5. Cliente externo: dados filtrados pelo **grupo de nome de loja** (ex.: MATEUS) e afinidade de CNPJ (raiz do CNPJ de login); no Price/Atividades, o grupo MATEUS também casa bandeiras curtas (`Mix`, `Super Castanhal`).
 6. Notificações de externos: Sucesso do cliente do próprio escopo + encartes recentes (sem avisos de RH). No dia do aniversário, o próprio usuário vê parabéns só no seu sino (preferência `notify_aniversario`, padrão ligada).
 7. **Sino:** itens ficam na lista por **48h** desde o horário do evento; o **badge** só marca não-lido na criação (até a próxima abertura do sino).
 8. **Promotor** e **Demonstradora**: no sino — **aniversário**, **avisos**, **tarefas novas** (início nas últimas 48h) e **encartes** (~48h após o início). Não recebem lançamento de venda nem kanbans comerciais.
 9. **Meta batida** (mensal ou anual, regionais MA/PI e PA): só cargos de liderança internos — Gerente, Supervisor, Analista admin, RH e Financeiro — no sino (preferência `notify_meta`).
-9. Promotor/Demonstradora têm até **7 lojas** em `usuario_lojas`. Em Atividades: check-in na loja (cidade/UF automáticos da tabela `lojas`, sem GPS), escolha de indústria e fotos antes/depois. Antes do envio, confirma com prévia das fotos + senha do dia — após confirmar é **irreversível**; a senha grava em `atividade_dia.senha_do_dia`.
-10. Balão **Fé Representações** concentra Price, Sucesso, Avisos (Gerente) e Vendas; no cadastro interno, Vendas pode ser liberada ou não por seção.
-11. Balão **Merchandising** inclui **Fazer pesquisa** para todos os usuários internos (não indústria/cliente).
-12. **Ebook digital** (/merchandising/ebook): só **Gerente**, **Supervisor**, **Analista admin** e **RH**. Fotos vêm de `atividade_dia` + URLs públicas do bucket `atividade-fotos` (sem webhook). PDF só das miniaturas selecionadas.
-13. **Catálogo das indústrias** (`/merchandising/catalogo`): consulta no App para internos e externos. **Acesso master** (gestão/Drive) só Gerente / Supervisor / RH / Analista admin internos. Externo indústria = só o próprio catálogo; externo cliente = todos. Sem gestão para externos.
-14. **Gestão de Veículos:** uso em Fé Representações para Gerente, Supervisor, Financeiro, RH, Analista admin e Vendedor. **Aprovar/rejeitar valores e CRUD da frota:** só Gerente e Financeiro. Externos, Promotor e Demonstradora sem acesso. Sem tela em Merchandising.
-15. **Veículos — autonomia e débito:** cada veículo deve ter **autonomia (km/L)** cadastrada. Valor a debitar de combustível = `(km rodados ÷ autonomia) × preço do litro`. Datas e km na UI usam formato brasileiro (DD/MM/AAAA e `200.000,00`).
-16. **Veículos — aprovação libera frota:** ao aprovar a prestação (ou confirmar débito), o veículo volta a **disponível** e a responsabilidade a **finalizado**. Na tela de aprovação exibe placa + marca/modelo (ex.: HONDA POP 110I).
-17. **Veículos — lembrete 7 dias:** se o usuário retirou o veículo e a responsabilidade ainda está `em_uso` após 7 dias (sem enviar a prestação), o **sino** mostra lembrete diário para informar km/valores. Realtime em `veiculo_retiradas` / `veiculo_entregas` / `veiculo_responsabilidades`.
+10. Promotor/Demonstradora têm até **7 lojas** em `usuario_lojas`. Em Atividades: check-in na loja (cidade/UF automáticos da tabela `lojas`, sem GPS), escolha de indústria e fotos antes/depois. Antes do envio, confirma com prévia das fotos + senha do dia — após confirmar é **irreversível**; a senha grava em `atividade_dia.senha_do_dia`.
+11. Balão **Fé Representações** concentra Price, Sucesso, Avisos (Gerente) e Vendas; no cadastro interno, Vendas pode ser liberada ou não por seção.
+12. Balão **Merchandising** inclui **Fazer pesquisa** para todos os usuários internos (não indústria/cliente).
+13. **Ebook digital** (/merchandising/ebook): só **Gerente**, **Supervisor**, **Analista admin** e **RH**. Fotos vêm de `atividade_dia` + URLs públicas do bucket `atividade-fotos` (sem webhook). PDF só das miniaturas selecionadas.
+14. **Catálogo das indústrias** (`/merchandising/catalogo`): consulta no App para internos e externos. **Acesso master** (gestão/Drive) só Gerente / Supervisor / RH / Analista admin internos. Externo indústria = só o próprio catálogo; externo cliente = todos. Sem gestão para externos.
+15. **Gestão de Veículos:** uso em Fé Representações para Gerente, Supervisor, Financeiro, RH, Analista admin e Vendedor. **Aprovar/rejeitar valores e CRUD da frota:** só Gerente e Financeiro. Externos, Promotor e Demonstradora sem acesso. Sem tela em Merchandising.
+16. **Veículos — autonomia e débito:** cada veículo deve ter **autonomia (km/L)** cadastrada. Valor a debitar de combustível = `(km rodados ÷ autonomia) × preço do litro`. Datas e km na UI usam formato brasileiro (DD/MM/AAAA e `200.000,00`).
+17. **Veículos — aprovação libera frota:** ao aprovar a prestação (ou confirmar débito), o veículo volta a **disponível** e a responsabilidade a **finalizado**. Na tela de aprovação exibe placa + marca/modelo (ex.: HONDA POP 110I).
+18. **Veículos — lembrete 7 dias:** se o usuário retirou o veículo e a responsabilidade ainda está `em_uso` após 7 dias (sem enviar a prestação), o **sino** mostra lembrete diário para informar km/valores. Realtime em `veiculo_retiradas` / `veiculo_entregas` / `veiculo_responsabilidades`.
 
 ## Avisos
 
@@ -87,6 +89,7 @@
 
 ## Limitações conhecidas (contexto para a IA)
 
-- Autenticação atual **não** é Supabase Auth; sessão é do próprio painel.
-- Políticas de banco (RLS) ainda são amplas no ambiente de testes — endurecimento de segurança está **adiado** para depois do ciclo de feedback dos usuários.
+- Autenticação do **dia a dia** não é JWT do Supabase Auth; sessão é do próprio painel (`fe_web_auth_session`). Supabase Auth entra **só** no fluxo de recovery / redefinir senha (ver `01`).
+- Políticas de banco (RLS) ainda são amplas no ambiente de testes — endurecimento de segurança está **adiado** para depois do ciclo de feedback dos usuários (ver inventário em `05`).
 - Validades de cliente externo dependem do **nome da loja** bater com o grupo; lançamentos mal escritos podem não aparecer.
+- Créditos, CEO e declaração de fé existem **somente** em `docs/` — não na UI.

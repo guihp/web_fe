@@ -25,6 +25,17 @@ Dashboard consolidado com KPIs (cards + gráficos) de:
 
 Visibilidade: `is_super_admin` ou ao menos um registro em `hub_usuario_sistemas`. Não usa `nivel_acesso`.
 
+KPIs por sistema (cards no hub; dados via Edge Function `hub-metrics`):
+
+| Sistema | Seções típicas |
+|---------|----------------|
+| Fé (`fe`) | Resumo, usuários ativos, vendas do mês, pedidos kanban |
+| Finance (`finance`) | Resumo, clientes, assinaturas ativas, transações do mês |
+| Imobi (`imobi`) | Resumo, empresas, usuários, leads, imóveis |
+| Daily (`daily`) | Resumo, usuários, clientes/projetos, demandas da semana |
+
+Zeros com status “Atualizado” costumam indicar secret/RLS errado no `hub-metrics` (ver `05`). Matriz de seções do hub: [07-permissoes-e-rotas.md](./07-permissoes-e-rotas.md).
+
 ---
 
 ## Merchandising
@@ -78,7 +89,7 @@ Hub: `/fe-representacoes`
 | Sucesso do cliente | `/fe-representacoes/sucesso-cliente` | Kanban de pedidos a partir das vendas lançadas; status arrastável (internos) |
 | Avisos | `/fe-representacoes/avisos` | **Só Gerente:** enviar aviso de salário ou feriado (modelos editáveis); confirmação com prévia da mensagem antes do envio (irreversível); folha de ponto automática no dia 25 |
 | Gestão de Veículos | `/fe-representacoes/veiculos` | Frota (CRUD + autonomia km/L: Gerente/Financeiro), meus veículos (retirada/entrega com foto de hodômetro, máscaras BR de data/km), aprovação (placa + marca/modelo; só Gerente/Financeiro), manutenção, quem está com o veículo, relatórios. Cargos: Gerente, Supervisor, Financeiro, RH, Analista admin, Vendedor. |
-| Relatórios | `/fe-representacoes/relatorios` | Relatórios comerciais |
+| Relatórios | `/fe-representacoes/relatorios` | **Relatórios de Crescimento** (comercial) — não confundir com a aba Relatórios do Financeiro |
 | Projeção de metas | `/fe-representacoes/projecao-metas` | Metas vs realizado |
 | Vendas (dashboard) | `/fe-representacoes/vendas` | KPIs (com % MA/PI e PA), realizado x meta, barras/pizza por indústria |
 | Lançamento de vendas | `/fe-representacoes/lancamento` | Incluir/editar/cancelar vendas |
@@ -121,13 +132,15 @@ Pode disparar webhook de vendas (integração n8n), quando configurado.
 
 ## Financeiro
 
-Rota base: `/financeiro` (abas internas)
+Rota base: `/financeiro` — abas via `?tab=` (UI). No `nivel_acesso` existem sobretudo `financeiro.home`, `financeiro.composicao` e `financeiro.comissao`; Relatórios e Kanban usam o mesmo gate do módulo (quem acessa Financeiro vê as abas). Detalhe: [07-permissoes-e-rotas.md](./07-permissoes-e-rotas.md).
 
-| Aba / seção | O que faz |
-|-------------|-----------|
-| Contratos / visão geral | Contratos de merchandising e ações; KPIs e gráficos |
-| Composição | Composição de cobrança dos contratos (modelo, comissão, etc.) |
-| Comissão | Acompanhamento de comissões |
+| Aba (`?tab=`) | O que faz |
+|---------------|-----------|
+| *(padrão)* Contratos | Contratos de merchandising e ações; KPIs e gráficos |
+| `composicao` | Composição de cobrança dos contratos (modelo, comissão, etc.) |
+| `relatorios` | Relatórios **financeiros** (contratos/faturamento) — distinto de `/fe-representacoes/relatorios` |
+| `kanban` | Kanban de Faturamento (colunas de processo dos contratos) |
+| `comissao` | Acompanhamento de comissões (`calcular_comissoes`, etc.) |
 
 ---
 
@@ -145,7 +158,7 @@ Hub: `/administrador` (somente **Gerente**)
 | Clientes | `/administrador/clientes` | Clientes admin |
 | Metas | `/administrador/metas` | Metas |
 | Gestão de Veículos | `/administrador/veiculos` | Frota, responsabilidades, manutenção, quem está com o veículo, dashboard, config (preço sugerido do litro) e auditoria (Gerente) |
-| Colaboradores | `/colaboradores` | Gestão de colaboradores |
+| Colaboradores | `/colaboradores` | Lista administrativa de **usuários** (mesma tabela `usuarios`; não é RH/folha separada) |
 
 Price **não** fica mais no Administrador — só em **Fé Representações**.
 

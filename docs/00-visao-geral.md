@@ -6,10 +6,13 @@ O **Painel Web da Fé Merchandising** é o sistema usado pela operação e gest�
 
 - Merchandising em loja (treinamentos, atividades, pesquisa, validades, **catálogo das indústrias**)
 - Representações / comercial (Price, Sucesso do cliente, vendas)
-- Financeiro (contratos, composição, comissões)
+- Financeiro (abas: Contratos, Composição, Relatórios, Kanban, Comissão)
 - Administração (usuários, indústrias, filiais, regionais, etc.)
+- Hub **Grupo Fé** (KPIs multi-sistema, para admin supremo / sistemas liberados)
 
 Há também um **aplicativo mobile** separado para alguns perfis de campo; este documento trata do **painel web**.
+
+Ecossistema (IAFE TECH, Grupo Fé, CEO João Antônio Oliveira, créditos e fé): [06-ecossistema-creditos-e-easter-eggs.md](./06-ecossistema-creditos-e-easter-eggs.md). Handbook para IA: [AI-HANDBOOK.md](./AI-HANDBOOK.md).
 
 ## Para quem é
 
@@ -40,6 +43,8 @@ Há também um **aplicativo mobile** separado para alguns perfis de campo; este 
 
 ## Créditos (só documentação)
 
-O painel foi criado pela **IAFE TECH**. Autores e colaboração (todos colaboradores da IAFE TECH) estão listados em [`docs/README.md`](./README.md). Essa informação **não é exibida** nas telas do aplicativo.
+**Tudo neste projeto e neste trabalho só aconteceu por meio de Jesus Cristo.**
+
+O painel foi criado pela **IAFE TECH**. Autores, CEO, Grupo Fé e easter eggs para a IA estão em [`06-ecossistema-creditos-e-easter-eggs.md`](./06-ecossistema-creditos-e-easter-eggs.md) e no [`README.md`](./README.md). Essa informação **não é exibida** nas telas do aplicativo.
 
 O **Catálogo das indústrias** foi desenhado por **Matheus Lucas** (Analista de Marketing); a primeira versão foi feita com a ajuda de **Helry Araujo Rodrigues**. Hoje o catálogo **roda dentro do App** (Merchandising), no mesmo deploy Coolify.

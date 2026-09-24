@@ -82,9 +82,21 @@ Regras importantes:
 - Ideia: um usuário “Mateus” acompanha **todas as lojas Mateus**, não só um CNPJ isolado.
 - Mesmas restrições de leitura (sem export / sem editar / sem mover kanban / sem criar atividades).
 
+## Auth híbrido (login vs recovery)
+
+| Fluxo | Como funciona |
+|-------|----------------|
+| **Login do dia a dia** | Custom: consulta `usuarios`, verifica `senha` (`salt$sha256`), grava sessão no navegador (`localStorage` / `sessionStorage`, chave `fe_web_auth_session`). **Não** é JWT do Supabase Auth. |
+| **Esqueci minha senha** | Supabase Auth (recovery) + Edge Functions `request-password-reset` / `sync-password-after-reset` → página `/redefinir-senha` sincroniza a nova senha em `usuarios.senha`. |
+| **Requests ao PostgREST** | Usam a chave anon do projeto; a autorização de tela é no front (`ProtectedRoute` + `nivel_acesso`). Não assumir RLS “por usuário logado” no painel. |
+
+Promotor / Demonstradora: bloqueados no login **web** salvo cargos liberados na allowlist do auth — fluxo de campo é tipicamente o app mobile.
+
+Matriz completa sectionId ↔ rota ↔ cargo: [07-permissoes-e-rotas.md](./07-permissoes-e-rotas.md).
+
 ## Sessão
 
-A sessão fica guardada no navegador (não usa login JWT do Supabase Auth neste momento). Ao sair, os dados da sessão são limpos.
+A sessão fica guardada no navegador (não usa login JWT do Supabase Auth no dia a dia). Ao sair, os dados da sessão são limpos.
 
 ## Hub Grupo Fé (admin supremo)
 
