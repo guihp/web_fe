@@ -436,10 +436,11 @@ export function sanitizeSecoes(cargo: string, secoes: string[] | null | undefine
   if (!canViewEbook(cargo)) {
     next = next.filter((id) => id !== 'merchandising.ebook');
   }
+  // Veículos (Fé Rep): só se o cargo puder E o admin tiver marcado a seção.
+  // Não forçar fe-representacoes.veiculos — isso reabria o balão Fé Representações
+  // mesmo com o módulo desmarcado no cadastro.
   if (!canAccessGestaoVeiculos(cargo, 'interno')) {
     next = next.filter((id) => id !== 'fe-representacoes.veiculos');
-  } else if (!next.includes('fe-representacoes.veiculos')) {
-    next = [...next, 'fe-representacoes.veiculos'];
   }
   if (canManageUsers(cargo) && !next.includes('administrador.veiculos')) {
     next = [...next, 'administrador.veiculos'];
