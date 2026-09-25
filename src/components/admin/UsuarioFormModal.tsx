@@ -253,12 +253,12 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
 
   const toggleModule = (moduleId: PortalModuleId) => {
     const ids = sectionIdsOf(moduleId).filter((id) => !isAlwaysSection(id));
+    const hubId = `${moduleId}.hub`;
     if (ids.length === 0) return;
     setSecoes((prev) => {
-      const allOn = ids.every((id) => prev.includes(id));
-      if (allOn) {
-        return prev.filter((id) => !ids.includes(id));
-      }
+      // Qualquer seção ou o hub órfão: um clique apaga o balão inteiro.
+      const anyOn = prev.includes(hubId) || ids.some((id) => prev.includes(id));
+      if (anyOn) return prev.filter((id) => id !== hubId && !ids.includes(id));
       return [...new Set([...prev, ...ids])];
     });
     setExpanded((prev) => ({ ...prev, [moduleId]: true }));

@@ -451,6 +451,16 @@ export function sanitizeSecoes(cargo: string, secoes: string[] | null | undefine
     if (!next.includes(id)) next = [...next, id];
   }
 
+  // Hub sozinho não é um balão. Sem nenhuma seção real, tira o *.hub órfão.
+  next = next.filter((id) => {
+    if (!id.endsWith('.hub')) return true;
+    const moduleId = moduleIdFromSection(id);
+    if (!moduleId) return false;
+    return sectionsOfModule(moduleId).some(
+      (section) => !section.id.endsWith('.hub') && next.includes(section.id),
+    );
+  });
+
   if (next.length === 0) {
     return defaultSecoesForCargo(cargo);
   }
@@ -830,5 +840,7 @@ export function userHasModuleAccess(
     );
   }
 
-  return sectionsOfModule(moduleId).some((s) => resolvedSecoes.includes(s.id));
+  return sectionsOfModule(moduleId).some(
+    (s) => !s.id.endsWith('.hub') && resolvedSecoes.includes(s.id),
+  );
 }
