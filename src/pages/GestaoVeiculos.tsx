@@ -10,9 +10,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { formatNumberBr, parseNumberBr } from '../lib/numberBr';
 import {
-  canAccessGestaoVeiculos,
   canApproveVeiculoPrestacao,
-  canManageUsers,
   userHasSectionAccess,
 } from '../data/portalModules';
 import {
@@ -115,14 +113,14 @@ export default function GestaoVeiculos({ variant }: { variant: Variant }) {
   const { showToast } = useToast();
   const [params, setParams] = useSearchParams();
   const cargo = user?.cargo ?? '';
-  const canUse = canAccessGestaoVeiculos(cargo, user?.tipo_usuario);
   const canApprove = canApproveVeiculoPrestacao(cargo);
   const isAdminHub = variant === 'admin';
 
-  const sectionOk = isAdminHub
-    ? canManageUsers(cargo) &&
-      userHasSectionAccess(cargo, user?.secoes_acesso, 'administrador.veiculos')
-    : canUse && userHasSectionAccess(cargo, user?.secoes_acesso, 'fe-representacoes.veiculos');
+  const sectionOk = userHasSectionAccess(
+    cargo,
+    user?.secoes_acesso,
+    isAdminHub ? 'administrador.veiculos' : 'fe-representacoes.veiculos',
+  );
 
   const tabs = useMemo(() => {
     const list: { id: TabId; label: string }[] = [];

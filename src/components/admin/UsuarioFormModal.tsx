@@ -10,10 +10,11 @@ import {
   ALWAYS_AVAILABLE_SECTION_IDS,
   PORTAL_MODULES,
   USER_FORM_CARGOS,
-  canManageUsers,
+  adminSectionsForaDoPadrao,
   defaultSecoesForCargo,
   isCampoMerchCargo,
   parseSecoesFromNivelAcesso,
+  sectionTitle,
   sectionsOfModule,
   type PortalModuleId,
 } from '../../data/portalModules';
@@ -68,7 +69,7 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
   const initialCargo = user?.cargo ?? '';
   const initialSecoes = user
     ? parseSecoesFromNivelAcesso(user.nivel_acesso, user.cargo)
-    : defaultSecoesForCargo('Gerente');
+    : [];
 
   const [tipo, setTipo] = useState<TipoUsuario>(initialTipo);
   const [form, setForm] = useState({
@@ -99,7 +100,13 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
   const [error, setError] = useState<string | null>(null);
 
   const externo = isExternalTipo(tipo);
-  const managerCargo = canManageUsers(form.cargo);
+  const adminForaDoPadrao = useMemo(
+    () =>
+      externo
+        ? []
+        : adminSectionsForaDoPadrao(form.cargo, secoes, isSuperAdmin).map(sectionTitle),
+    [externo, form.cargo, secoes, isSuperAdmin],
+  );
   const campoMerch = !externo && isCampoMerchCargo(form.cargo);
 
   useEffect(() => {
@@ -193,11 +200,8 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
   };
 
   const moduleOptions = useMemo(
-    () =>
-      PORTAL_MODULES.filter(
-        (mod) => mod.id !== 'grupo-fe' && (mod.id !== 'administrador' || managerCargo),
-      ),
-    [managerCargo],
+    () => PORTAL_MODULES.filter((mod) => mod.id !== 'grupo-fe'),
+    [],
   );
 
   const updateField = (field: keyof typeof form, value: string) => {
@@ -223,13 +227,9 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
       setLojaIds([]);
       setLojaSearch('');
     }
-    setSecoes((prev) => {
-      const next = prev.length ? prev : defaultSecoesForCargo(cargo);
-      if (!canManageUsers(cargo)) {
-        return next.filter((id) => !id.startsWith('administrador.'));
-      }
-      return next;
-    });
+    if (!isEdit) {
+      setSecoes(defaultSecoesForCargo(cargo));
+    }
   };
 
   const sectionIdsOf = (moduleId: PortalModuleId) =>
@@ -724,19 +724,23 @@ export default function UsuarioFormModal({ user, onClose, onSuccess }: UsuarioFo
           <fieldset className="colab-field full usuario-modulos-field">
             <legend>Balões / seções de acesso</legend>
             <p className="usuario-modulos-hint">
-              Em <strong>Fé Representações</strong>, abra <em>Seções</em> para liberar só Price e
-              Sucesso, ou marcar telas de Vendas uma a uma. Externos (ao salvar como indústria/cliente)
-              recebem automaticamente Merchandising (Validades + Atividades) e Fé Representações (Price
-              + Sucesso), somente leitura, sem Vendas.
+              O cargo preenche o padrão já usado no cadastro. O que ficar marcado é o que vale.
+              Desmarcar um balão remove as seções dele.
             </p>
+            {adminForaDoPadrao.length > 0 && (
+              <p className="usuario-modulos-hint" role="status">
+                Estas seções são de cargo administrativo (Analista admin, RH, Supervisor, Gerente ou
+                Admin Supremo) e não fazem parte do padrão deste cargo:{' '}
+                <strong>{adminForaDoPadrao.join(', ')}</strong>. Se salvar mesmo assim, elas ficam
+                liberadas.
+              </p>
+            )}
             <div className="usuario-modulos-grid">
               {moduleOptions.map((mod) => {
                 const checked = isModuleChecked(mod.id);
                 const partial = isModulePartial(mod.id);
                 const isOpen = expanded[mod.id] ?? (partial || checked);
-                const visibleSections = mod.sections.filter(
-                  (s) => !s.id.endsWith('.hub') && s.id !== 'fe-representacoes.avisos',
-                );
+                const visibleSections = mod.sections.filter((s) => !s.id.endsWith('.hub'));
                 const hasManySections = visibleSections.length > 1;
 
                 return (

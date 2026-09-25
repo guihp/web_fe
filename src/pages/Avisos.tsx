@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import ModalShell from '../components/colaboradores/ModalShell';
 import BackToPortal from '../components/layout/BackToPortal';
 import { useAuth } from '../context/AuthContext';
-import { canManageUsers } from '../data/portalModules';
+import { userHasSectionAccess } from '../data/portalModules';
 import {
   AVISO_TEMPLATES,
   enviarAviso,
@@ -23,7 +23,11 @@ const TIPO_LABEL: Record<Aviso['tipo'], string> = {
 
 export default function Avisos() {
   const { user } = useAuth();
-  const isGerente = canManageUsers(user?.cargo);
+  const isGerente = userHasSectionAccess(
+    user?.cargo ?? '',
+    user?.secoes_acesso,
+    'fe-representacoes.avisos',
+  );
   const [tipo, setTipo] = useState<AvisoManualTipo>('salario');
   const [titulo, setTitulo] = useState(AVISO_TEMPLATES.salario.titulo);
   const [corpo, setCorpo] = useState(AVISO_TEMPLATES.salario.corpo);

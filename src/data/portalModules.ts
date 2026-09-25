@@ -375,19 +375,65 @@ export function moduleIdFromSection(sectionId: string): PortalModuleId | null {
   return mod?.id ?? null;
 }
 
+const NUCLEO_MERCHANDISING = [
+  'treinamentos.home',
+  'atividades.home',
+  'validades.home',
+] as const;
+
+/** Pacote já usado por Jorge Marques e Jeferson Santos. */
+const SUPERVISOR_SECOES = [
+  ...NUCLEO_MERCHANDISING,
+  'merchandising.encartes',
+  'merchandising.pesquisas',
+  'merchandising.ebook',
+  'merchandising.catalogo',
+  'vendas.dashboard',
+  'fe-representacoes.veiculos',
+] as const;
+
+/** Cargos que usam seção administrativa sem aviso. Admin Supremo entra pelo flag. */
+export const ADMIN_PATTERN_CARGOS = ['Gerente', 'Supervisor', 'Analista admin', 'RH'] as const;
+
+export function isCargoAdministrativo(cargo: string | null | undefined): boolean {
+  if (!cargo) return false;
+  const key = normalizeCargoKey(cargo);
+  return ADMIN_PATTERN_CARGOS.some((item) => normalizeCargoKey(item) === key);
+}
+
+export function isAdminOnlySection(sectionId: string): boolean {
+  return (
+    sectionId.startsWith('administrador.') ||
+    sectionId === 'fe-representacoes.avisos' ||
+    sectionId === 'merchandising.encartes' ||
+    sectionId === 'merchandising.ebook' ||
+    sectionId === 'fe-representacoes.veiculos'
+  );
+}
+
+export function adminSectionsForaDoPadrao(
+  cargo: string,
+  secoes: string[],
+  isSuperAdmin = false,
+): string[] {
+  if (isSuperAdmin || isCargoAdministrativo(cargo)) return [];
+  return secoes.filter((id) => isAdminOnlySection(id));
+}
+
+export function sectionTitle(sectionId: string): string {
+  for (const mod of PORTAL_MODULES) {
+    const hit = mod.sections.find((section) => section.id === sectionId);
+    if (hit) return `${mod.title} — ${hit.title}`;
+  }
+  return sectionId;
+}
+
 export function defaultSecoesForCargo(cargo: string): string[] {
   if (canManageUsers(cargo)) {
     return ALL_SECTION_IDS.filter((id) => !id.startsWith('grupo-fe.'));
   }
-  return PORTAL_MODULES.filter((m) => m.id !== 'administrador' && m.id !== 'grupo-fe')
-    .flatMap((m) => m.sections.map((s) => s.id))
-    .filter((id) => {
-      if (id === 'fe-representacoes.avisos') return false;
-      if (id === 'fe-representacoes.veiculos') return canAccessGestaoVeiculos(cargo, 'interno');
-      if (id === 'merchandising.encartes') return canLancarEncartes(cargo);
-      if (id === 'merchandising.ebook') return canViewEbook(cargo);
-      return true;
-    });
+  if (normalizeCargoKey(cargo) === 'supervisor') return [...SUPERVISOR_SECOES];
+  return [...NUCLEO_MERCHANDISING];
 }
 
 /** @deprecated use defaultSecoesForCargo — mantido para compat. */
@@ -425,28 +471,7 @@ export function sanitizeSecoes(cargo: string, secoes: string[] | null | undefine
   ];
 
   let next = picked;
-  if (!canManageUsers(cargo)) {
-    next = next.filter(
-      (id) => !id.startsWith('administrador.') && id !== 'fe-representacoes.avisos',
-    );
-  }
-  if (!canLancarEncartes(cargo)) {
-    next = next.filter((id) => id !== 'merchandising.encartes');
-  }
-  if (!canViewEbook(cargo)) {
-    next = next.filter((id) => id !== 'merchandising.ebook');
-  }
-  // Veículos (Fé Rep): só se o cargo puder E o admin tiver marcado a seção.
-  // Não forçar fe-representacoes.veiculos — isso reabria o balão Fé Representações
-  // mesmo com o módulo desmarcado no cadastro.
-  if (!canAccessGestaoVeiculos(cargo, 'interno')) {
-    next = next.filter((id) => id !== 'fe-representacoes.veiculos');
-  }
-  if (canManageUsers(cargo) && !next.includes('administrador.veiculos')) {
-    next = [...next, 'administrador.veiculos'];
-  }
 
-  // Sempre inclui módulos liberados para todos
   for (const id of ALWAYS_AVAILABLE_SECTION_IDS) {
     if (!next.includes(id)) next = [...next, id];
   }
@@ -728,24 +753,12 @@ export function userHasSectionAccess(
     return SUCESSO_SECTION_IDS.some((id) => resolved.includes(remapLegacySectionId(id)));
   }
 
-  if (sectionId === 'fe-representacoes.avisos') {
-    return canManageUsers(cargo);
+  if (sectionId === 'fe-representacoes.avisos' || sectionId === 'merchandising.encartes' || sectionId === 'merchandising.ebook' || sectionId === 'fe-representacoes.veiculos' || sectionId === 'administrador.veiculos') {
+    return resolved.includes(sectionId);
   }
 
-  if (sectionId === 'merchandising.encartes') {
-    return canLancarEncartes(cargo);
-  }
-
-  if (sectionId === 'merchandising.ebook') {
-    return canViewEbook(cargo);
-  }
-
-  if (sectionId === 'fe-representacoes.veiculos') {
-    return canAccessGestaoVeiculos(cargo, 'interno') && resolved.includes(sectionId);
-  }
-
-  if (sectionId === 'administrador.veiculos') {
-    return canManageUsers(cargo) && resolved.includes(sectionId);
+  if (sectionId.startsWith('administrador.')) {
+    return resolved.includes(sectionId);
   }
 
   // Fazer pesquisa: liberado no hub para internos (gate de tipo_usuario na página/card)
@@ -756,10 +769,6 @@ export function userHasSectionAccess(
   // Catálogo: liberado no hub (interno + externo); gestão/filtro de indústria na página
   if (sectionId === 'merchandising.catalogo') {
     return true;
-  }
-
-  if (sectionId.startsWith('administrador.') && !canManageUsers(cargo)) {
-    return false;
   }
 
   // Hub Merchandising: acesso se tiver qualquer seção do módulo
@@ -816,9 +825,6 @@ export function userHasModuleAccess(
 
   if (ALWAYS_AVAILABLE_MODULE_IDS.includes(moduleId)) {
     return true;
-  }
-  if (moduleId === 'administrador' && !canManageUsers(cargo)) {
-    return false;
   }
 
   const resolvedSecoes =

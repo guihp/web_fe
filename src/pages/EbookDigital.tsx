@@ -4,7 +4,7 @@ import BackToPortal from '../components/layout/BackToPortal';
 import AppIcon from '../components/icons/AppIcon';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { canViewEbook } from '../data/portalModules';
+import { userHasSectionAccess } from '../data/portalModules';
 import {
   ebookTipoLabel,
   fetchEbookPhotos,
@@ -53,7 +53,11 @@ function todayStamp(): string {
 export default function EbookDigital() {
   const { user } = useAuth();
   const { showToast } = useToast();
-  const allowed = canViewEbook(user?.cargo);
+  const allowed = userHasSectionAccess(
+    user?.cargo ?? '',
+    user?.secoes_acesso,
+    'merchandising.ebook',
+  );
 
   const [photos, setPhotos] = useState<EbookPhoto[]>([]);
   const [loading, setLoading] = useState(true);

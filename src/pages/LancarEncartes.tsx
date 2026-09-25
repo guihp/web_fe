@@ -3,7 +3,7 @@ import { Navigate } from 'react-router-dom';
 import BackToPortal from '../components/layout/BackToPortal';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { canLancarEncartes } from '../data/portalModules';
+import { userHasSectionAccess } from '../data/portalModules';
 import {
   ENCARTE_PAGE_SIZE,
   fetchEncartes,
@@ -35,7 +35,11 @@ export default function LancarEncartes() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  const allowed = canLancarEncartes(user?.cargo);
+  const allowed = userHasSectionAccess(
+    user?.cargo ?? '',
+    user?.secoes_acesso,
+    'merchandising.encartes',
+  );
 
   const load = useCallback(async () => {
     setLoading(true);
